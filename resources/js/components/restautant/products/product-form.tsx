@@ -75,6 +75,14 @@ export function ProductForm({
         product?.menu_category_id?.toString() ?? '',
     );
 
+    const [subcategoryId, setSubcategoryId] = useState(
+        product?.menu_subcategory_id?.toString() ?? '',
+    );
+
+    const [subcategoryTypeId, setSubcategoryTypeId] = useState(
+        product?.menu_subcategory_type_id?.toString() ?? '',
+    );
+
     const [type, setType] = useState<'simple' | 'prepared'>(
         product?.type ?? 'prepared',
     );
@@ -87,12 +95,21 @@ export function ProductForm({
         (category) => category.id.toString() === categoryId,
     );
 
+    const isBeverage = selectedCategory?.name === 'Bebidas';
+    const isFood = selectedCategory?.name === 'Comidas';
+
+    const subcategories = selectedCategory?.menu_subcategories ?? [];
+    const selectedSubcategory = subcategories.find(
+        (sub) => sub.id.toString() === subcategoryId,
+    );
+
+    const isEconomicMenu = selectedSubcategory?.name === 'Menú Económico';
+    const subcategoryTypes = selectedSubcategory?.types ?? [];
+
     const requiresPresentation =
         selectedCategory?.requires_presentation ?? false;
 
-    const isBeverage = selectedCategory?.name === 'Bebidas';
-
-    const canSetInitialStock = !product && selectedCategory?.name === 'Bebidas';
+    const canSetInitialStock = !product && isBeverage;
 
     return (
         <Form
@@ -154,9 +171,13 @@ export function ProductForm({
                                     );
 
                                     setCategoryId(newCategoryId);
+                                    setSubcategoryId('');
+                                    setSubcategoryTypeId('');
 
                                     if (newCategory?.name === 'Bebidas') {
                                         setType('simple');
+                                    } else {
+                                        setType('prepared');
                                     }
                                 }}
                             >
@@ -188,6 +209,115 @@ export function ProductForm({
                                 </p>
                             )}
                         </div>
+
+                        {/* Subcategoría (solo para Comidas) */}
+                        {isFood && (
+                            <div className="space-y-2">
+                                <FieldLabel
+                                    htmlFor="menu_subcategory_id"
+                                    help="Selecciona si es Menú Económico o Plato Especial."
+                                >
+                                    Subcategoría
+                                </FieldLabel>
+
+                                <input
+                                    type="hidden"
+                                    name="menu_subcategory_id"
+                                    value={subcategoryId}
+                                />
+
+                                <Select
+                                    value={subcategoryId}
+                                    onValueChange={(value) => {
+                                        setSubcategoryId(value ?? '');
+                                        setSubcategoryTypeId('');
+                                    }}
+                                >
+                                    <SelectTrigger
+                                        id="menu_subcategory_id"
+                                        className="w-full"
+                                    >
+                                        <SelectValue placeholder="Selecciona una subcategoría">
+                                            {selectedSubcategory?.name ??
+                                                'Selecciona una subcategoría'}
+                                        </SelectValue>
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {subcategories.map((sub) => (
+                                            <SelectItem
+                                                key={sub.id}
+                                                value={sub.id.toString()}
+                                            >
+                                                {sub.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                {errors.menu_subcategory_id && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.menu_subcategory_id}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Tipo de Menú Económico (solo para Menú Económico) */}
+                        {isFood && isEconomicMenu && (
+                            <div className="space-y-2">
+                                <FieldLabel
+                                    htmlFor="menu_subcategory_type_id"
+                                    help="Especifica si el producto es Segundo, Entrada o Postre."
+                                >
+                                    Tipo de Menú
+                                </FieldLabel>
+
+                                <input
+                                    type="hidden"
+                                    name="menu_subcategory_type_id"
+                                    value={subcategoryTypeId}
+                                />
+
+                                <Select
+                                    value={subcategoryTypeId}
+                                    onValueChange={(value) => {
+                                        setSubcategoryTypeId(value ?? '');
+                                    }}
+                                >
+                                    <SelectTrigger
+                                        id="menu_subcategory_type_id"
+                                        className="w-full"
+                                    >
+                                        <SelectValue placeholder="Selecciona el tipo (Segundo, Entrada, Postre)">
+                                            {subcategoryTypes.find(
+                                                (t) =>
+                                                    t.id.toString() ===
+                                                    subcategoryTypeId,
+                                            )?.name ??
+                                                'Selecciona un tipo de menú'}
+                                        </SelectValue>
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {subcategoryTypes.map((typeItem) => (
+                                            <SelectItem
+                                                key={typeItem.id}
+                                                value={typeItem.id.toString()}
+                                            >
+                                                {typeItem.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                {errors.menu_subcategory_type_id && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.menu_subcategory_type_id}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {requiresPresentation && (
                             <div className="space-y-2">

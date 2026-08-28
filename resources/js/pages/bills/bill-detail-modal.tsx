@@ -228,6 +228,11 @@ export function BillDetailModal({ bill, open, onOpenChange }: Props) {
                                         <TableRow key={item.id} className="text-sm">
                                             <TableCell className="font-medium py-2.5">
                                                 {item.product?.name ?? item.menu_modality?.name ?? 'Item sin nombre'}
+                                                {item.daily_menu_products && item.daily_menu_products.length > 0 && (
+                                                    <p className="text-xs text-primary/80 font-medium">
+                                                        ({item.daily_menu_products.map((d) => d.product?.name).filter(Boolean).join(' + ')})
+                                                    </p>
+                                                )}
                                                 {item.notes && (
                                                     <p className="text-xs text-muted-foreground italic">
                                                         Nota: {item.notes}

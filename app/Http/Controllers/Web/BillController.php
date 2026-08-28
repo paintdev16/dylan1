@@ -21,6 +21,7 @@ class BillController extends Controller
                 'orders.user',
                 'orders.items.product',
                 'orders.items.menuModality',
+                'orders.items.dailyMenuProducts.product',
                 'payments.cashier',
             ])
             ->orderByDesc('opened_at')

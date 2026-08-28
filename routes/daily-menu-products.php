@@ -20,4 +20,17 @@ Route::middleware(['auth'])->group(function () {
         'daily-menu-products/{dailyMenuProduct}/status',
         [DailyMenuProductController::class, 'updateStatus']
     )->name('daily-menu-products.update-status');
+
+    Route::patch(
+        'daily-menus/{dailyMenu}/status',
+        [DailyMenuProductController::class, 'updateMenuStatus']
+    )->name('daily-menus.update-status');
+
+    Route::put(
+        'daily-menu-modalities/{menuModality}',
+        [DailyMenuProductController::class, 'updateModality']
+    )->name('daily-menu-modalities.update');
+
+    Route::get('daily-menu', [DailyMenuProductController::class, 'index'])
+        ->name('daily-menu.index');
 });

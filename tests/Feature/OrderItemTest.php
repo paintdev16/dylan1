@@ -2,9 +2,11 @@
 
 use App\Models\Bill;
 use App\Models\DailyMenu;
+use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
 use App\Models\MenuModality;
 use App\Models\MenuSubcategory;
+use App\Models\MenuSubcategoryType;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -29,18 +31,14 @@ function createOrderForOrderItemTest(User $user, string $billStatus = 'open'): O
 
 function createActiveProductForOrderItemTest(): Product
 {
-    $category = MenuCategory::create([
-        'name' => 'Comidas',
-        'display_order' => 0,
-        'has_versions' => false,
-        'active' => true,
-    ]);
-    $subcategory = MenuSubcategory::create([
-        'menu_category_id' => $category->id,
-        'name' => 'Carta',
-        'display_order' => 0,
-        'active' => true,
-    ]);
+    $category = MenuCategory::firstOrCreate(
+        ['name' => 'Comidas'],
+        ['display_order' => 0, 'has_versions' => false, 'active' => true]
+    );
+    $subcategory = MenuSubcategory::firstOrCreate(
+        ['name' => 'Carta', 'menu_category_id' => $category->id],
+        ['display_order' => 0, 'active' => true]
+    );
 
     return Product::create([
         'menu_category_id' => $category->id,
@@ -52,19 +50,54 @@ function createActiveProductForOrderItemTest(): Product
     ]);
 }
 
-function createActiveMenuModalityForOrderItemTest(): MenuModality
+function createActiveMenuModalityForOrderItemTest(): array
 {
-    $dailyMenu = DailyMenu::create([
-        'date' => today(),
-        'active' => true,
-    ]);
+    $category = MenuCategory::firstOrCreate(
+        ['name' => 'Comidas'],
+        ['display_order' => 1, 'active' => true]
+    );
+    $subcategory = MenuSubcategory::firstOrCreate(
+        ['name' => 'Menú Económico', 'menu_category_id' => $category->id],
+        ['display_order' => 1, 'active' => true]
+    );
+    $typeSegundo = MenuSubcategoryType::firstOrCreate(
+        ['name' => 'Segundos', 'menu_subcategory_id' => $subcategory->id],
+        ['display_order' => 1, 'active' => true]
+    );
+    $typeEntrada = MenuSubcategoryType::firstOrCreate(
+        ['name' => 'Entradas', 'menu_subcategory_id' => $subcategory->id],
+        ['display_order' => 2, 'active' => true]
+    );
+    $typePostre = MenuSubcategoryType::firstOrCreate(
+        ['name' => 'Postres', 'menu_subcategory_id' => $subcategory->id],
+        ['display_order' => 3, 'active' => true]
+    );
 
-    return MenuModality::create([
+    $pSegundo = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeSegundo->id, 'name' => 'Seco de Pollo', 'price' => 15.00, 'type' => 'prepared', 'status' => 'activo']);
+    $pEntrada = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeEntrada->id, 'name' => 'Sopa', 'price' => 3.00, 'type' => 'prepared', 'status' => 'activo']);
+    $pPostre = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typePostre->id, 'name' => 'Flan', 'price' => 2.00, 'type' => 'prepared', 'status' => 'activo']);
+
+    $todayDate = now('America/Lima')->toDateString();
+    $dailyMenu = DailyMenu::firstOrCreate(
+        ['date' => $todayDate],
+        ['active' => true]
+    );
+
+    $dmpSegundo = DailyMenuProduct::create(['daily_menu_id' => $dailyMenu->id, 'product_id' => $pSegundo->id, 'price' => 15.00, 'quantity_available' => 10, 'display_order' => 1, 'active' => true]);
+    $dmpEntrada = DailyMenuProduct::create(['daily_menu_id' => $dailyMenu->id, 'product_id' => $pEntrada->id, 'price' => 3.00, 'quantity_available' => 10, 'display_order' => 2, 'active' => true]);
+    $dmpPostre = DailyMenuProduct::create(['daily_menu_id' => $dailyMenu->id, 'product_id' => $pPostre->id, 'price' => 2.00, 'quantity_available' => 10, 'display_order' => 3, 'active' => true]);
+
+    $modality = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
         'name' => 'Menú completo',
         'price' => 15.00,
         'active' => true,
     ]);
+
+    return [
+        'modality' => $modality,
+        'components' => [$dmpSegundo->id, $dmpEntrada->id, $dmpPostre->id],
+    ];
 }
 
 test('authenticated users can add an active product to an order', function () {
@@ -93,18 +126,19 @@ test('authenticated users can add an active product to an order', function () {
 test('authenticated users can add an active menu modality to an order', function () {
     $user = User::factory()->create();
     $order = createOrderForOrderItemTest($user);
-    $menuModality = createActiveMenuModalityForOrderItemTest();
+    $modalityData = createActiveMenuModalityForOrderItemTest();
 
     $this->actingAs($user)
         ->post(route('orders.items.store', $order), [
-            'menu_modality_id' => $menuModality->id,
+            'menu_modality_id' => $modalityData['modality']->id,
+            'components' => $modalityData['components'],
             'quantity' => 3,
         ])
         ->assertRedirect(route('orders.index'));
 
     $item = OrderItem::firstOrFail();
     expect($item)
-        ->menu_modality_id->toBe($menuModality->id)
+        ->menu_modality_id->toBe($modalityData['modality']->id)
         ->product_id->toBeNull()
         ->subtotal->toBe('45.00');
 });
@@ -119,7 +153,7 @@ test('an order item requires exactly one product origin', function () {
         ->from(route('orders.index'))
         ->post(route('orders.items.store', $order), [
             'product_id' => $product->id,
-            'menu_modality_id' => $menuModality->id,
+            'menu_modality_id' => $menuModality['modality']->id,
             'quantity' => 1,
         ])
         ->assertRedirect(route('orders.index'))

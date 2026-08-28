@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\MenuCategory;
+use App\Models\MenuSubcategory;
+use App\Models\MenuSubcategoryType;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -37,9 +39,69 @@ class ProductFactory extends Factory
 
     public function beverage(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'type' => 'simple',
-        ]);
+        return $this->state(function (array $attributes) {
+            $category = MenuCategory::query()->firstOrCreate(
+                ['name' => 'Bebidas'],
+                ['display_order' => 2, 'active' => true]
+            );
+
+            return [
+                'menu_category_id' => $category->id,
+                'menu_subcategory_id' => null,
+                'menu_subcategory_type_id' => null,
+                'presentation' => '500ml',
+                'type' => 'simple',
+            ];
+        });
+    }
+
+    public function specialDish(): static
+    {
+        return $this->state(function (array $attributes) {
+            $category = MenuCategory::query()->firstOrCreate(
+                ['name' => 'Comidas'],
+                ['display_order' => 1, 'active' => true]
+            );
+
+            $subcategory = MenuSubcategory::query()->firstOrCreate(
+                ['menu_category_id' => $category->id, 'name' => 'Platos Especiales'],
+                ['display_order' => 2, 'active' => true]
+            );
+
+            return [
+                'menu_category_id' => $category->id,
+                'menu_subcategory_id' => $subcategory->id,
+                'menu_subcategory_type_id' => null,
+                'type' => 'prepared',
+            ];
+        });
+    }
+
+    public function economicMenu(string $typeName = 'Segundos'): static
+    {
+        return $this->state(function (array $attributes) use ($typeName) {
+            $category = MenuCategory::query()->firstOrCreate(
+                ['name' => 'Comidas'],
+                ['display_order' => 1, 'active' => true]
+            );
+
+            $subcategory = MenuSubcategory::query()->firstOrCreate(
+                ['menu_category_id' => $category->id, 'name' => 'Menú Económico'],
+                ['display_order' => 1, 'active' => true]
+            );
+
+            $type = MenuSubcategoryType::query()->firstOrCreate(
+                ['menu_subcategory_id' => $subcategory->id, 'name' => $typeName],
+                ['display_order' => 1, 'active' => true]
+            );
+
+            return [
+                'menu_category_id' => $category->id,
+                'menu_subcategory_id' => $subcategory->id,
+                'menu_subcategory_type_id' => $type->id,
+                'type' => 'prepared',
+            ];
+        });
     }
 
     public function prepared(): static

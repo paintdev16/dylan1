@@ -1,10 +1,13 @@
 import {
     AudioWaveform,
     ChevronsUpDown,
+    CircleDollarSign,
     Command,
     GalleryVerticalEnd,
+    Package,
     Plus,
     ReceiptText,
+    Users,
 } from 'lucide-react';
 import { LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -37,13 +40,44 @@ import { index } from '@/routes/menu-categories';
 import { index as billsIndex } from '@/routes/bills';
 import { index as ordersIndex } from '@/routes/orders';
 import products from '@/routes/products';
-import { UtensilsCrossed } from 'lucide-react';
+import { ChefHat, Table2, UtensilsCrossed } from 'lucide-react';
+import { index as tablesIndex } from '@/routes/tables';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Mesas',
+        href: tablesIndex(),
+        icon: Table2,
+    },
+    {
+        title: 'Menú Diario',
+        href: '/daily-menu',
+        icon: UtensilsCrossed,
+    },
+    {
+        title: 'Comandas',
+        href: ordersIndex(),
+        icon: UtensilsCrossed,
+    },
+    {
+        title: 'Cocina',
+        href: '/kitchen',
+        icon: ChefHat,
+    },
+    {
+        title: 'Caja',
+        href: '/cash-register',
+        icon: CircleDollarSign,
+    },
+    {
+        title: 'Cuentas',
+        href: billsIndex(),
+        icon: ReceiptText,
     },
     {
         title: 'Categorías',
@@ -56,14 +90,14 @@ const mainNavItems: NavItem[] = [
         icon: AudioWaveform,
     },
     {
-        title: 'Comandas',
-        href: ordersIndex(),
-        icon: UtensilsCrossed,
+        title: 'Inventario',
+        href: '/product-stock',
+        icon: Package,
     },
     {
-        title: 'Cuentas',
-        href: billsIndex(),
-        icon: ReceiptText,
+        title: 'Usuarios',
+        href: '/users',
+        icon: Users,
     },
 ];
 

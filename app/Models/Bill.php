@@ -9,17 +9,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
+ * @property int|null $table_session_id
  * @property int|null $table_id
  * @property int $opening_waiter_id
  * @property string $order_type
  * @property string $status
  * @property Carbon $opened_at
  * @property Carbon|null $closed_at
+ * @property-read TableSession|null $tableSession
  * @property-read RestaurantTable|null $restaurantTable
  * @property-read User $openingWaiter
  */
 #[Fillable([
+    'table_session_id',
     'table_id',
     'opening_waiter_id',
     'order_type',
@@ -43,6 +45,12 @@ class Bill extends Model
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    /** @return BelongsTo<TableSession, $this> */
+    public function tableSession(): BelongsTo
+    {
+        return $this->belongsTo(TableSession::class, 'table_session_id');
     }
 
     /** @return BelongsTo<RestaurantTable, $this> */
@@ -72,10 +80,10 @@ class Bill extends Model
     public function getTotalAmountAttribute(): float
     {
         if ($this->relationLoaded('orders')) {
-            return round((float) $this->orders->flatMap(fn (Order $order) => $order->relationLoaded('items') ? $order->items : $order->items()->get())->sum('subtotal'), 2);
+            return round((float) $this->orders->flatMap(fn (Order $order) => ($order->relationLoaded('items') ? $order->items : $order->items()->get())->where('is_cancelled', false))->sum('subtotal'), 2);
         }
 
-        return round((float) OrderItem::query()->whereHas('order', fn ($query) => $query->where('bill_id', $this->id))->sum('subtotal'), 2);
+        return round((float) OrderItem::query()->where('is_cancelled', false)->whereHas('order', fn ($query) => $query->where('bill_id', $this->id))->sum('subtotal'), 2);
     }
 
     public function getPaidAmountAttribute(): float

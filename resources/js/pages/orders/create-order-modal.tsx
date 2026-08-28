@@ -20,12 +20,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { store as storeOrderRoute } from '@/routes/orders';
-import { Bill, MenuModality, Product } from '@/types/restaurant';
+import { Bill, DailyMenuProduct, MenuModality, Product } from '@/types/restaurant';
 
 type Props = {
     openBills: Bill[];
     products: Product[];
     menuModalities: MenuModality[];
+    dailyMenuProducts?: DailyMenuProduct[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 };
@@ -34,6 +35,7 @@ export function CreateOrderModal({
     openBills,
     products,
     menuModalities,
+    dailyMenuProducts = [],
     open,
     onOpenChange,
 }: Props) {
@@ -42,6 +44,9 @@ export function CreateOrderModal({
     const [itemType, setItemType] = useState<'product' | 'modality'>('product');
     const [productId, setProductId] = useState<string>('');
     const [menuModalityId, setMenuModalityId] = useState<string>('');
+    const [selectedSegundoId, setSelectedSegundoId] = useState<string>('');
+    const [selectedEntradaId, setSelectedEntradaId] = useState<string>('');
+    const [selectedPostreId, setSelectedPostreId] = useState<string>('');
     const [quantity, setQuantity] = useState<number>(1);
     const [notes, setNotes] = useState<string>('');
 
@@ -51,8 +56,43 @@ export function CreateOrderModal({
         setItemType('product');
         setProductId('');
         setMenuModalityId('');
+        setSelectedSegundoId('');
+        setSelectedEntradaId('');
+        setSelectedPostreId('');
         setQuantity(1);
         setNotes('');
+    };
+
+    const selectedModality = menuModalities.find((m) => m.id.toString() === menuModalityId);
+    const modalityName = selectedModality?.name.toLowerCase() ?? '';
+
+    const isCompleto = modalityName.includes('completo');
+    const isSoloSegundo = modalityName.includes('segundo');
+    const isEntradaPostre = modalityName.includes('entrada') && modalityName.includes('postre');
+
+    const segundos = dailyMenuProducts.filter(
+        (p) => p.product?.menu_subcategory_type?.name === 'Segundos'
+    );
+    const entradas = dailyMenuProducts.filter(
+        (p) => p.product?.menu_subcategory_type?.name === 'Entradas'
+    );
+    const postres = dailyMenuProducts.filter(
+        (p) => p.product?.menu_subcategory_type?.name === 'Postres'
+    );
+
+    const isModalityReady = () => {
+        if (!includeItem || itemType !== 'modality') return true;
+        if (!selectedModality) return false;
+        if (isCompleto) {
+            return selectedSegundoId !== '' && selectedEntradaId !== '' && selectedPostreId !== '';
+        }
+        if (isSoloSegundo) {
+            return selectedSegundoId !== '';
+        }
+        if (isEntradaPostre) {
+            return selectedEntradaId !== '' && selectedPostreId !== '';
+        }
+        return true;
     };
 
     return (
@@ -123,7 +163,7 @@ export function CreateOrderModal({
                                     className="w-full"
                                     onClick={() => setIncludeItem(!includeItem)}
                                 >
-                                    {includeItem ? 'Quitar Producto Inicial' : '+ Agregar Producto Inicial'}
+                                    {includeItem ? 'Quitar Plato Inicial' : '+ Agregar Plato Inicial'}
                                 </Button>
                             </div>
 
@@ -139,7 +179,7 @@ export function CreateOrderModal({
                                                 setMenuModalityId('');
                                             }}
                                         >
-                                            Producto Carta
+                                            Carta / Bebidas
                                         </Button>
                                         <Button
                                             type="button"
@@ -150,7 +190,7 @@ export function CreateOrderModal({
                                                 setProductId('');
                                             }}
                                         >
-                                            Menú Ejecutivo
+                                            Menú del Día
                                         </Button>
                                     </div>
 
@@ -175,24 +215,105 @@ export function CreateOrderModal({
                                             </Select>
                                         </div>
                                     ) : (
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="menu_modality_id" className="text-xs">Modalidad Menú</Label>
-                                            <input type="hidden" name="menu_modality_id" value={menuModalityId} />
-                                            <Select
-                                                value={menuModalityId}
-                                                onValueChange={(val) => setMenuModalityId(val ?? '')}
-                                            >
-                                                <SelectTrigger id="menu_modality_id" className="h-9 bg-background">
-                                                    <SelectValue placeholder="Selecciona menú" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {menuModalities.map((m) => (
-                                                        <SelectItem key={m.id} value={m.id.toString()}>
-                                                            {m.name} - S/. {Number(m.price).toFixed(2)}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                        <div className="space-y-2">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="menu_modality_id" className="text-xs">Modalidad Menú</Label>
+                                                <input type="hidden" name="menu_modality_id" value={menuModalityId} />
+                                                <Select
+                                                    value={menuModalityId}
+                                                    onValueChange={(val) => {
+                                                        setMenuModalityId(val ?? '');
+                                                        setSelectedSegundoId('');
+                                                        setSelectedEntradaId('');
+                                                        setSelectedPostreId('');
+                                                    }}
+                                                >
+                                                    <SelectTrigger id="menu_modality_id" className="h-9 bg-background">
+                                                        <SelectValue placeholder="Selecciona menú" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {menuModalities.map((m) => (
+                                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                                {m.name} - S/. {Number(m.price).toFixed(2)}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {selectedModality && (
+                                                <div className="space-y-2 rounded border bg-background/80 p-2">
+                                                    <span className="text-xs font-semibold text-muted-foreground">
+                                                        Selecciona los componentes:
+                                                    </span>
+
+                                                    {(isCompleto || isSoloSegundo) && (
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs">Segundo:</Label>
+                                                            <input type="hidden" name="components[]" value={selectedSegundoId} />
+                                                            <Select
+                                                                value={selectedSegundoId}
+                                                                onValueChange={(val) => setSelectedSegundoId(val ?? '')}
+                                                            >
+                                                                <SelectTrigger className="h-8 text-xs">
+                                                                    <SelectValue placeholder="Segundo" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {segundos.map((s) => (
+                                                                        <SelectItem key={s.id} value={s.id.toString()}>
+                                                                            {s.product?.name} ({s.quantity_available} disp.)
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    )}
+
+                                                    {(isCompleto || isEntradaPostre) && (
+                                                        <>
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Entrada:</Label>
+                                                                <input type="hidden" name="components[]" value={selectedEntradaId} />
+                                                                <Select
+                                                                    value={selectedEntradaId}
+                                                                    onValueChange={(val) => setSelectedEntradaId(val ?? '')}
+                                                                >
+                                                                    <SelectTrigger className="h-8 text-xs">
+                                                                        <SelectValue placeholder="Entrada" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {entradas.map((e) => (
+                                                                            <SelectItem key={e.id} value={e.id.toString()}>
+                                                                                {e.product?.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+
+                                                            <div className="space-y-1">
+                                                                <Label className="text-xs">Postre:</Label>
+                                                                <input type="hidden" name="components[]" value={selectedPostreId} />
+                                                                <Select
+                                                                    value={selectedPostreId}
+                                                                    onValueChange={(val) => setSelectedPostreId(val ?? '')}
+                                                                >
+                                                                    <SelectTrigger className="h-8 text-xs">
+                                                                        <SelectValue placeholder="Postre" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {postres.map((p) => (
+                                                                            <SelectItem key={p.id} value={p.id.toString()}>
+                                                                                {p.product?.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -235,7 +356,12 @@ export function CreateOrderModal({
                                 </Button>
                                 <Button
                                     type="submit"
-                                    disabled={processing || !billId}
+                                    disabled={
+                                        processing ||
+                                        !billId ||
+                                        (includeItem && itemType === 'product' && !productId) ||
+                                        (includeItem && itemType === 'modality' && (!menuModalityId || !isModalityReady()))
+                                    }
                                 >
                                     {processing ? 'Registrando...' : 'Crear Comanda'}
                                 </Button>

@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import {
     CircleCheck,
     Clock3,
@@ -166,68 +166,24 @@ export default function Index({ bills, restaurantTables }: Props) {
                                             )}
                                         </div>
 
-                                        {orderType === 'dine_in' && (
-                                            <div className="space-y-2">
-                                                <Label htmlFor="table_id">
-                                                    Mesa disponible
-                                                </Label>
-                                                <input
-                                                    type="hidden"
-                                                    name="table_id"
-                                                    value={tableId}
-                                                />
-                                                <Select
-                                                    value={tableId}
-                                                    onValueChange={(value) =>
-                                                        setTableId(value ?? '')
-                                                    }
-                                                >
-                                                    <SelectTrigger
-                                                        id="table_id"
-                                                        className="w-full"
-                                                    >
-                                                        <SelectValue placeholder="Selecciona una mesa" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {restaurantTables.map(
-                                                            (
-                                                                restaurantTable,
-                                                            ) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        restaurantTable.id
-                                                                    }
-                                                                    value={restaurantTable.id.toString()}
-                                                                >
-                                                                    Mesa{' '}
-                                                                    {
-                                                                        restaurantTable.number
-                                                                    }{' '}
-                                                                    · Capacidad{' '}
-                                                                    {
-                                                                        restaurantTable.capacity
-                                                                    }
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {restaurantTables.length ===
-                                                    0 && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        No hay mesas
-                                                        disponibles.
-                                                    </p>
-                                                )}
-                                                {errors.table_id && (
-                                                    <p className="text-sm text-destructive">
-                                                        {errors.table_id}
-                                                    </p>
-                                                )}
+                                        {orderType === 'dine_in' ? (
+                                            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                                                <p className="text-xs text-muted-foreground">
+                                                    Las cuentas de <strong>Salón</strong> se inician automáticamente al abrir la mesa con la cantidad de comensales desde el plano del salón.
+                                                </p>
+                                                <Button asChild size="sm" variant="default" className="w-full">
+                                                    <Link href="/tables">
+                                                        Ir a Mesas para Abrir Mesa
+                                                    </Link>
+                                                </Button>
                                             </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">
+                                                Se creará una cuenta para llevar sin mesa asignada para registrar pedidos directos en caja.
+                                            </p>
                                         )}
 
-                                        <div className="flex justify-end gap-2">
+                                        <div className="flex justify-end gap-3 pt-2">
                                             <Button
                                                 type="button"
                                                 variant="outline"
@@ -235,18 +191,16 @@ export default function Index({ bills, restaurantTables }: Props) {
                                             >
                                                 Cancelar
                                             </Button>
-                                            <Button
-                                                type="submit"
-                                                disabled={
-                                                    processing ||
-                                                    (orderType === 'dine_in' &&
-                                                        tableId === '')
-                                                }
-                                            >
-                                                {processing
-                                                    ? 'Abriendo...'
-                                                    : 'Abrir cuenta'}
-                                            </Button>
+                                            {orderType === 'takeout' && (
+                                                <Button
+                                                    type="submit"
+                                                    disabled={processing}
+                                                >
+                                                    {processing
+                                                        ? 'Abriendo...'
+                                                        : 'Abrir cuenta para llevar'}
+                                                </Button>
+                                            )}
                                         </div>
                                     </>
                                 )}

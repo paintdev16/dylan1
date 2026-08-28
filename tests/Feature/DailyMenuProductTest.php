@@ -293,3 +293,113 @@ test('updating a second synchronizes the quantities of entries and desserts', fu
         'quantity_available' => 35,
     ]);
 });
+
+test('today menu is created automatically as draft on first visit', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('daily-menu-products.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('daily-menu-products/index')
+            ->where('dailyMenu.active', false)
+        );
+
+    $menu = DailyMenu::first();
+    expect($menu)->not->toBeNull()
+        ->and($menu->date->toDateString())->toBe(now('America/Lima')->toDateString())
+        ->and($menu->active)->toBeFalse();
+});
+
+test('authenticated user can toggle whole daily menu active status', function () {
+    $user = User::factory()->create();
+    $dailyMenu = DailyMenu::create([
+        'date' => now('America/Lima')->toDateString(),
+        'active' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('daily-menus.update-status', $dailyMenu), [
+            'active' => true,
+        ])
+        ->assertRedirect();
+
+    expect($dailyMenu->fresh()->active)->toBeTrue();
+
+    $this->actingAs($user)
+        ->patch(route('daily-menus.update-status', $dailyMenu), [
+            'active' => false,
+        ])
+        ->assertRedirect();
+
+    expect($dailyMenu->fresh()->active)->toBeFalse();
+});
+
+test('cannot add the same product twice to a daily menu', function () {
+    $user = User::factory()->create();
+    $dailyMenuProduct = createDailyMenuProduct();
+
+    $this->actingAs($user)
+        ->post(route('daily-menu-products.store'), [
+            'daily_menu_id' => $dailyMenuProduct->daily_menu_id,
+            'product_id' => $dailyMenuProduct->product_id,
+            'menu_subcategory_id' => $dailyMenuProduct->product->menu_subcategory_id,
+            'price' => 15.00,
+            'quantity_available' => 10,
+            'display_order' => 2,
+            'active' => true,
+        ])
+        ->assertSessionHasErrors('product_id');
+});
+
+test('past daily menus cannot be modified or activated', function () {
+    $user = User::factory()->create();
+    $pastDate = now('America/Lima')->subDays(2)->toDateString();
+
+    $pastMenu = DailyMenu::create([
+        'date' => $pastDate,
+        'active' => false,
+    ]);
+
+    $category = MenuCategory::create(['name' => 'Comidas', 'display_order' => 1, 'active' => true]);
+    $sub = MenuSubcategory::create(['menu_category_id' => $category->id, 'name' => 'Platos Especiales', 'display_order' => 1, 'active' => true]);
+    $product = Product::create([
+        'menu_category_id' => $category->id,
+        'menu_subcategory_id' => $sub->id,
+        'name' => 'Plato Pasado',
+        'type' => 'prepared',
+        'status' => 'activo',
+        'price' => 20.00,
+    ]);
+
+    $pastItem = DailyMenuProduct::create([
+        'daily_menu_id' => $pastMenu->id,
+        'product_id' => $product->id,
+        'price' => 20.00,
+        'quantity_available' => 5,
+        'display_order' => 1,
+        'active' => false,
+    ]);
+
+    // Intentar activar menú pasado
+    $this->actingAs($user)
+        ->patch(route('daily-menus.update-status', $pastMenu), ['active' => true])
+        ->assertSessionHasErrors('daily_menu');
+
+    // Intentar modificar ítem de menú pasado
+    $this->actingAs($user)
+        ->put(route('daily-menu-products.update', $pastItem), [
+            'product_id' => $product->id,
+            'menu_subcategory_id' => $sub->id,
+            'price' => 25.00,
+            'quantity_available' => 10,
+            'display_order' => 1,
+            'active' => true,
+        ])
+        ->assertSessionHasErrors('daily_menu');
+
+    // Intentar eliminar ítem de menú pasado
+    $this->actingAs($user)
+        ->delete(route('daily-menu-products.destroy', $pastItem))
+        ->assertSessionHasErrors('daily_menu');
+});

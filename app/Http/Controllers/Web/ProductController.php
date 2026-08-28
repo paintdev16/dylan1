@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\MenuCategory;
 use App\Models\MenuSubcategory;
+use App\Models\MenuSubcategoryType;
 use App\Models\Product;
 use App\Services\StockService;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,7 @@ class ProductController extends Controller
         $products = Product::with([
             'menuCategory',
             'menuSubcategory',
+            'menuSubcategoryType',
             'productStock',
         ])
             ->withExists([
@@ -44,6 +46,13 @@ class ProductController extends Controller
             ->with([
                 'menuSubcategories' => function ($query) {
                     $query->where('active', true)
+                        ->with([
+                            'types' => function ($query) {
+                                $query->where('active', true)
+                                    ->orderBy('display_order')
+                                    ->orderBy('name');
+                            },
+                        ])
                         ->orderBy('display_order')
                         ->orderBy('name');
                 },
@@ -60,10 +69,12 @@ class ProductController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules($request));
 
         $initialStock = $validated['initial_stock'] ?? null;
         unset($validated['initial_stock']);
+
+        $validated = $this->normalizeProductData($validated);
 
         DB::transaction(function () use ($validated, $initialStock): void {
             $product = Product::create($validated);
@@ -84,7 +95,9 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product): RedirectResponse
     {
-        $validated = $request->validate($this->rules($product));
+        $validated = $request->validate($this->rules($request, $product));
+
+        $validated = $this->normalizeProductData($validated);
 
         $product->update($validated);
 
@@ -124,11 +137,48 @@ class ProductController extends Controller
     }
 
     /**
-     * Reglas de validación para crear y actualizar productos.
+     * Normaliza los campos según la categoría y subcategoría.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      */
-    /** @return array<string, array<int, mixed>> */
-    private function rules(?Product $product = null): array
+    private function normalizeProductData(array $data): array
     {
+        $category = MenuCategory::find($data['menu_category_id'] ?? null);
+
+        if ($category && $category->name === 'Bebidas') {
+            $data['menu_subcategory_id'] = null;
+            $data['menu_subcategory_type_id'] = null;
+            $data['type'] = 'simple';
+        } else {
+            $subcategory = isset($data['menu_subcategory_id'])
+                ? MenuSubcategory::find($data['menu_subcategory_id'])
+                : null;
+
+            if ($subcategory && $subcategory->name === 'Platos Especiales') {
+                $data['menu_subcategory_type_id'] = null;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Reglas de validación para crear y actualizar productos.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function rules(Request $request, ?Product $product = null): array
+    {
+        $categoryId = $request->input('menu_category_id');
+        $category = $categoryId ? MenuCategory::find($categoryId) : null;
+        $isBeverage = $category && $category->name === 'Bebidas';
+        $isFood = $category && $category->name === 'Comidas';
+
+        $subcategoryId = $request->input('menu_subcategory_id');
+        $subcategory = $subcategoryId ? MenuSubcategory::find($subcategoryId) : null;
+        $isEconomicMenu = $subcategory && $subcategory->name === 'Menú Económico';
+
         return [
             'menu_category_id' => [
                 'required',
@@ -136,25 +186,45 @@ class ProductController extends Controller
             ],
 
             'menu_subcategory_id' => [
+                $isBeverage ? 'nullable' : 'required',
                 'nullable',
                 'exists:menu_subcategories,id',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($isBeverage, $categoryId) {
+                    if ($isBeverage && ! empty($value)) {
+                        $fail('Las bebidas no deben tener subcategoría asignada.');
+
+                        return;
+                    }
+
                     if (! $value) {
                         return;
                     }
 
-                    $subcategory = MenuSubcategory::query()->whereKey($value)->first();
+                    $sub = MenuSubcategory::find($value);
+                    if (! $sub || (int) $sub->menu_category_id !== (int) $categoryId) {
+                        $fail('La subcategoría no pertenece a la categoría seleccionada.');
+                    }
+                },
+            ],
 
-                    if (! $subcategory) {
+            'menu_subcategory_type_id' => [
+                $isEconomicMenu ? 'required' : 'nullable',
+                'nullable',
+                'exists:menu_subcategory_types,id',
+                function ($attribute, $value, $fail) use ($isEconomicMenu, $subcategoryId) {
+                    if (! $isEconomicMenu && ! empty($value)) {
+                        $fail('Solo los productos del Menú Económico pueden tener un tipo asignado.');
+
                         return;
                     }
 
-                    $categoryId = request('menu_category_id');
+                    if (! $value) {
+                        return;
+                    }
 
-                    if ((int) $subcategory->menu_category_id !== (int) $categoryId) {
-                        $fail(
-                            'La subcategoría no pertenece a la categoría seleccionada.'
-                        );
+                    $type = MenuSubcategoryType::find($value);
+                    if (! $type || (int) $type->menu_subcategory_id !== (int) $subcategoryId) {
+                        $fail('El tipo de menú seleccionado no pertenece a la subcategoría Menú Económico.');
                     }
                 },
             ],
@@ -202,16 +272,10 @@ class ProductController extends Controller
                 'nullable',
                 'integer',
                 'min:0',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($isBeverage) {
                     if ($value === null || $value === '') {
                         return;
                     }
-
-                    $isBeverage = MenuCategory::whereKey(
-                        request()->input('menu_category_id')
-                    )
-                        ->where('name', 'Bebidas')
-                        ->exists();
 
                     if (! $isBeverage) {
                         $fail(

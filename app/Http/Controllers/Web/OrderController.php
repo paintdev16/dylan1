@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
-use App\Models\MenuModality;
+use App\Models\DailyMenu;
+use App\Models\DailyMenuProduct;
 use App\Models\Order;
+use App\Models\OrderItemMenuProduct;
 use App\Models\Product;
+use App\Services\OrderStockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,14 +17,21 @@ use Inertia\Response;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly OrderStockService $stockService = new OrderStockService
+    ) {}
+
     public function index(): Response
     {
+        $todayDate = now('America/Lima')->toDateString();
+
         $orders = Order::query()
             ->with([
                 'bill.restaurantTable',
                 'user',
-                'items.product',
+                'items.product.menuCategory',
                 'items.menuModality',
+                'items.dailyMenuProducts.product.menuSubcategoryType',
             ])
             ->latest()
             ->get();
@@ -33,16 +43,38 @@ class OrderController extends Controller
             ->get();
 
         $products = Product::query()
+            ->with(['menuCategory', 'menuSubcategory', 'menuSubcategoryType', 'stock'])
             ->where('status', 'activo')
             ->orderBy('name')
             ->get();
 
-        $menuModalities = MenuModality::query()
+        $todayDailyMenu = DailyMenu::where('date', $todayDate)
             ->where('active', true)
-            ->orderBy('name')
-            ->get();
+            ->first();
 
-        return inertia('orders/index', compact('orders', 'openBills', 'products', 'menuModalities'));
+        $dailyMenuProducts = $todayDailyMenu
+            ? DailyMenuProduct::with(['product.menuCategory', 'product.menuSubcategory', 'product.menuSubcategoryType'])
+                ->where('daily_menu_id', $todayDailyMenu->id)
+                ->where('active', true)
+                ->where('quantity_available', '>', 0)
+                ->orderBy('display_order')
+                ->get()
+            : collect();
+
+        $menuModalities = $todayDailyMenu
+            ? $todayDailyMenu->menuModalities()
+                ->where('active', true)
+                ->orderBy('display_order')
+                ->get()
+            : collect();
+
+        return inertia('orders/index', compact(
+            'orders',
+            'openBills',
+            'products',
+            'menuModalities',
+            'dailyMenuProducts'
+        ));
     }
 
     public function store(Request $request): RedirectResponse
@@ -51,6 +83,8 @@ class OrderController extends Controller
             'bill_id' => ['required', 'integer', 'exists:bills,id'],
             'product_id' => ['nullable', 'integer', 'exists:products,id'],
             'menu_modality_id' => ['nullable', 'integer', 'exists:menu_modalities,id'],
+            'components' => ['nullable', 'array'],
+            'components.*' => ['integer', 'exists:daily_menu_products,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -76,25 +110,34 @@ class OrderController extends Controller
 
             if ($productId || $menuModalityId) {
                 $quantity = $validated['quantity'] ?? 1;
-                $unitPrice = 0;
 
+                $stockResult = $this->stockService->reserveStockForOrderItem($validated, $quantity);
+
+                $kitchenStatus = 'pendiente';
                 if ($productId) {
-                    $product = Product::find($productId);
-                    $unitPrice = (float) ($product?->price ?? 0);
-                } elseif ($menuModalityId) {
-                    $modality = MenuModality::find($menuModalityId);
-                    $unitPrice = (float) ($modality?->price ?? 0);
+                    $prod = Product::find($productId);
+                    if ($prod && $prod->type === 'simple') {
+                        $kitchenStatus = 'entregado';
+                    }
                 }
 
-                $order->items()->create([
+                $orderItem = $order->items()->create([
                     'product_id' => $productId,
                     'menu_modality_id' => $menuModalityId,
                     'quantity' => $quantity,
                     'notes' => $validated['notes'] ?? null,
-                    'unit_price' => $unitPrice,
-                    'subtotal' => round($unitPrice * $quantity, 2),
-                    'kitchen_status' => 'pendiente',
+                    'unit_price' => $stockResult['unit_price'],
+                    'subtotal' => $stockResult['subtotal'],
+                    'kitchen_status' => $kitchenStatus,
                 ]);
+
+                foreach ($stockResult['component_ids'] as $dmpId) {
+                    OrderItemMenuProduct::create([
+                        'order_item_id' => $orderItem->id,
+                        'daily_menu_product_id' => $dmpId,
+                        'quantity' => $quantity,
+                    ]);
+                }
             }
         });
 
@@ -135,7 +178,12 @@ class OrderController extends Controller
             ]);
         }
 
-        $order->delete();
+        DB::transaction(function () use ($order): void {
+            foreach ($order->items as $item) {
+                $this->stockService->restoreStockForOrderItem($item);
+            }
+            $order->delete();
+        });
 
         return redirect()
             ->route('orders.index')

@@ -33,5 +33,9 @@ class RolesPermissionsSeeder extends Seeder
             'edit users',
             'delete users',
         ]);
+
+        Role::findOrCreate('mozo');
+        Role::findOrCreate('cocina');
+        Role::findOrCreate('cajero');
     }
 }

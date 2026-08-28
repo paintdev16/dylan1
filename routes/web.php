@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::post('users', [UserController::class, 'store'])->name('users.store');
     Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update'])->name('users.update');
@@ -24,3 +25,5 @@ require __DIR__.'/bills.php';
 require __DIR__.'/orders.php';
 require __DIR__.'/order-items.php';
 require __DIR__.'/payments.php';
+require __DIR__.'/kitchen.php';
+require __DIR__.'/cash-register.php';

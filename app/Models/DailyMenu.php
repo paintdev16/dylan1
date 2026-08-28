@@ -31,4 +31,10 @@ class DailyMenu extends Model
     {
         return $this->hasMany(DailyMenuProduct::class);
     }
+
+    /** @return HasMany<MenuModality, $this> */
+    public function menuModalities(): HasMany
+    {
+        return $this->hasMany(MenuModality::class);
+    }
 }

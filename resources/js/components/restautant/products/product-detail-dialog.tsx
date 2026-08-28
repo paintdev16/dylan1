@@ -65,6 +65,22 @@ export function ProductDetailDialog({
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
+                    <DetailItem label="Categoría">
+                        {category?.name ?? product.menu_category?.name ?? 'Sin categoría'}
+                    </DetailItem>
+
+                    {product.menu_subcategory && (
+                        <DetailItem label="Subcategoría">
+                            {product.menu_subcategory.name}
+                        </DetailItem>
+                    )}
+
+                    {product.menu_subcategory_type && (
+                        <DetailItem label="Tipo de Menú">
+                            {product.menu_subcategory_type.name}
+                        </DetailItem>
+                    )}
+
                     <DetailItem label="Precio">
                         <span className="flex items-center gap-1 font-medium">
                             <BadgeDollarSign className="size-4 text-emerald-600" />

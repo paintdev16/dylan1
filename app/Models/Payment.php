@@ -8,15 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
+ * @property int|null $cash_register_session_id
  * @property int $bill_id
  * @property int $cashier_id
  * @property string $payment_method
  * @property float $amount
  * @property string|null $receipt_number
+ * @property-read CashRegisterSession|null $cashRegisterSession
  * @property-read Bill $bill
  * @property-read User $cashier
  */
 #[Fillable([
+    'cash_register_session_id',
     'bill_id',
     'cashier_id',
     'payment_method',
@@ -30,6 +33,12 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
         ];
+    }
+
+    /** @return BelongsTo<CashRegisterSession, $this> */
+    public function cashRegisterSession(): BelongsTo
+    {
+        return $this->belongsTo(CashRegisterSession::class, 'cash_register_session_id');
     }
 
     /** @return BelongsTo<Bill, $this> */

@@ -19,4 +19,9 @@ Route::middleware(['auth'])->group(function () {
         'tables/{table}/status',
         [RestaurantTableController::class, 'updateStatus']
     )->name('tables.status');
+
+    Route::post(
+        'tables/{table}/open-session',
+        [RestaurantTableController::class, 'openSession']
+    )->name('tables.open-session');
 });

@@ -6,11 +6,49 @@ export type RestaurantTableStatus =
     | 'cleaning'
     | 'out_of_service';
 
+export interface TableSession {
+    id: number;
+    restaurant_table_id: number;
+    waiter_id: number;
+    customer_count: number;
+    status: 'open' | 'closed';
+    opened_at: string;
+    closed_at: string | null;
+    waiter?: {
+        id: number;
+        name: string;
+    };
+    bill?: Bill;
+}
+
+export interface CashRegisterSession {
+    id: number;
+    user_id: number;
+    opening_amount: number;
+    closing_amount: number | null;
+    expected_amount: number | null;
+    difference: number | null;
+    notes: string | null;
+    status: 'open' | 'closed';
+    opened_at: string;
+    closed_at: string | null;
+}
+
+export interface CashRegisterSummary {
+    cash_total: number;
+    card_total: number;
+    digital_total: number;
+    total_collected: number;
+    expected_cash: number;
+    transactions_count: number;
+}
+
 export interface RestaurantTable {
     id: number;
     number: number;
     capacity: number;
     status: RestaurantTableStatus;
+    active_session?: TableSession | null;
 }
 
 export type BillOrderType = 'dine_in' | 'takeout';
@@ -49,6 +87,7 @@ export interface OrderItem {
         name: string;
         price: number;
     } | null;
+    daily_menu_products?: DailyMenuProduct[];
 }
 
 export interface Order {
@@ -91,6 +130,7 @@ export interface MenuCategory {
     active: boolean;
     has_versions: boolean;
     requires_presentation: boolean;
+    menu_subcategories?: MenuSubcategory[];
 }
 
 export type MenuSubcategoryType = {
@@ -184,6 +224,16 @@ export interface DailyMenuProduct {
 
     price: number | string;
     quantity_available: number;
+    display_order: number;
+    active: boolean;
+}
+
+export interface MenuModality {
+    id: number;
+    daily_menu_id: number;
+    name: string;
+    description: string | null;
+    price: number;
     display_order: number;
     active: boolean;
 }

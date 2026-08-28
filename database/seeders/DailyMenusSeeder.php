@@ -12,15 +12,24 @@ class DailyMenusSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 0; $i < 5; $i++) {
-            DailyMenu::updateOrCreate(
-                [
-                    'date' => today()->addDays($i)->toDateString(),
-                ],
-                [
-                    'active' => true,
-                ]
-            );
-        }
+        // Menú de hoy (zona horaria de Perú)
+        DailyMenu::updateOrCreate(
+            [
+                'date' => now('America/Lima')->toDateString(),
+            ],
+            [
+                'active' => true,
+            ]
+        );
+
+        // Menú histórico de ayer como ejemplo
+        DailyMenu::updateOrCreate(
+            [
+                'date' => now('America/Lima')->subDay()->toDateString(),
+            ],
+            [
+                'active' => false,
+            ]
+        );
     }
 }

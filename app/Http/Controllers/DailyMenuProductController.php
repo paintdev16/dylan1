@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
+use App\Models\MenuModality;
 use App\Models\MenuSubcategory;
 use App\Models\MenuSubcategoryType;
 use App\Models\Product;
@@ -16,14 +17,18 @@ class DailyMenuProductController extends Controller
 {
     public function index(): Response
     {
+        $todayDate = now('America/Lima')->toDateString();
+
         $dailyMenu = DailyMenu::firstOrCreate(
             [
-                'date' => today(),
+                'date' => $todayDate,
             ],
             [
-                'active' => true,
+                'active' => false,
             ]
         );
+
+        $this->ensureDefaultModalitiesExist($dailyMenu);
 
         $dailyMenuProducts = DailyMenuProduct::with([
             'product.menuCategory',
@@ -31,6 +36,10 @@ class DailyMenuProductController extends Controller
             'product.menuSubcategoryType',
         ])
             ->where('daily_menu_id', $dailyMenu->id)
+            ->orderBy('display_order')
+            ->get();
+
+        $menuModalities = $dailyMenu->menuModalities()
             ->orderBy('display_order')
             ->get();
 
@@ -50,6 +59,7 @@ class DailyMenuProductController extends Controller
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
+
         $products = Product::with([
             'menuCategory',
             'menuSubcategory',
@@ -72,17 +82,136 @@ class DailyMenuProductController extends Controller
             ->orderBy('name')
             ->get();
 
+        $pastMenus = DailyMenu::with([
+            'dailyMenuProducts.product.menuCategory',
+            'dailyMenuProducts.product.menuSubcategory',
+            'dailyMenuProducts.product.menuSubcategoryType',
+        ])
+            ->where('date', '<', $todayDate)
+            ->orderByDesc('date')
+            ->limit(10)
+            ->get()
+            ->map(fn (DailyMenu $menu) => [
+                'id' => $menu->id,
+                'date' => $menu->date->format('Y-m-d'),
+                'formatted_date' => $menu->formatted_date,
+                'active' => false,
+                'products_count' => $menu->dailyMenuProducts->count(),
+                'products' => $menu->dailyMenuProducts->map(fn ($item) => [
+                    'id' => $item->id,
+                    'product_name' => $item->product?->name ?? 'Producto',
+                    'subcategory_name' => $item->product?->menuSubcategory?->name,
+                    'type_name' => $item->product?->menuSubcategoryType?->name,
+                    'price' => $item->price,
+                    'quantity_available' => $item->quantity_available,
+                    'active' => $item->active,
+                ]),
+            ]);
+
         return Inertia::render('daily-menu-products/index', [
             'dailyMenu' => $dailyMenu,
             'dailyMenuProducts' => $dailyMenuProducts,
+            'menuModalities' => $menuModalities,
             'products' => $products,
             'menuSubcategories' => $menuSubcategories,
+            'pastMenus' => $pastMenus,
         ]);
+    }
+
+    public function updateModality(Request $request, MenuModality $menuModality): RedirectResponse
+    {
+        $todayDate = now('America/Lima')->toDateString();
+
+        if ($menuModality->dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede modificar una modalidad de un menú de una fecha pasada.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'price' => ['required', 'numeric', 'min:0'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $menuModality->update($validated);
+
+        return back()->with('success', 'Modalidad actualizada correctamente.');
+    }
+
+    private function ensureDefaultModalitiesExist(DailyMenu $dailyMenu): void
+    {
+        $defaultModalities = [
+            [
+                'name' => 'Menú completo',
+                'description' => 'Segundo + entrada + postre.',
+                'price' => 14.00,
+                'display_order' => 1,
+                'active' => true,
+            ],
+            [
+                'name' => 'Solo segundo',
+                'description' => 'Solo segundo del menú económico.',
+                'price' => 9.00,
+                'display_order' => 2,
+                'active' => true,
+            ],
+            [
+                'name' => 'Entrada + postre',
+                'description' => 'Una entrada + un postre.',
+                'price' => 5.00,
+                'display_order' => 3,
+                'active' => true,
+            ],
+        ];
+
+        foreach ($defaultModalities as $modality) {
+            MenuModality::firstOrCreate(
+                [
+                    'daily_menu_id' => $dailyMenu->id,
+                    'name' => $modality['name'],
+                ],
+                $modality
+            );
+        }
+    }
+
+    public function updateMenuStatus(Request $request, DailyMenu $dailyMenu): RedirectResponse
+    {
+        $todayDate = now('America/Lima')->toDateString();
+
+        if ($dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede activar o desactivar un menú de una fecha pasada.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $dailyMenu->update($validated);
+
+        return back()->with(
+            'success',
+            $validated['active']
+                ? 'Menú del día activado correctamente.'
+                : 'Menú del día guardado como borrador.'
+        );
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateData($request);
+
+        $dailyMenu = DailyMenu::findOrFail($validated['daily_menu_id']);
+        $todayDate = now('America/Lima')->toDateString();
+
+        if ($dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede agregar productos a un menú de una fecha pasada.',
+            ]);
+        }
 
         $product = $this->validateProduct(
             $validated['product_id'],
@@ -141,6 +270,13 @@ class DailyMenuProductController extends Controller
         Request $request,
         DailyMenuProduct $dailyMenuProduct
     ): RedirectResponse {
+        $todayDate = now('America/Lima')->toDateString();
+        if ($dailyMenuProduct->dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede modificar un producto de un menú de una fecha pasada.',
+            ]);
+        }
+
         $validated = $this->validateData($request);
 
         $product = $this->validateProduct(
@@ -337,6 +473,13 @@ class DailyMenuProductController extends Controller
     public function destroy(
         DailyMenuProduct $dailyMenuProduct
     ): RedirectResponse {
+        $todayDate = now('America/Lima')->toDateString();
+        if ($dailyMenuProduct->dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede eliminar un producto de un menú de una fecha pasada.',
+            ]);
+        }
+
         $dailyMenuId = $dailyMenuProduct->daily_menu_id;
 
         $dailyMenuProduct->delete();
@@ -355,6 +498,13 @@ class DailyMenuProductController extends Controller
         Request $request,
         DailyMenuProduct $dailyMenuProduct
     ): RedirectResponse {
+        $todayDate = now('America/Lima')->toDateString();
+        if ($dailyMenuProduct->dailyMenu->date->format('Y-m-d') < $todayDate) {
+            return back()->withErrors([
+                'daily_menu' => 'No se puede modificar el estado de un producto de un menú de una fecha pasada.',
+            ]);
+        }
+
         $validated = $request->validate([
             'active' => [
                 'required',

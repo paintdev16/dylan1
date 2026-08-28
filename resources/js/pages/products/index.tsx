@@ -171,10 +171,21 @@ export default function Index({ products, categories }: Props) {
 
                                                 {/* Categoría */}
                                                 <TableCell>
-                                                    <span className="text-sm font-medium">
-                                                        {category?.name ??
-                                                            'Sin categoría'}
-                                                    </span>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">
+                                                            {category?.name ??
+                                                                product.menu_category?.name ??
+                                                                'Sin categoría'}
+                                                        </span>
+                                                        {product.menu_subcategory && (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {product.menu_subcategory.name}
+                                                                {product.menu_subcategory_type
+                                                                    ? ` • ${product.menu_subcategory_type.name}`
+                                                                    : ''}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
 
                                                 {/* Precio */}

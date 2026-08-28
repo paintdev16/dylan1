@@ -3,22 +3,32 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\MenuModality;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderItemMenuProduct;
 use App\Models\Product;
+use App\Services\OrderStockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as ValidatorInstance;
 
 class OrderItemController extends Controller
 {
+    public function __construct(
+        private readonly OrderStockService $stockService = new OrderStockService
+    ) {}
+
     public function index(Order $order): JsonResponse
     {
         $items = $order->items()
-            ->with(['product', 'menuModality'])
+            ->with([
+                'product',
+                'menuModality',
+                'dailyMenuProducts.product.menuSubcategoryType',
+            ])
             ->latest()
             ->get();
 
@@ -39,6 +49,14 @@ class OrderItemController extends Controller
                 'integer',
                 'exists:menu_modalities,id',
                 'required_without:product_id',
+            ],
+            'components' => [
+                'nullable',
+                'array',
+            ],
+            'components.*' => [
+                'integer',
+                'exists:daily_menu_products,id',
             ],
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -65,30 +83,41 @@ class OrderItemController extends Controller
             ]);
         }
 
-        $source = $this->resolveSource($validated);
+        return DB::transaction(function () use ($validated, $order) {
+            $quantity = $validated['quantity'];
+            $stockResult = $this->stockService->reserveStockForOrderItem($validated, $quantity);
 
-        if ($source === null) {
-            return back()->withErrors([
-                'product_id' => 'El producto o modalidad seleccionada no está disponible.',
+            $productId = $validated['product_id'] ?? null;
+            $kitchenStatus = 'pendiente';
+            if ($productId) {
+                $prod = Product::find($productId);
+                if ($prod && $prod->type === 'simple') {
+                    $kitchenStatus = 'entregado';
+                }
+            }
+
+            $orderItem = $order->items()->create([
+                'product_id' => $productId,
+                'menu_modality_id' => $validated['menu_modality_id'] ?? null,
+                'quantity' => $quantity,
+                'notes' => $validated['notes'] ?? null,
+                'unit_price' => $stockResult['unit_price'],
+                'subtotal' => $stockResult['subtotal'],
+                'kitchen_status' => $kitchenStatus,
             ]);
-        }
 
-        $unitPrice = (float) $source->price;
-        $quantity = $validated['quantity'];
+            foreach ($stockResult['component_ids'] as $dmpId) {
+                OrderItemMenuProduct::create([
+                    'order_item_id' => $orderItem->id,
+                    'daily_menu_product_id' => $dmpId,
+                    'quantity' => $quantity,
+                ]);
+            }
 
-        $order->items()->create([
-            'product_id' => $source instanceof Product ? $source->id : null,
-            'menu_modality_id' => $source instanceof MenuModality ? $source->id : null,
-            'quantity' => $quantity,
-            'notes' => $validated['notes'] ?? null,
-            'unit_price' => $unitPrice,
-            'subtotal' => round($unitPrice * $quantity, 2),
-            'kitchen_status' => 'pendiente',
-        ]);
-
-        return redirect()
-            ->route('orders.index')
-            ->with('success', 'Producto agregado a la comanda.');
+            return redirect()
+                ->route('orders.index')
+                ->with('success', 'Producto agregado a la comanda.');
+        });
     }
 
     public function updateKitchenStatus(Request $request, OrderItem $orderItem): RedirectResponse
@@ -121,38 +150,53 @@ class OrderItemController extends Controller
 
     public function destroy(OrderItem $orderItem): RedirectResponse
     {
-        if ($orderItem->kitchen_status === 'entregado') {
+        if ($orderItem->kitchen_status === 'entregado' && $orderItem->order->status !== 'pendiente') {
             return back()->withErrors([
                 'item' => 'No se puede eliminar un ítem que ya ha sido entregado.',
             ]);
         }
 
-        $orderItem->delete();
+        DB::transaction(function () use ($orderItem): void {
+            $this->stockService->restoreStockForOrderItem($orderItem);
+            $orderItem->delete();
+        });
 
         return redirect()
             ->route('orders.index')
             ->with('success', 'Ítem eliminado de la comanda.');
     }
 
-    /**
-     * @param  array{product_id?: int, menu_modality_id?: int}  $validated
-     */
-    private function resolveSource(array $validated): Product|MenuModality|null
+    public function cancel(Request $request, OrderItem $orderItem): RedirectResponse
     {
-        if (isset($validated['product_id'])) {
-            return Product::query()
-                ->whereKey($validated['product_id'])
-                ->where('status', 'activo')
-                ->first();
+        if ($orderItem->order->bill->status !== 'open') {
+            return back()->withErrors([
+                'item' => 'No se pueden cancelar ítems de una cuenta ya cerrada o pagada.',
+            ]);
         }
 
-        if (! isset($validated['menu_modality_id'])) {
-            return null;
+        if ($orderItem->is_cancelled) {
+            return back()->withErrors([
+                'item' => 'Este ítem ya ha sido cancelado previamente.',
+            ]);
         }
 
-        return MenuModality::query()
-            ->whereKey($validated['menu_modality_id'])
-            ->where('active', true)
-            ->first();
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'min:3', 'max:255'],
+        ]);
+
+        DB::transaction(function () use ($orderItem, $validated, $request): void {
+            $orderItem->update([
+                'is_cancelled' => true,
+                'cancellation_reason' => $validated['cancellation_reason'],
+                'cancelled_by' => $request->user()->id,
+                'cancelled_at' => now(),
+            ]);
+
+            $this->stockService->restoreStockForOrderItem($orderItem);
+        });
+
+        return redirect()
+            ->route('orders.index')
+            ->with('success', 'Ítem cancelado correctamente y stock reintegrado.');
     }
 }

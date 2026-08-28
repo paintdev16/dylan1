@@ -26,13 +26,14 @@ import { AddItemModal } from '@/pages/orders/add-item-modal';
 import { CreateOrderModal } from '@/pages/orders/create-order-modal';
 import { updateKitchenStatus as updateKitchenStatusRoute, destroy as destroyItemRoute } from '@/routes/order-items';
 import { destroy as destroyOrderRoute, index as indexRoute, updateStatus as updateStatusRoute } from '@/routes/orders';
-import { Bill, MenuModality, Order, OrderItem, Product } from '@/types/restaurant';
+import { Bill, DailyMenuProduct, MenuModality, Order, OrderItem, Product } from '@/types/restaurant';
 
 type Props = {
     orders: Order[];
     openBills: Bill[];
     products: Product[];
     menuModalities: MenuModality[];
+    dailyMenuProducts?: DailyMenuProduct[];
 };
 
 function formatDate(dateString: string): string {
@@ -86,15 +87,23 @@ function getKitchenStatusLabel(status: string) {
     }
 }
 
-export default function Index({ orders, openBills, products, menuModalities }: Props) {
-    const [filterStatus, setFilterStatus] = useState<string>('all');
-    const [createModalOpen, setCreateModalOpen] = useState(false);
+export default function Index({ 
+    orders, 
+    openBills, 
+    products, 
+    menuModalities, 
+    dailyMenuProducts = [] 
+}: Props) {
+    const [statusFilter, setStatusFilter] = useState<'todos' | 'pendiente' | 'enviado_cocina' | 'completado'>('todos');
+    const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
+    const [addItemModalOpen, setAddItemModalOpen] = useState<boolean>(false);
     const [selectedOrderForAdd, setSelectedOrderForAdd] = useState<Order | null>(null);
-    const [addItemModalOpen, setAddItemModalOpen] = useState(false);
 
     const filteredOrders = orders.filter((o) => {
-        if (filterStatus === 'all') return true;
-        return o.status === filterStatus;
+        if (statusFilter === 'todos') {
+            return true;
+        }
+        return o.status === statusFilter;
     });
 
     const handleOpenAddItem = (order: Order) => {
@@ -110,93 +119,68 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <PageHeader
                         title="Comandas / Pedidos"
-                        description="Registro de pedidos por mesa, control de cocina y despacho."
+                        description="Gestiona las comandas tomadas por mozos, sus platos y el flujo de preparación."
                     />
 
-                    <Button onClick={() => setCreateModalOpen(true)}>
-                        <Plus className="size-4 mr-1.5" />
+                    <Button onClick={() => setCreateModalOpen(true)} className="gap-2 self-start sm:self-auto">
+                        <Plus className="size-4" />
                         Nueva Comanda
                     </Button>
                 </div>
 
                 {/* Filtros de estado */}
-                <div className="flex gap-2 border-b pb-3 overflow-x-auto">
-                    <Button
-                        variant={filterStatus === 'all' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setFilterStatus('all')}
-                    >
-                        Todas ({orders.length})
-                    </Button>
-                    <Button
-                        variant={filterStatus === 'pendiente' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setFilterStatus('pendiente')}
-                    >
-                        Pendientes ({orders.filter((o) => o.status === 'pendiente').length})
-                    </Button>
-                    <Button
-                        variant={filterStatus === 'enviado_cocina' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setFilterStatus('enviado_cocina')}
-                    >
-                        En Cocina ({orders.filter((o) => o.status === 'enviado_cocina').length})
-                    </Button>
-                    <Button
-                        variant={filterStatus === 'completado' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setFilterStatus('completado')}
-                    >
-                        Completadas ({orders.filter((o) => o.status === 'completado').length})
-                    </Button>
+                <div className="flex flex-wrap gap-2">
+                    {(['todos', 'pendiente', 'enviado_cocina', 'completado'] as const).map((st) => (
+                        <Button
+                            key={st}
+                            variant={statusFilter === st ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setStatusFilter(st)}
+                            className="capitalize text-xs"
+                        >
+                            {st === 'todos' ? 'Todos los Pedidos' : st.replace('_', ' ')}
+                            <span className="ml-1.5 rounded-full bg-muted/30 px-1.5 py-0.5 text-[10px]">
+                                {st === 'todos' ? orders.length : orders.filter((o) => o.status === st).length}
+                            </span>
+                        </Button>
+                    ))}
                 </div>
 
                 {/* Grid de Comandas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredOrders.map((order) => {
-                        const isDineIn = order.bill?.order_type === 'dine_in';
                         const items = order.items ?? [];
-                        const orderTotal = items.reduce((sum, item) => sum + Number(item.subtotal), 0);
+                        const totalAmount = items.reduce((sum, item) => sum + Number(item.subtotal), 0);
+                        const tableNumber = order.bill?.restaurant_table?.number;
 
                         return (
                             <div
                                 key={order.id}
-                                className="flex flex-col justify-between rounded-xl border bg-background shadow-sm overflow-hidden"
+                                className="flex flex-col justify-between rounded-xl border bg-card shadow-sm transition-all hover:shadow-md"
                             >
                                 <div>
-                                    {/* Card Header */}
-                                    <div className="bg-muted/30 p-4 border-b flex items-center justify-between">
+                                    {/* Header de Comanda */}
+                                    <div className="flex items-center justify-between border-b p-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                {isDineIn ? (
-                                                    <UtensilsCrossed className="size-4" />
-                                                ) : (
-                                                    <ShoppingBag className="size-4" />
-                                                )}
+                                            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                                                #{order.id}
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-sm">
-                                                    Comanda #{order.id}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {isDineIn
-                                                        ? `Mesa ${order.bill?.restaurant_table?.number ?? 'Sin mesa'}`
-                                                        : 'Para Llevar'}
-                                                    {' · '}
-                                                    Cuenta #{order.bill_id}
-                                                </p>
+                                                <div className="flex items-center gap-1.5 font-semibold text-sm">
+                                                    <span>{tableNumber ? `Mesa ${tableNumber}` : 'Para llevar'}</span>
+                                                    <span className="text-muted-foreground font-normal text-xs">(Cta #{order.bill_id})</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                                    <Clock className="size-3" />
+                                                    <span>{formatDate(order.created_at)}</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col items-end gap-1">
-                                            {getOrderStatusBadge(order.status)}
-                                            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                                <Clock className="size-3" /> {formatDate(order.created_at)}
-                                            </span>
-                                        </div>
+                                        {getOrderStatusBadge(order.status)}
                                     </div>
 
-                                    {/* Card Content - Items */}
+                                    {/* Lista de Ítems */}
                                     <div className="p-4 space-y-3">
                                         <p className="text-xs text-muted-foreground">
                                             Mesero: <span className="font-medium text-foreground">{order.user?.name ?? 'Sin usuario'}</span>
@@ -206,6 +190,7 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                                             {items.length > 0 ? (
                                                 items.map((item) => {
                                                     const kitchenInfo = getKitchenStatusLabel(item.kitchen_status);
+                                                    const componentNames = item.daily_menu_products?.map(d => d.product?.name).filter(Boolean);
 
                                                     return (
                                                         <div
@@ -216,6 +201,11 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                                                                 <p className="font-semibold text-foreground">
                                                                     {item.quantity}x {item.product?.name ?? item.menu_modality?.name ?? 'Item'}
                                                                 </p>
+                                                                {componentNames && componentNames.length > 0 && (
+                                                                    <p className="text-[11px] text-primary/80 font-medium">
+                                                                        ({componentNames.join(' + ')})
+                                                                    </p>
+                                                                )}
                                                                 {item.notes && (
                                                                     <p className="text-[11px] text-amber-700 dark:text-amber-400 italic">
                                                                         "{item.notes}"
@@ -237,20 +227,22 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                                                                         method="patch"
                                                                     >
                                                                         {({ processing }) => (
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="kitchen_status"
-                                                                                value={kitchenInfo.next!}
-                                                                            />,
-                                                                            <Button
-                                                                                type="submit"
-                                                                                size="sm"
-                                                                                variant="outline"
-                                                                                className="h-7 px-2 text-[11px]"
-                                                                                disabled={processing}
-                                                                            >
-                                                                                {kitchenInfo.nextText}
-                                                                            </Button>
+                                                                            <>
+                                                                                <input
+                                                                                    type="hidden"
+                                                                                    name="kitchen_status"
+                                                                                    value={kitchenInfo.next!}
+                                                                                />
+                                                                                <Button
+                                                                                    type="submit"
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="h-7 px-2 text-[11px]"
+                                                                                    disabled={processing}
+                                                                                >
+                                                                                    {kitchenInfo.nextText}
+                                                                                </Button>
+                                                                            </>
                                                                         )}
                                                                     </Form>
                                                                 )}
@@ -265,8 +257,9 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                                                                                 type="submit"
                                                                                 size="icon"
                                                                                 variant="ghost"
-                                                                                className="size-7 text-destructive hover:bg-destructive/10"
+                                                                                className="size-7 text-muted-foreground hover:text-destructive"
                                                                                 disabled={processing}
+                                                                                title="Eliminar ítem"
                                                                             >
                                                                                 <Trash2 className="size-3.5" />
                                                                             </Button>
@@ -278,25 +271,24 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                                                     );
                                                 })
                                             ) : (
-                                                <div className="py-4 text-center text-xs text-muted-foreground">
-                                                    No hay productos en esta comanda.
+                                                <div className="py-4 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
+                                                    Sin productos en esta comanda.
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Card Footer Actions */}
-                                <div className="p-4 border-t bg-muted/20 space-y-2">
-                                    <div className="flex items-center justify-between text-xs font-medium pb-1">
-                                        <span>Total Comanda:</span>
-                                        <span className="font-bold text-sm text-foreground">
-                                            {formatCurrency(orderTotal)}
-                                        </span>
+                                {/* Footer de Comanda */}
+                                <div className="border-t bg-muted/20 p-4 space-y-3">
+                                    <div className="flex items-center justify-between text-xs font-semibold">
+                                        <span className="text-muted-foreground">Subtotal Comanda:</span>
+                                        <span className="text-sm font-bold text-primary">{formatCurrency(totalAmount)}</span>
                                     </div>
 
+                                    {/* Acciones principales de la comanda */}
                                     <div className="flex items-center gap-2">
-                                        {order.status !== 'completado' && (
+                                        {order.status === 'pendiente' && (
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
@@ -397,6 +389,7 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                 openBills={openBills}
                 products={products}
                 menuModalities={menuModalities}
+                dailyMenuProducts={dailyMenuProducts}
                 open={createModalOpen}
                 onOpenChange={setCreateModalOpen}
             />
@@ -405,6 +398,7 @@ export default function Index({ orders, openBills, products, menuModalities }: P
                 order={selectedOrderForAdd}
                 products={products}
                 menuModalities={menuModalities}
+                dailyMenuProducts={dailyMenuProducts}
                 open={addItemModalOpen}
                 onOpenChange={setAddItemModalOpen}
             />

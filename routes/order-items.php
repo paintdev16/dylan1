@@ -19,4 +19,9 @@ Route::middleware(['auth'])->group(function () {
         'order-items/{orderItem}',
         [OrderItemController::class, 'destroy']
     )->name('order-items.destroy');
+
+    Route::post(
+        'order-items/{orderItem}/cancel',
+        [OrderItemController::class, 'cancel']
+    )->name('order-items.cancel');
 });
