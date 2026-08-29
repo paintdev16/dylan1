@@ -22,12 +22,12 @@ class PaymentsSeeder extends Seeder
             Payment::updateOrCreate(
                 [
                     'bill_id' => $closedBill->id,
-                    'receipt_number' => 'B001-00001',
+                    'payment_method' => 'cash',
                 ],
                 [
                     'cashier_id' => $cashier->id,
-                    'payment_method' => 'cash',
                     'amount' => 35.00,
+                    'receipt_number' => $this->receiptNumberFor($closedBill),
                 ]
             );
         }
@@ -38,14 +38,20 @@ class PaymentsSeeder extends Seeder
             Payment::updateOrCreate(
                 [
                     'bill_id' => $openBill->id,
-                    'receipt_number' => 'YAPE-88291',
+                    'payment_method' => 'yape',
                 ],
                 [
                     'cashier_id' => $cashier->id,
-                    'payment_method' => 'yape',
                     'amount' => 20.00,
+                    'operation_code' => 'YAPE-88291',
+                    'receipt_number' => $this->receiptNumberFor($openBill),
                 ]
             );
         }
+    }
+
+    private function receiptNumberFor(Bill $bill): string
+    {
+        return sprintf('B001-%05d', $bill->id);
     }
 }
