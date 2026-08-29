@@ -54,7 +54,10 @@ export default function ManageTwoFactor(props: Props) {
             {twoFactorEnabled ? (
                 <div className="flex flex-col items-start justify-start space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        Se te solicitará un código PIN seguro durante el inicio de sesión, el cual puedes obtener desde una aplicación de autenticación TOTP (como Google Authenticator) en tu teléfono.
+                        Se te solicitará un código PIN seguro durante el inicio
+                        de sesión, el cual puedes obtener desde una aplicación
+                        de autenticación TOTP (como Google Authenticator) en tu
+                        teléfono.
                     </p>
 
                     <div className="relative inline">
@@ -80,7 +83,10 @@ export default function ManageTwoFactor(props: Props) {
             ) : (
                 <div className="flex flex-col items-start justify-start space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        Cuando activas la autenticación de dos factores, se te solicitará un código PIN seguro durante el inicio de sesión generado por tu aplicación móvil de autenticación.
+                        Cuando activas la autenticación de dos factores, se te
+                        solicitará un código PIN seguro durante el inicio de
+                        sesión generado por tu aplicación móvil de
+                        autenticación.
                     </p>
 
                     <div>

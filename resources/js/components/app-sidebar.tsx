@@ -150,6 +150,19 @@ export function AppSidebar() {
     const visibleNavItems = mainNavItems.filter((item) =>
         item.roles.some((role) => userRoles.includes(role)),
     );
+    const operationalTitles = [
+        'Dashboard',
+        'Mesas',
+        'Comandas',
+        'Cocina',
+        'Caja',
+    ];
+    const groupedTitles = new Set(operationalTitles);
+    const operationalItems = visibleNavItems.filter((item) =>
+        groupedTitles.has(item.title),
+    );
+    const groupedItems = (titles: string[]) =>
+        visibleNavItems.filter((item) => titles.includes(item.title));
 
     return (
         <Sidebar collapsible="icon" variant="floating">
@@ -230,7 +243,36 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain groupLabel="Plataforma" items={visibleNavItems} />
+                <NavMain
+                    groupLabel="Operaciones"
+                    items={operationalItems}
+                    groups={[
+                        {
+                            title: 'Menú',
+                            icon: UtensilsCrossed,
+                            items: groupedItems([
+                                'Menú Diario',
+                                'Productos',
+                                'Categorías',
+                            ]),
+                        },
+                        {
+                            title: 'Inventario',
+                            icon: Package,
+                            items: groupedItems(['Inventario']),
+                        },
+                        {
+                            title: 'Reportes',
+                            icon: BarChart3,
+                            items: groupedItems(['Reportes', 'Cuentas']),
+                        },
+                        {
+                            title: 'Administración',
+                            icon: Users,
+                            items: groupedItems(['Usuarios']),
+                        },
+                    ].filter((group) => group.items.length > 0)}
+                />
             </SidebarContent>
 
             <SidebarFooter>

@@ -126,7 +126,7 @@ export default function Welcome() {
         <>
             <Head title="Sistema de Gestión de Restaurante" />
 
-            <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground">
+            <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
                 {/* Navbar */}
                 <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -135,8 +135,10 @@ export default function Welcome() {
                                 <UtensilsCrossed className="size-5" />
                             </div>
                             <div>
-                                <span className="text-base font-bold tracking-tight">RestoApp</span>
-                                <span className="hidden sm:inline-block ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                <span className="text-base font-bold tracking-tight">
+                                    RestoApp
+                                </span>
+                                <span className="ml-2 hidden rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary sm:inline-block">
                                     POS & KDS Gastronómico
                                 </span>
                             </div>
@@ -144,7 +146,11 @@ export default function Welcome() {
 
                         <nav className="flex items-center gap-3">
                             {auth.user ? (
-                                <Button asChild size="sm" className="gap-2 font-semibold">
+                                <Button
+                                    asChild
+                                    size="sm"
+                                    className="gap-2 font-semibold"
+                                >
                                     <Link href={dashboard()}>
                                         <LayoutDashboard className="size-4" />
                                         Ir al Panel
@@ -153,9 +159,15 @@ export default function Welcome() {
                             ) : (
                                 <>
                                     <Button asChild variant="ghost" size="sm">
-                                        <Link href={login()}>Iniciar Sesión</Link>
+                                        <Link href={login()}>
+                                            Iniciar Sesión
+                                        </Link>
                                     </Button>
-                                    <Button asChild size="sm" className="gap-1.5 font-semibold">
+                                    <Button
+                                        asChild
+                                        size="sm"
+                                        className="gap-1.5 font-semibold"
+                                    >
                                         <Link href={register()}>
                                             <LogIn className="size-4" />
                                             Registrarse
@@ -168,27 +180,37 @@ export default function Welcome() {
                 </header>
 
                 {/* Hero Section */}
-                <section className="relative overflow-hidden py-16 sm:py-24 border-b bg-gradient-to-b from-muted/30 to-background">
-                    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center space-y-6">
+                <section className="relative overflow-hidden border-b bg-gradient-to-b from-muted/30 to-background py-16 sm:py-24">
+                    <div className="container mx-auto max-w-7xl space-y-6 px-4 text-center sm:px-6 lg:px-8">
                         <div className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur">
                             <Sparkles className="size-3.5 text-primary" />
-                            <span>Flujo Gastronómico Integral de Extremo a Extremo</span>
+                            <span>
+                                Flujo Gastronómico Integral de Extremo a Extremo
+                            </span>
                         </div>
 
-                        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl max-w-4xl mx-auto leading-tight">
+                        <h1 className="mx-auto max-w-4xl text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
                             Control total para tu restaurante:
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-amber-500 to-orange-500 block mt-1">
+                            <span className="mt-1 block bg-gradient-to-r from-primary via-amber-500 to-orange-500 bg-clip-text text-transparent">
                                 Salón, Cocina KDS y Caja
                             </span>
                         </h1>
 
-                        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            Diseñado para la operativa real: asignación de mesas con comensales, control estricto de porciones en menú diario, pantalla de despacho para cocina, inventario físico y cobro multi-método con liberación automática de mesas.
+                        <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                            Diseñado para la operativa real: asignación de mesas
+                            con comensales, control estricto de porciones en
+                            menú diario, pantalla de despacho para cocina,
+                            inventario físico y cobro multi-método con
+                            liberación automática de mesas.
                         </p>
 
                         <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
                             {auth.user ? (
-                                <Button asChild size="lg" className="gap-2 font-semibold shadow-md px-8">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="gap-2 px-8 font-semibold shadow-md"
+                                >
                                     <Link href={dashboard()}>
                                         <LayoutDashboard className="size-5" />
                                         Entrar al Sistema
@@ -196,50 +218,78 @@ export default function Welcome() {
                                 </Button>
                             ) : (
                                 <>
-                                    <Button asChild size="lg" className="gap-2 font-semibold shadow-md px-8">
+                                    <Button
+                                        asChild
+                                        size="lg"
+                                        className="gap-2 px-8 font-semibold shadow-md"
+                                    >
                                         <Link href={login()}>
                                             <LogIn className="size-5" />
                                             Acceder al Sistema
                                         </Link>
                                     </Button>
-                                    <Button asChild variant="outline" size="lg" className="px-6">
-                                        <Link href={register()}>Crear Cuenta</Link>
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        size="lg"
+                                        className="px-6"
+                                    >
+                                        <Link href={register()}>
+                                            Crear Cuenta
+                                        </Link>
                                     </Button>
                                 </>
                             )}
                         </div>
 
                         {/* Quick highlights bar */}
-                        <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+                        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 pt-10 text-left sm:grid-cols-4">
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-primary">100%</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">Control de Porciones</div>
+                                <div className="text-2xl font-bold text-primary">
+                                    100%
+                                </div>
+                                <div className="mt-0.5 text-xs text-muted-foreground">
+                                    Control de Porciones
+                                </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">FIFO</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">Despacho KDS Cocina</div>
+                                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                                    FIFO
+                                </div>
+                                <div className="mt-0.5 text-xs text-muted-foreground">
+                                    Despacho KDS Cocina
+                                </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Atómico</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">Cierre y Liberación</div>
+                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                    Atómico
+                                </div>
+                                <div className="mt-0.5 text-xs text-muted-foreground">
+                                    Cierre y Liberación
+                                </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">Multi-Pago</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">Efectivo, POS, Yape/Plin</div>
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                    Multi-Pago
+                                </div>
+                                <div className="mt-0.5 text-xs text-muted-foreground">
+                                    Efectivo, POS, Yape/Plin
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Workflow Section */}
-                <section className="py-16 sm:py-20 border-b bg-muted/10">
-                    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-                        <div className="text-center space-y-3 max-w-2xl mx-auto">
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                <section className="border-b bg-muted/10 py-16 sm:py-20">
+                    <div className="container mx-auto max-w-7xl space-y-12 px-4 sm:px-6 lg:px-8">
+                        <div className="mx-auto max-w-2xl space-y-3 text-center">
+                            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                                 Flujo de Atención Paso a Paso
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Cada etapa del servicio se sincroniza de forma atómica y en tiempo real.
+                                Cada etapa del servicio se sincroniza de forma
+                                atómica y en tiempo real.
                             </p>
                         </div>
 
@@ -249,19 +299,23 @@ export default function Welcome() {
                                 return (
                                     <div
                                         key={s.step}
-                                        className="relative rounded-2xl border bg-card p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all"
+                                        className="relative flex flex-col justify-between space-y-4 rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md"
                                     >
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
+                                                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
                                                     <Icon className="size-5" />
                                                 </div>
                                                 <span className="text-2xl font-black text-muted-foreground/30">
                                                     {s.step}
                                                 </span>
                                             </div>
-                                            <h3 className="font-bold text-base text-foreground">{s.title}</h3>
-                                            <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+                                            <h3 className="text-base font-bold text-foreground">
+                                                {s.title}
+                                            </h3>
+                                            <p className="text-xs leading-relaxed text-muted-foreground">
+                                                {s.desc}
+                                            </p>
                                         </div>
                                     </div>
                                 );
@@ -272,13 +326,14 @@ export default function Welcome() {
 
                 {/* Modules Grid Section */}
                 <section className="py-16 sm:py-24">
-                    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-                        <div className="text-center space-y-3 max-w-2xl mx-auto">
-                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    <div className="container mx-auto max-w-7xl space-y-12 px-4 sm:px-6 lg:px-8">
+                        <div className="mx-auto max-w-2xl space-y-3 text-center">
+                            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                                 Módulos Integrados del Sistema
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Funcionalidades completas para coordinar salón, cocina, caja y almacén sin errores.
+                                Funcionalidades completas para coordinar salón,
+                                cocina, caja y almacén sin errores.
                             </p>
                         </div>
 
@@ -288,23 +343,25 @@ export default function Welcome() {
                                 return (
                                     <div
                                         key={m.title}
-                                        className="group rounded-2xl border bg-card p-6 shadow-sm hover:border-primary/40 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                                        className="group flex flex-col justify-between space-y-4 rounded-2xl border bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
                                     >
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <div className={`flex size-10 items-center justify-center rounded-xl border ${m.color}`}>
+                                                <div
+                                                    className={`flex size-10 items-center justify-center rounded-xl border ${m.color}`}
+                                                >
                                                     <Icon className="size-5" />
                                                 </div>
-                                                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border rounded-full px-2 py-0.5 bg-muted/40">
+                                                <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                                                     {m.badge}
                                                 </span>
                                             </div>
 
-                                            <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors">
+                                            <h3 className="text-base font-bold text-foreground transition-colors group-hover:text-primary">
                                                 {m.title}
                                             </h3>
 
-                                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                            <p className="text-xs leading-relaxed text-muted-foreground">
                                                 {m.description}
                                             </p>
                                         </div>
@@ -312,7 +369,7 @@ export default function Welcome() {
                                         {auth.user && (
                                             <Link
                                                 href={m.href}
-                                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary pt-2 hover:underline"
+                                                className="inline-flex items-center gap-1.5 pt-2 text-xs font-semibold text-primary hover:underline"
                                             >
                                                 <span>Acceder al módulo</span>
                                                 <ArrowRight className="size-3.5" />
@@ -327,24 +384,35 @@ export default function Welcome() {
 
                 {/* Footer */}
                 <footer className="mt-auto border-t bg-muted/20 py-8">
-                    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+                    <div className="container mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
                         <div className="flex items-center gap-2">
                             <UtensilsCrossed className="size-4 text-primary" />
-                            <span className="font-semibold text-foreground">RestoApp</span>
+                            <span className="font-semibold text-foreground">
+                                RestoApp
+                            </span>
                             <span>— Sistema de Gestión de Restaurante</span>
                         </div>
 
                         <div className="flex items-center gap-4">
                             {auth.user ? (
-                                <Link href={dashboard()} className="hover:text-foreground transition-colors">
+                                <Link
+                                    href={dashboard()}
+                                    className="transition-colors hover:text-foreground"
+                                >
                                     Panel de Control
                                 </Link>
                             ) : (
                                 <>
-                                    <Link href={login()} className="hover:text-foreground transition-colors">
+                                    <Link
+                                        href={login()}
+                                        className="transition-colors hover:text-foreground"
+                                    >
                                         Iniciar Sesión
                                     </Link>
-                                    <Link href={register()} className="hover:text-foreground transition-colors">
+                                    <Link
+                                        href={register()}
+                                        className="transition-colors hover:text-foreground"
+                                    >
                                         Registrarse
                                     </Link>
                                 </>

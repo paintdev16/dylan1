@@ -19,7 +19,8 @@ const EmptyState = () => {
             </div>
             <p className="font-medium">Aún no tienes passkeys</p>
             <p className="mt-1 text-sm text-muted-foreground">
-                Agrega una passkey para iniciar sesión de forma rápida sin contraseña
+                Agrega una passkey para iniciar sesión de forma rápida sin
+                contraseña
             </p>
         </div>
     );
