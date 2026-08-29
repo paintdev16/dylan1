@@ -54,7 +54,7 @@ class DailyMenuProductController extends Controller
         ])
             ->where('active', true)
             ->whereHas('menuCategory', function ($query) {
-                $query->where('name', 'Comidas');
+                $query->where('code', 'food');
             })
             ->orderBy('display_order')
             ->orderBy('name')
@@ -65,9 +65,9 @@ class DailyMenuProductController extends Controller
             'menuSubcategory',
             'menuSubcategoryType',
         ])
-            ->where('status', 'activo')
+            ->where('status', 'active')
             ->whereHas('menuCategory', function ($query) {
-                $query->where('name', 'Comidas');
+                $query->where('code', 'food');
             })
             ->whereHas('menuSubcategory', function ($query) {
                 $query->where('active', true);
@@ -394,7 +394,7 @@ class DailyMenuProductController extends Controller
         )
             ->where('active', true)
             ->whereHas('menuCategory', function ($query) {
-                $query->where('name', 'Comidas');
+                $query->where('code', 'food');
             })
             ->first();
 
@@ -408,7 +408,7 @@ class DailyMenuProductController extends Controller
 
         $typeId = $validated['menu_subcategory_type_id'] ?? null;
 
-        if ($subcategory->name === 'Menú Económico' && ! $typeId) {
+        if ($subcategory->code === 'economic_menu' && ! $typeId) {
             abort(
                 back()->withErrors([
                     'menu_subcategory_type_id' => 'Debes seleccionar un tipo para el Menú Económico.',
@@ -447,13 +447,13 @@ class DailyMenuProductController extends Controller
     ): ?Product {
         $query = Product::query()
             ->where('id', $productId)
-            ->where('status', 'activo')
+            ->where('status', 'active')
             ->where(
                 'menu_subcategory_id',
                 $subcategoryId
             )
             ->whereHas('menuCategory', function ($query) {
-                $query->where('name', 'Comidas');
+                $query->where('code', 'food');
             })
             ->whereHas('menuSubcategory', function ($query) {
                 $query->where('active', true);
@@ -536,10 +536,10 @@ class DailyMenuProductController extends Controller
             ->whereHas('product', function ($query) {
                 $query
                     ->whereHas('menuSubcategory', function ($query) {
-                        $query->where('name', 'Menú Económico');
+                        $query->where('code', 'economic_menu');
                     })
                     ->whereHas('menuSubcategoryType', function ($query) {
-                        $query->where('name', 'Segundos');
+                        $query->where('code', 'main_course');
                     });
             })
             ->sum('quantity_available');
@@ -549,10 +549,10 @@ class DailyMenuProductController extends Controller
             ->whereHas('product', function ($query) {
                 $query
                     ->whereHas('menuSubcategory', function ($query) {
-                        $query->where('name', 'Menú Económico');
+                        $query->where('code', 'economic_menu');
                     })
                     ->whereHas('menuSubcategoryType', function ($query) {
-                        $query->whereIn('name', ['Entradas', 'Postres']);
+                        $query->whereIn('code', ['starter', 'dessert']);
                     });
             })
             ->update(['quantity_available' => $secondQuantity]);

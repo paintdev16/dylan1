@@ -5,6 +5,7 @@ use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
 use App\Models\MenuModality;
+use App\Models\MenuModalityItem;
 use App\Models\MenuSubcategory;
 use App\Models\MenuSubcategoryType;
 use App\Models\Order;
@@ -25,7 +26,7 @@ function createOrderForOrderItemTest(User $user, string $billStatus = 'open'): O
     return Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 }
 
@@ -46,7 +47,7 @@ function createActiveProductForOrderItemTest(): Product
         'name' => 'Lomo saltado',
         'price' => 18.50,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $dailyMenu = DailyMenu::query()->whereDate('date', now('America/Lima')->toDateString())->first()
@@ -82,9 +83,9 @@ function createActiveMenuModalityForOrderItemTest(): array
         ['display_order' => 3, 'active' => true]
     );
 
-    $pSegundo = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeSegundo->id, 'name' => 'Seco de Pollo', 'price' => 15.00, 'type' => 'prepared', 'status' => 'activo']);
-    $pEntrada = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeEntrada->id, 'name' => 'Sopa', 'price' => 3.00, 'type' => 'prepared', 'status' => 'activo']);
-    $pPostre = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typePostre->id, 'name' => 'Flan', 'price' => 2.00, 'type' => 'prepared', 'status' => 'activo']);
+    $pSegundo = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeSegundo->id, 'name' => 'Seco de Pollo', 'price' => 15.00, 'type' => 'prepared', 'status' => 'active']);
+    $pEntrada = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typeEntrada->id, 'name' => 'Sopa', 'price' => 3.00, 'type' => 'prepared', 'status' => 'active']);
+    $pPostre = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typePostre->id, 'name' => 'Flan', 'price' => 2.00, 'type' => 'prepared', 'status' => 'active']);
 
     $todayDate = now('America/Lima')->toDateString();
     $dailyMenu = DailyMenu::query()->whereDate('date', $todayDate)->first()
@@ -101,6 +102,10 @@ function createActiveMenuModalityForOrderItemTest(): array
         'price' => 15.00,
         'active' => true,
     ]);
+
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpSegundo->id, 'item_type' => 'main_course']);
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpEntrada->id, 'item_type' => 'starter']);
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpPostre->id, 'item_type' => 'dessert']);
 
     return [
         'modality' => $modality,
@@ -195,28 +200,22 @@ test('order item kitchen status advances through its allowed states', function (
         'quantity' => 1,
         'unit_price' => 18.50,
         'subtotal' => 18.50,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     $this->actingAs($user)
         ->patch(route('order-items.update-kitchen-status', $item), [
-            'kitchen_status' => 'en_preparacion',
+            'kitchen_status' => 'in_preparation',
         ])
         ->assertRedirect(route('orders.index'));
 
     $this->actingAs($user)
         ->patch(route('order-items.update-kitchen-status', $item), [
-            'kitchen_status' => 'listo',
+            'kitchen_status' => 'delivered',
         ])
         ->assertRedirect(route('orders.index'));
 
-    $this->actingAs($user)
-        ->patch(route('order-items.update-kitchen-status', $item), [
-            'kitchen_status' => 'entregado',
-        ])
-        ->assertRedirect(route('orders.index'));
-
-    expect($item->refresh()->kitchen_status)->toBe('entregado');
+    expect($item->refresh()->kitchen_status)->toBe('delivered');
 });
 
 test('authenticated users can delete pending order items', function () {
@@ -229,7 +228,7 @@ test('authenticated users can delete pending order items', function () {
         'quantity' => 1,
         'unit_price' => 18.50,
         'subtotal' => 18.50,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     $this->actingAs($user)

@@ -109,7 +109,7 @@ class ProductController extends Controller
     public function updateStatus(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['activo', 'inactivo'])],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
         ]);
 
         $product->update([
@@ -146,7 +146,7 @@ class ProductController extends Controller
     {
         $category = MenuCategory::query()->whereKey($data['menu_category_id'] ?? null)->first();
 
-        if ($category && $category->name === 'Bebidas') {
+        if ($category && $category->code === 'beverages') {
             $data['menu_subcategory_id'] = null;
             $data['menu_subcategory_type_id'] = null;
             $data['type'] = 'simple';
@@ -155,7 +155,7 @@ class ProductController extends Controller
                 ? MenuSubcategory::query()->whereKey($data['menu_subcategory_id'])->first()
                 : null;
 
-            if ($subcategory && $subcategory->name === 'Platos Especiales') {
+            if ($subcategory && $subcategory->code === 'special_dishes') {
                 $data['menu_subcategory_type_id'] = null;
             }
         }
@@ -172,12 +172,12 @@ class ProductController extends Controller
     {
         $categoryId = $request->input('menu_category_id');
         $category = $categoryId ? MenuCategory::query()->whereKey($categoryId)->first() : null;
-        $isBeverage = $category && $category->name === 'Bebidas';
-        $isFood = $category && $category->name === 'Comidas';
+        $isBeverage = $category && $category->code === 'beverages';
+        $isFood = $category && $category->code === 'food';
 
         $subcategoryId = $request->input('menu_subcategory_id');
         $subcategory = $subcategoryId ? MenuSubcategory::query()->whereKey($subcategoryId)->first() : null;
-        $isEconomicMenu = $subcategory && $subcategory->name === 'Menú Económico';
+        $isEconomicMenu = $subcategory && $subcategory->code === 'economic_menu';
 
         return [
             'menu_category_id' => [
@@ -265,7 +265,7 @@ class ProductController extends Controller
 
             'status' => [
                 'required',
-                Rule::in(['activo', 'inactivo']),
+                Rule::in(['active', 'inactive']),
             ],
 
             'initial_stock' => [

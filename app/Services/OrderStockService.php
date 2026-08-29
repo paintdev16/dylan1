@@ -48,14 +48,14 @@ class OrderStockService
     {
         $product = Product::with('menuCategory')->lockForUpdate()->findOrFail($productId);
 
-        if ($product->status !== 'activo') {
+        if ($product->status !== 'active') {
             throw ValidationException::withMessages([
                 'product_id' => "El producto {$product->name} no está activo.",
             ]);
         }
 
         // Si es bebida, validar y descontar ProductStock físico
-        if ($product->menuCategory?->name === 'Bebidas') {
+        if ($product->menuCategory?->code === 'beverages') {
             $stock = ProductStock::where('product_id', $product->id)->lockForUpdate()->first();
             if (! $stock || $stock->quantity < $quantity) {
                 $available = $stock ? $stock->quantity : 0;
@@ -70,7 +70,7 @@ class OrderStockService
             StockMovement::create([
                 'product_id' => $product->id,
                 'user_id' => auth()->id(),
-                'type' => 'salida_venta',
+                'type' => 'sale',
                 'quantity' => $quantity,
                 'quantity_change' => -$quantity,
                 'previous_quantity' => $previousQty,
@@ -103,7 +103,7 @@ class OrderStockService
             $dailyMenuProduct->decrement('quantity_available', $quantity);
         }
 
-        if ($product->menuCategory?->name !== 'Bebidas' && ! $dailyMenuProduct) {
+        if ($product->menuCategory?->code !== 'beverages' && ! $dailyMenuProduct) {
             throw ValidationException::withMessages([
                 'product_id' => 'El producto no está publicado en el menú activo de hoy.',
             ]);
@@ -194,9 +194,9 @@ class OrderStockService
     {
         $types = $components->map(fn ($c) => $c->product?->menuSubcategoryType?->code)->filter()->values();
         $selected = [
-            'segundo' => $types->filter(fn ($type) => $type === 'segundo')->count(),
-            'entrada' => $types->filter(fn ($type) => $type === 'entrada')->count(),
-            'postre' => $types->filter(fn ($type) => $type === 'postre')->count(),
+            'main_course' => $types->filter(fn ($type) => $type === 'main_course')->count(),
+            'starter' => $types->filter(fn ($type) => $type === 'starter')->count(),
+            'dessert' => $types->filter(fn ($type) => $type === 'dessert')->count(),
         ];
         $required = $modality->items->groupBy('item_type')
             ->map(fn ($items) => (int) $items->max('quantity'))
@@ -204,14 +204,14 @@ class OrderStockService
 
         if ($required === []) {
             $required = match ($modality->code) {
-                'full_menu' => ['segundo' => 1, 'entrada' => 1, 'postre' => 1],
-                'main_only' => ['segundo' => 1],
-                'starter_dessert' => ['entrada' => 1, 'postre' => 1],
+                'full_menu' => ['main_course' => 1, 'starter' => 1, 'dessert' => 1],
+                'main_only' => ['main_course' => 1],
+                'starter_dessert' => ['starter' => 1, 'dessert' => 1],
                 default => [],
             };
         }
 
-        foreach (['segundo', 'entrada', 'postre'] as $type) {
+        foreach (['main_course', 'starter', 'dessert'] as $type) {
             if ($selected[$type] !== ($required[$type] ?? 0)) {
                 throw ValidationException::withMessages([
                     'components' => 'La composición elegida no coincide con la configuración de la modalidad.',
@@ -242,7 +242,7 @@ class OrderStockService
         if ($orderItem->product_id) {
             $product = Product::with('menuCategory')->find($orderItem->product_id);
             if ($product) {
-                if ($product->menuCategory?->name === 'Bebidas') {
+                if ($product->menuCategory?->code === 'beverages') {
                     $stock = ProductStock::where('product_id', $product->id)->lockForUpdate()->first();
                     if ($stock) {
                         $previousQty = $stock->quantity;
@@ -252,7 +252,7 @@ class OrderStockService
                         StockMovement::create([
                             'product_id' => $product->id,
                             'user_id' => auth()->id(),
-                            'type' => 'cancelacion',
+                            'type' => 'cancellation',
                             'quantity' => $quantity,
                             'quantity_change' => $quantity,
                             'previous_quantity' => $previousQty,

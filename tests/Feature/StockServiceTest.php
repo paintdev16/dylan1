@@ -19,7 +19,7 @@ function createStockProduct(): Product
         'name' => 'Lomo saltado',
         'price' => 18.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 }
 
@@ -36,7 +36,7 @@ test('adds stock and records the resulting movement', function () {
 
     $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
-        'type' => 'entrada',
+        'type' => 'stock_in',
         'quantity' => 10,
         'previous_quantity' => 0,
         'new_quantity' => 10,
@@ -55,7 +55,7 @@ test('removes stock and prevents quantities below zero', function () {
 
     $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
-        'type' => 'salida_venta',
+        'type' => 'sale',
         'quantity' => 4,
         'previous_quantity' => 10,
         'new_quantity' => 6,
@@ -76,7 +76,7 @@ test('adjusts stock and preserves the before and after quantities', function () 
 
     $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
-        'type' => 'ajuste',
+        'type' => 'adjustment',
         'quantity' => 3,
         'previous_quantity' => 10,
         'new_quantity' => 7,
@@ -91,5 +91,5 @@ test('keeps the catalog product active when its stock reaches zero', function ()
     $stockService->add($product, 10);
     $stockService->adjust($product, 0, 'Inventario físico');
 
-    expect($product->fresh()->status)->toBe('activo');
+    expect($product->fresh()->status)->toBe('active');
 });

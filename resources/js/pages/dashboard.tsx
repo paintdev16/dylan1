@@ -369,17 +369,17 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                                         <Badge
                                             variant="outline"
                                             className={
-                                                order.status === 'completado'
+                                                order.status === 'completed'
                                                     ? 'border-emerald-300 bg-emerald-100 text-xs text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
                                                     : order.status ===
-                                                        'enviado_cocina'
+                                                        'sent_to_kitchen'
                                                       ? 'border-blue-300 bg-blue-100 text-xs text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
                                                       : 'border-amber-300 bg-amber-100 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
                                             }
                                         >
-                                            {order.status === 'enviado_cocina'
+                                            {order.status === 'sent_to_kitchen'
                                                 ? 'En cocina'
-                                                : order.status === 'completado'
+                                                : order.status === 'completed'
                                                   ? 'Completado'
                                                   : 'Pendiente'}
                                         </Badge>

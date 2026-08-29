@@ -8,11 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'name',
+    'code',
     'display_order',
     'active',
 ])]
 class MenuCategory extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (MenuCategory $category): void {
+            $category->code ??= match ($category->name) {
+                'Comidas' => 'food',
+                'Bebidas' => 'beverages',
+                default => null,
+            };
+        });
+    }
+
     protected $casts = [
         'display_order' => 'integer',
         'active' => 'boolean',
@@ -24,7 +36,7 @@ class MenuCategory extends Model
 
     public function getRequiresPresentationAttribute(): bool
     {
-        return $this->name === 'Bebidas';
+        return $this->code === 'beverages';
     }
 
     /** @return HasMany<Product, $this> */

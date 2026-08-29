@@ -80,7 +80,7 @@ export function DailyMenuProductForm({
         products.find((product) => product.id.toString() === productId) ??
         dailyMenuProduct?.product;
 
-    const requiresType = selectedSubcategory?.name === 'Menú Económico';
+    const requiresType = selectedSubcategory?.code === 'economic_menu';
 
     const filteredProducts = products.filter((product) => {
         if (product.menu_subcategory_id?.toString() !== subcategoryId) {

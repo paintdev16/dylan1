@@ -26,7 +26,7 @@ export function ProductTable({ product, categories }: Props) {
     const typeLabel =
         product.type === 'prepared' ? 'Preparado' : 'Venta directa';
 
-    const isActive = product.status === 'activo';
+    const isActive = product.status === 'active';
 
     return (
         <Table>

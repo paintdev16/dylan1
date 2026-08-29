@@ -92,19 +92,19 @@ class MenuModalityItemsSeeder extends Seeder
         $this->createItem(
             $menuCompleto,
             $ajiDeGallina,
-            'segundo'
+            'main_course'
         );
 
         $this->createItem(
             $menuCompleto,
             $causaRellena,
-            'entrada'
+            'starter'
         );
 
         $this->createItem(
             $menuCompleto,
             $arrozConLeche,
-            'postre'
+            'dessert'
         );
 
         /*
@@ -119,7 +119,7 @@ class MenuModalityItemsSeeder extends Seeder
         $this->createItem(
             $soloSegundo,
             $ajiDeGallina,
-            'segundo'
+            'main_course'
         );
 
         /*
@@ -134,13 +134,13 @@ class MenuModalityItemsSeeder extends Seeder
         $this->createItem(
             $entradaPostre,
             $causaRellena,
-            'entrada'
+            'starter'
         );
 
         $this->createItem(
             $entradaPostre,
             $arrozConLeche,
-            'postre'
+            'dessert'
         );
     }
 

@@ -94,15 +94,15 @@ class TableOrderService
                 'bill_id' => $bill->id,
                 'user_id' => $waiter->id,
                 'request_token' => $requestToken,
-                'status' => 'enviado_cocina',
+                'status' => 'sent_to_kitchen',
             ]);
 
             foreach ($items as $itemData) {
                 $quantity = (int) $itemData['quantity'];
                 $product = isset($itemData['product_id']) ? Product::query()->with('menuCategory')->whereKey($itemData['product_id'])->first() : null;
                 $stock = $this->stockService->reserveStockForOrderItem($itemData, $quantity);
-                $requiresKitchen = ($itemData['menu_modality_id'] ?? false) || $product?->menuCategory?->name === 'Comidas';
-                $item = $order->items()->create(['product_id' => $itemData['product_id'] ?? null, 'menu_modality_id' => $itemData['menu_modality_id'] ?? null, 'daily_menu_product_id' => $stock['daily_menu_product_id'], 'quantity' => $quantity, 'notes' => $itemData['notes'] ?? null, 'unit_price' => $stock['unit_price'], 'subtotal' => $stock['subtotal'], 'kitchen_status' => $requiresKitchen ? 'pendiente' : 'entregado']);
+                $requiresKitchen = ($itemData['menu_modality_id'] ?? false) || $product?->menuCategory?->code === 'food';
+                $item = $order->items()->create(['product_id' => $itemData['product_id'] ?? null, 'menu_modality_id' => $itemData['menu_modality_id'] ?? null, 'daily_menu_product_id' => $stock['daily_menu_product_id'], 'quantity' => $quantity, 'notes' => $itemData['notes'] ?? null, 'unit_price' => $stock['unit_price'], 'subtotal' => $stock['subtotal'], 'kitchen_status' => $requiresKitchen ? 'pending' : 'delivered']);
                 foreach ($stock['component_ids'] as $dailyMenuProductId) {
                     OrderItemMenuProduct::create(['order_item_id' => $item->id, 'daily_menu_product_id' => $dailyMenuProductId, 'quantity' => $quantity]);
                 }

@@ -38,7 +38,7 @@ test('payments are blocked when cashier does not have an open cash register sess
 
     $this->actingAs($cashier)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 20.00,
         ])
         ->assertSessionHasErrors('session');
@@ -60,12 +60,12 @@ test('cash payment accepts cent amounts and rejects insufficient received cash',
         'status' => 'open',
         'opened_at' => now(),
     ]);
-    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pendiente']);
-    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 45.50, 'subtotal' => 45.50, 'kitchen_status' => 'pendiente']);
+    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pending']);
+    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 45.50, 'subtotal' => 45.50, 'kitchen_status' => 'pending']);
 
     $this->actingAs($cashier)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 45.50,
             'received_amount' => 40,
         ])
@@ -75,7 +75,7 @@ test('cash payment accepts cent amounts and rejects insufficient received cash',
 
     $this->actingAs($cashier)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 45.50,
             'received_amount' => 50,
         ])
@@ -119,7 +119,7 @@ test('paying 100% of the bill automatically closes bill, table session, complete
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $cashier->id,
-        'status' => 'enviado_cocina',
+        'status' => 'sent_to_kitchen',
     ]);
 
     OrderItem::create([
@@ -127,7 +127,7 @@ test('paying 100% of the bill automatically closes bill, table session, complete
         'quantity' => 1,
         'unit_price' => 45.00,
         'subtotal' => 45.00,
-        'kitchen_status' => 'listo',
+        'kitchen_status' => 'ready',
     ]);
 
     expect((float) $bill->fresh()->balance)->toBe(45.00);
@@ -135,7 +135,7 @@ test('paying 100% of the bill automatically closes bill, table session, complete
     // Registrar pago completo de S/. 45.00
     $response = $this->actingAs($cashier)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 45.00,
             'received_amount' => 50.00,
         ]);
@@ -161,7 +161,7 @@ test('paying 100% of the bill automatically closes bill, table session, complete
     expect($table->fresh()->status)->toBe('available');
 
     // 5. Orden completada
-    expect($order->fresh()->status)->toBe('completado');
+    expect($order->fresh()->status)->toBe('completed');
 });
 
 test('cashier can close cash register session with physical count and difference calculation', function () {
@@ -188,7 +188,7 @@ test('cashier can close cash register session with physical count and difference
         'cash_register_session_id' => $session->id,
         'bill_id' => $bill->id,
         'cashier_id' => $cashier->id,
-        'payment_method' => 'efectivo',
+        'payment_method' => 'cash',
         'amount' => 30.00,
     ]);
 
@@ -197,7 +197,7 @@ test('cashier can close cash register session with physical count and difference
         'cash_register_session_id' => $session->id,
         'bill_id' => $bill->id,
         'cashier_id' => $cashier->id,
-        'payment_method' => 'tarjeta',
+        'payment_method' => 'card',
         'amount' => 50.00,
     ]);
 
@@ -222,12 +222,12 @@ test('cashier can split a payment across distinct methods and preserves the sale
     $cashier = User::factory()->create();
     CashRegisterSession::create(['user_id' => $cashier->id, 'opening_amount' => 0, 'status' => 'open', 'opened_at' => now()]);
     $bill = Bill::create(['opening_waiter_id' => $cashier->id, 'order_type' => 'takeout', 'status' => 'open', 'opened_at' => now()]);
-    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pendiente']);
-    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 30, 'subtotal' => 30, 'kitchen_status' => 'pendiente']);
+    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pending']);
+    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 30, 'subtotal' => 30, 'kitchen_status' => 'pending']);
 
     $this->actingAs($cashier)->post(route('cash-register.pay', $bill), [
         'payments' => [
-            ['payment_method' => 'efectivo', 'amount' => 10],
+            ['payment_method' => 'cash', 'amount' => 10],
             ['payment_method' => 'yape', 'amount' => 20],
         ],
     ])->assertRedirect(route('cash-register.index'));

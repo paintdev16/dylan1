@@ -17,7 +17,7 @@ function tableSessionProduct(): Product
         'name' => 'Agua de prueba',
         'price' => 3,
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
     ProductStock::create(['product_id' => $product->id, 'quantity' => 20]);
 

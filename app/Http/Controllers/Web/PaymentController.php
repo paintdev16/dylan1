@@ -28,7 +28,7 @@ class PaymentController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:efectivo,tarjeta,yape,plin'],
+            'payment_method' => ['required', 'in:cash,card,yape,plin'],
             'amount' => ['required', 'numeric', 'gt:0', 'max:'.$balance],
             'receipt_number' => ['nullable', 'string', 'max:255', 'unique:payments,receipt_number'],
         ], [

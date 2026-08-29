@@ -10,11 +10,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'menu_category_id',
     'name',
+    'code',
     'display_order',
     'active',
 ])]
 class MenuSubcategory extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (MenuSubcategory $subcategory): void {
+            $subcategory->code ??= match ($subcategory->name) {
+                'Menú Económico' => 'economic_menu',
+                'Platos Especiales' => 'special_dishes',
+                default => null,
+            };
+        });
+    }
+
     protected $casts = [
         'display_order' => 'integer',
         'active' => 'boolean',

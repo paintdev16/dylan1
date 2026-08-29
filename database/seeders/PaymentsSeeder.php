@@ -26,7 +26,7 @@ class PaymentsSeeder extends Seeder
                 ],
                 [
                     'cashier_id' => $cashier->id,
-                    'payment_method' => 'efectivo',
+                    'payment_method' => 'cash',
                     'amount' => 35.00,
                 ]
             );

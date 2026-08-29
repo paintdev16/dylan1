@@ -20,7 +20,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            $table->enum('type', ['entrada', 'salida_venta', 'ajuste', 'cancelacion']);
+            $table->enum('type', ['stock_in', 'sale', 'adjustment', 'cancellation']);
             $table->integer('quantity');
             $table->integer('quantity_change');
             $table->integer('previous_quantity');

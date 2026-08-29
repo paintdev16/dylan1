@@ -36,17 +36,17 @@ function getTimeElapsed(dateString: string): string {
 
 export default function KitchenIndex({ orders }: Props) {
     usePoll(5000, { only: ['orders', 'flash'] });
-    const [filter, setFilter] = useState<
-        'all' | 'pendiente' | 'en_preparacion'
-    >('all');
+    const [filter, setFilter] = useState<'all' | 'pending' | 'in_preparation'>(
+        'all',
+    );
 
     const filteredOrders = orders
         .map((order) => {
             const kitchenItems = (order.items ?? []).filter((item) => {
                 if (filter === 'all') {
                     return (
-                        item.kitchen_status === 'pendiente' ||
-                        item.kitchen_status === 'en_preparacion'
+                        item.kitchen_status === 'pending' ||
+                        item.kitchen_status === 'in_preparation'
                     );
                 }
                 return item.kitchen_status === filter;
@@ -85,14 +85,14 @@ export default function KitchenIndex({ orders }: Props) {
     const totalPendingItems = orders.reduce(
         (sum, o) =>
             sum +
-            (o.items ?? []).filter((i) => i.kitchen_status === 'pendiente')
+            (o.items ?? []).filter((i) => i.kitchen_status === 'pending')
                 .length,
         0,
     );
     const totalPreparingItems = orders.reduce(
         (sum, o) =>
             sum +
-            (o.items ?? []).filter((i) => i.kitchen_status === 'en_preparacion')
+            (o.items ?? []).filter((i) => i.kitchen_status === 'in_preparation')
                 .length,
         0,
     );
@@ -138,8 +138,8 @@ export default function KitchenIndex({ orders }: Props) {
                     </Button>
                     <Button
                         size="sm"
-                        variant={filter === 'pendiente' ? 'default' : 'outline'}
-                        onClick={() => setFilter('pendiente')}
+                        variant={filter === 'pending' ? 'default' : 'outline'}
+                        onClick={() => setFilter('pending')}
                         className="text-xs"
                     >
                         Solo Pendientes ({totalPendingItems})
@@ -147,9 +147,9 @@ export default function KitchenIndex({ orders }: Props) {
                     <Button
                         size="sm"
                         variant={
-                            filter === 'en_preparacion' ? 'default' : 'outline'
+                            filter === 'in_preparation' ? 'default' : 'outline'
                         }
-                        onClick={() => setFilter('en_preparacion')}
+                        onClick={() => setFilter('in_preparation')}
                         className="text-xs"
                     >
                         En Preparación ({totalPreparingItems})
@@ -210,7 +210,7 @@ export default function KitchenIndex({ orders }: Props) {
                                             (item: OrderItem) => {
                                                 const isPreparing =
                                                     item.kitchen_status ===
-                                                    'en_preparacion';
+                                                    'in_preparation';
                                                 const components =
                                                     item.daily_menu_products ??
                                                     [];
@@ -319,8 +319,8 @@ export default function KitchenIndex({ orders }: Props) {
                                                                             name="kitchen_status"
                                                                             value={
                                                                                 isPreparing
-                                                                                    ? 'entregado'
-                                                                                    : 'en_preparacion'
+                                                                                    ? 'delivered'
+                                                                                    : 'in_preparation'
                                                                             }
                                                                         />
                                                                         <Button

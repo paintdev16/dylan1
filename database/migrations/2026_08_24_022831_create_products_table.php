@@ -44,8 +44,8 @@ return new class extends Migration
             ]);
 
             $table->enum('status', [
-                'activo',
-                'inactivo',
+                'active',
+                'inactive',
             ]);
 
             $table->timestamps();

@@ -44,7 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class OrderItem extends Model
 {
     protected $attributes = [
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
         'is_cancelled' => false,
     ];
 

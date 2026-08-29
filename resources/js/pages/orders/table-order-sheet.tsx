@@ -188,9 +188,9 @@ export function TableOrderSheet({
 
     const byType = (type: string) => {
         const modalityType = {
-            Segundos: 'segundo',
-            Entradas: 'entrada',
-            Postres: 'postre',
+            Segundos: 'main_course',
+            Entradas: 'starter',
+            Postres: 'dessert',
         }[type];
 
         return dailyMenuProducts.filter(

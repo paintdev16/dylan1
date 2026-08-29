@@ -60,7 +60,7 @@ export function ProductActionsDropdown({
                         Editar
                     </DropdownMenuItem>
 
-                    {category?.name === 'Bebidas' && (
+                    {category?.code === 'beverages' && (
                         <DropdownMenuItem
                             onClick={() => setActiveDialog('stock')}
                         >
@@ -101,7 +101,7 @@ export function ProductActionsDropdown({
                 onOpenChange={(open) => setActiveDialog(open ? 'edit' : null)}
             />
 
-            {category?.name === 'Bebidas' && (
+            {category?.code === 'beverages' && (
                 <ProductStockDialog
                     product={product}
                     open={activeDialog === 'stock'}

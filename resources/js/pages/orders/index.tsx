@@ -52,13 +52,13 @@ function formatCurrency(amount: number): string {
 function getOrderStatusBadge(status: string, items: OrderItem[]) {
     if (
         items.length > 0 &&
-        items.every((item) => item.kitchen_status === 'entregado')
+        items.every((item) => item.kitchen_status === 'delivered')
     ) {
-        status = 'completado';
+        status = 'completed';
     }
 
     switch (status) {
-        case 'pendiente':
+        case 'pending':
             return (
                 <Badge
                     variant="outline"
@@ -67,7 +67,7 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
                     Pendiente
                 </Badge>
             );
-        case 'enviado_cocina':
+        case 'sent_to_kitchen':
             return (
                 <Badge
                     variant="outline"
@@ -76,7 +76,7 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
                     En Cocina
                 </Badge>
             );
-        case 'completado':
+        case 'completed':
             return (
                 <Badge
                     variant="outline"
@@ -92,28 +92,28 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
 
 function getKitchenStatusLabel(status: string) {
     switch (status) {
-        case 'pendiente':
+        case 'pending':
             return {
                 text: 'En cola',
                 class: 'bg-amber-50 text-amber-700 border-amber-200',
-                next: 'en_preparacion',
+                next: 'in_preparation',
                 nextText: 'Preparar',
             };
-        case 'en_preparacion':
+        case 'in_preparation':
             return {
                 text: 'En preparación',
                 class: 'bg-blue-50 text-blue-700 border-blue-200',
-                next: 'listo',
+                next: 'ready',
                 nextText: 'Listo',
             };
-        case 'listo':
+        case 'ready':
             return {
                 text: 'Listo para servir',
                 class: 'bg-purple-50 text-purple-700 border-purple-200',
-                next: 'entregado',
+                next: 'delivered',
                 nextText: 'Entregar',
             };
-        case 'entregado':
+        case 'delivered':
             return {
                 text: 'Entregado',
                 class: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -133,7 +133,7 @@ export default function Index({
     dailyMenuProducts = [],
 }: Props) {
     const [statusFilter, setStatusFilter] = useState<
-        'todos' | 'pendiente' | 'enviado_cocina' | 'completado'
+        'todos' | 'pending' | 'sent_to_kitchen' | 'completed'
     >('todos');
     const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(
         null,
@@ -209,9 +209,9 @@ export default function Index({
                     {(
                         [
                             'todos',
-                            'pendiente',
-                            'enviado_cocina',
-                            'completado',
+                            'pending',
+                            'sent_to_kitchen',
+                            'completed',
                         ] as const
                     ).map((st) => (
                         <Button

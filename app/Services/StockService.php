@@ -19,7 +19,7 @@ class StockService
 
         return $this->recordMovement(
             $product,
-            'entrada',
+            'stock_in',
             $quantity,
             $description,
             fn (int $quantityBefore): int => $quantityBefore + $quantity
@@ -35,7 +35,7 @@ class StockService
 
         return $this->recordMovement(
             $product,
-            'salida_venta',
+            'sale',
             $quantity,
             $description,
             function (int $quantityBefore) use ($quantity): int {
@@ -69,7 +69,7 @@ class StockService
 
         return $this->recordMovement(
             $product,
-            'ajuste',
+            'adjustment',
             $quantity,
             $description,
             fn (): int => $quantity
@@ -119,7 +119,7 @@ class StockService
                 'product_id' => $lockedProduct->id,
                 'user_id' => auth()->id(),
                 'type' => $type,
-                'quantity' => $type === 'ajuste'
+                'quantity' => $type === 'adjustment'
                     ? abs($quantityAfter - $quantityBefore)
                     : $quantity,
                 'quantity_change' => $quantityAfter - $quantityBefore,

@@ -17,7 +17,7 @@ class ProductStockMovementsSeeder extends Seeder
             StockMovement::updateOrCreate(
                 [
                     'product_id' => $stock->product_id,
-                    'type' => 'entrada',
+                    'type' => 'stock_in',
                 ],
                 [
                     'quantity' => $stock->quantity,

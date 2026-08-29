@@ -92,7 +92,7 @@ test('authenticated users can create a valid beverage without subcategory and wi
         'name' => 'Chicha Morada 1L',
         'presentation' => '1L',
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 12.00,
         'initial_stock' => 10,
     ])->assertRedirect(route('products.index'))->assertSessionHas('success');
@@ -115,7 +115,7 @@ test('beverage rejects subcategory assignment', function () {
         'menu_subcategory_id' => $catalog['platosEspeciales']->id,
         'name' => 'Bebida Invalida',
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 5.00,
     ])->assertSessionHasErrors('menu_subcategory_id');
 });
@@ -129,7 +129,7 @@ test('authenticated users can create a valid special dish without type', functio
         'menu_subcategory_id' => $catalog['platosEspeciales']->id,
         'name' => 'Ceviche Mixto',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 28.00,
     ])->assertRedirect(route('products.index'))->assertSessionHas('success');
 
@@ -152,7 +152,7 @@ test('special dish cannot have a subcategory type assigned', function () {
         'menu_subcategory_type_id' => $catalog['segundos']->id,
         'name' => 'Plato Invalido',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 20.00,
     ])->assertSessionHasErrors('menu_subcategory_type_id');
 });
@@ -166,7 +166,7 @@ test('food product requires a subcategory', function () {
         'menu_subcategory_id' => null,
         'name' => 'Comida Sin Subcategoria',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 15.00,
     ])->assertSessionHasErrors('menu_subcategory_id');
 });
@@ -181,7 +181,7 @@ test('authenticated users can create a valid economic menu item with type', func
         'menu_subcategory_type_id' => $catalog['segundos']->id,
         'name' => 'Seco de Res',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 8.00,
     ])->assertRedirect(route('products.index'))->assertSessionHas('success');
 
@@ -204,7 +204,7 @@ test('economic menu item requires a subcategory type', function () {
         'menu_subcategory_type_id' => null,
         'name' => 'Menu Sin Tipo',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 8.00,
     ])->assertSessionHasErrors('menu_subcategory_type_id');
 });
@@ -233,7 +233,7 @@ test('cannot assign a subcategory type from another subcategory', function () {
         'menu_subcategory_type_id' => $otherType->id,
         'name' => 'Producto Incompatible',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 8.00,
     ])->assertSessionHasErrors('menu_subcategory_type_id');
 });
@@ -250,7 +250,7 @@ test('authenticated users can update product and normalize classification', func
         'menu_subcategory_type_id' => null,
         'name' => 'Plato Actualizado a Especial',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 22.00,
     ])->assertRedirect(route('products.index'));
 

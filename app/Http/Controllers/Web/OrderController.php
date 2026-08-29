@@ -47,8 +47,8 @@ class OrderController extends Controller
 
         $products = Product::query()
             ->with(['menuCategory', 'menuSubcategory', 'menuSubcategoryType', 'productStock'])
-            ->where('status', 'activo')
-            ->whereHas('menuCategory', fn ($query) => $query->where('name', 'Bebidas'))
+            ->where('status', 'active')
+            ->whereHas('menuCategory', fn ($query) => $query->where('code', 'beverages'))
             ->whereHas('productStock', fn ($query) => $query->where('quantity', '>', 0))
             ->orderBy('name')
             ->get();
@@ -114,7 +114,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'bill_id' => $bill->id,
                 'user_id' => $request->user()->id,
-                'status' => 'enviado_cocina',
+                'status' => 'sent_to_kitchen',
             ]);
 
             // Create initial item if specified
@@ -126,11 +126,11 @@ class OrderController extends Controller
 
                 $stockResult = $this->stockService->reserveStockForOrderItem($validated, $quantity);
 
-                $kitchenStatus = 'pendiente';
+                $kitchenStatus = 'pending';
                 if ($productId) {
                     $prod = Product::query()->with('menuCategory')->whereKey($productId)->first();
-                    if ($prod?->menuCategory?->name === 'Bebidas') {
-                        $kitchenStatus = 'entregado';
+                    if ($prod?->menuCategory?->code === 'beverages') {
+                        $kitchenStatus = 'delivered';
                     }
                 }
 
@@ -163,12 +163,12 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:enviado_cocina,completado'],
+            'status' => ['required', 'in:sent_to_kitchen,completed'],
         ]);
 
         $nextStatuses = [
-            'pendiente' => 'enviado_cocina',
-            'enviado_cocina' => 'completado',
+            'pending' => 'sent_to_kitchen',
+            'sent_to_kitchen' => 'completed',
         ];
 
         if (($nextStatuses[$order->status] ?? null) !== $validated['status']) {
@@ -186,7 +186,7 @@ class OrderController extends Controller
 
     public function destroy(Order $order): RedirectResponse
     {
-        if ($order->items()->where('kitchen_status', '!=', 'pendiente')->exists()) {
+        if ($order->items()->where('kitchen_status', '!=', 'pending')->exists()) {
             return back()->withErrors([
                 'order' => 'No se puede eliminar una comanda cuyos productos ya están en preparación en cocina.',
             ]);

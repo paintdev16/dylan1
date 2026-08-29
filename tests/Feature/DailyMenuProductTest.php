@@ -32,7 +32,7 @@ function createDailyMenuProduct(): DailyMenuProduct
         'name' => 'Arroz con pollo',
         'price' => 15.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $dailyMenu = DailyMenu::create([
@@ -126,7 +126,7 @@ test('daily menu products page provides active products for the selected menu ty
         'name' => 'Lomo saltado',
         'price' => 18.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $this->actingAs($user)
@@ -197,7 +197,7 @@ test('updating a second synchronizes the quantities of entries and desserts', fu
         'name' => 'Lomo saltado',
         'price' => 18.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $otherSecondProduct = Product::create([
@@ -207,7 +207,7 @@ test('updating a second synchronizes the quantities of entries and desserts', fu
         'name' => 'Pollo a la plancha',
         'price' => 16.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $entryProduct = Product::create([
@@ -217,7 +217,7 @@ test('updating a second synchronizes the quantities of entries and desserts', fu
         'name' => 'Causa rellena',
         'price' => 4.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $dessertProduct = Product::create([
@@ -227,7 +227,7 @@ test('updating a second synchronizes the quantities of entries and desserts', fu
         'name' => 'Mazamorra morada',
         'price' => 3.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $dailyMenu = DailyMenu::create([
@@ -368,7 +368,7 @@ test('past daily menus cannot be modified or activated', function () {
         'menu_subcategory_id' => $sub->id,
         'name' => 'Plato Pasado',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 20.00,
     ]);
 

@@ -16,17 +16,17 @@ test('authenticated users can register a partial payment for a bill', function (
         'opened_at' => now(),
     ]);
 
-    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pendiente']);
+    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pending']);
     $order->items()->create([
         'quantity' => 2,
         'unit_price' => 50.00,
         'subtotal' => 100.00,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     $this->actingAs($user)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 40.00,
             'receipt_number' => 'REC-001',
         ])
@@ -38,7 +38,7 @@ test('authenticated users can register a partial payment for a bill', function (
     expect($payment)
         ->bill_id->toBe($bill->id)
         ->cashier_id->toBe($user->id)
-        ->payment_method->toBe('efectivo')
+        ->payment_method->toBe('cash')
         ->amount->toBe('40.00')
         ->receipt_number->toBe('REC-001');
 
@@ -67,12 +67,12 @@ test('paying the full balance automatically closes the bill and frees the table'
         'opened_at' => now(),
     ]);
 
-    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pendiente']);
+    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pending']);
     $order->items()->create([
         'quantity' => 1,
         'unit_price' => 75.50,
         'subtotal' => 75.50,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     $this->actingAs($user)
@@ -103,18 +103,18 @@ test('cannot pay an amount greater than the pending balance', function () {
         'opened_at' => now(),
     ]);
 
-    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pendiente']);
+    $order = $bill->orders()->create(['user_id' => $user->id, 'status' => 'pending']);
     $order->items()->create([
         'quantity' => 1,
         'unit_price' => 30.00,
         'subtotal' => 30.00,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     $this->actingAs($user)
         ->from(route('bills.index'))
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'tarjeta',
+            'payment_method' => 'card',
             'amount' => 50.00,
             'operation_code' => 'POS-50',
         ])

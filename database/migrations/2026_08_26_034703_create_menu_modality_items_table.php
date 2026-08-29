@@ -23,9 +23,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->enum('item_type', [
-                'segundo',
-                'entrada',
-                'postre',
+                'main_course',
+                'starter',
+                'dessert',
             ]);
 
             $table->unsignedInteger('quantity')

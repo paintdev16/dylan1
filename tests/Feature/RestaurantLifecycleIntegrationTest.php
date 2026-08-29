@@ -25,9 +25,9 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     $categoryBeverage = MenuCategory::firstOrCreate(['name' => 'Bebidas'], ['display_order' => 2, 'active' => true]);
 
     $subEco = MenuSubcategory::firstOrCreate(['name' => 'Menú Económico', 'menu_category_id' => $categoryFood->id], ['display_order' => 1, 'active' => true]);
-    $typeSegundo = MenuSubcategoryType::firstOrCreate(['name' => 'Segundos', 'menu_subcategory_id' => $subEco->id], ['code' => 'segundo', 'display_order' => 1, 'active' => true]);
-    $typeEntrada = MenuSubcategoryType::firstOrCreate(['name' => 'Entradas', 'menu_subcategory_id' => $subEco->id], ['code' => 'entrada', 'display_order' => 2, 'active' => true]);
-    $typePostre = MenuSubcategoryType::firstOrCreate(['name' => 'Postres', 'menu_subcategory_id' => $subEco->id], ['code' => 'postre', 'display_order' => 3, 'active' => true]);
+    $typeSegundo = MenuSubcategoryType::firstOrCreate(['name' => 'Segundos', 'menu_subcategory_id' => $subEco->id], ['code' => 'main_course', 'display_order' => 1, 'active' => true]);
+    $typeEntrada = MenuSubcategoryType::firstOrCreate(['name' => 'Entradas', 'menu_subcategory_id' => $subEco->id], ['code' => 'starter', 'display_order' => 2, 'active' => true]);
+    $typePostre = MenuSubcategoryType::firstOrCreate(['name' => 'Postres', 'menu_subcategory_id' => $subEco->id], ['code' => 'dessert', 'display_order' => 3, 'active' => true]);
 
     $pSeco = Product::create([
         'menu_category_id' => $categoryFood->id,
@@ -36,7 +36,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'name' => 'Seco de res con frijoles',
         'price' => 15.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pPapa = Product::create([
@@ -46,7 +46,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'name' => 'Papa a la huancaína',
         'price' => 4.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pGelatina = Product::create([
@@ -56,7 +56,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'name' => 'Gelatina de fresa',
         'price' => 3.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pGaseosa = Product::create([
@@ -64,7 +64,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'name' => 'Inca Kola 500ml',
         'price' => 4.50,
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $stockBebida = ProductStock::create([
@@ -113,9 +113,9 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'display_order' => 1,
         'active' => true,
     ]);
-    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpSegundo->id, 'item_type' => 'segundo']);
-    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpEntrada->id, 'item_type' => 'entrada']);
-    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpPostre->id, 'item_type' => 'postre']);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpSegundo->id, 'item_type' => 'main_course']);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpEntrada->id, 'item_type' => 'starter']);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpPostre->id, 'item_type' => 'dessert']);
 
     // 2. Personal: Mozo, Cocinero, Cajero
     $mozo = User::factory()->create(['name' => 'Mozo Roberto']);
@@ -159,29 +159,29 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     // Total de la cuenta: 2 x 15 = S/. 30.00
     expect((float) $bill->fresh()->total_amount)->toBe(30.00);
 
-    // 5. Envío inteligente a Cocina: Comida preparada en 'pendiente'
+    // 5. Envío inteligente a Cocina: Comida preparada en 'pending'
     $order1 = Order::where('bill_id', $bill->id)->first();
     $foodItem = $order1->items()->first();
-    expect($foodItem->kitchen_status)->toBe('pendiente');
+    expect($foodItem->kitchen_status)->toBe('pending');
 
     // 6. Cocina KDS: Cocinero empieza preparación y la termina
     $this->actingAs($cocinero)
         ->patch(route('kitchen.items.update-status', $foodItem), [
-            'kitchen_status' => 'en_preparacion',
+            'kitchen_status' => 'in_preparation',
         ]);
-    expect($foodItem->fresh()->kitchen_status)->toBe('en_preparacion');
+    expect($foodItem->fresh()->kitchen_status)->toBe('in_preparation');
 
     $this->actingAs($cocinero)
         ->patch(route('kitchen.items.update-status', $foodItem), [
-            'kitchen_status' => 'listo',
+            'kitchen_status' => 'ready',
         ]);
-    expect($foodItem->fresh()->kitchen_status)->toBe('listo');
+    expect($foodItem->fresh()->kitchen_status)->toBe('ready');
 
     // 7. Pedido Progresivo Adicional: 2 Inca Kolas a la misma cuenta
     $order2 = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $mozo->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     $this->actingAs($mozo)
@@ -192,11 +192,11 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
 
     // Bebidas no saturan cocina (inician entregadas) y descuentan stock físico: 25 - 2 = 23
     $beverageItem = OrderItem::where('product_id', $pGaseosa->id)->first();
-    expect($beverageItem->kitchen_status)->toBe('entregado')
+    expect($beverageItem->kitchen_status)->toBe('delivered')
         ->and($stockBebida->fresh()->quantity)->toBe(23);
 
     // Registro en StockMovement de tipo salida_venta
-    $movementSale = StockMovement::where('product_id', $pGaseosa->id)->where('type', 'salida_venta')->first();
+    $movementSale = StockMovement::where('product_id', $pGaseosa->id)->where('type', 'sale')->first();
     expect($movementSale)->not->toBeNull()
         ->and($movementSale->previous_quantity)->toBe(25)
         ->and($movementSale->new_quantity)->toBe(23);
@@ -233,7 +233,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     // 10. Cobro de la cuenta en Caja con Efectivo (S/. 50 recibido para cuenta de S/. 30)
     $this->actingAs($cajero)
         ->post(route('cash-register.pay', $bill), [
-            'payment_method' => 'efectivo',
+            'payment_method' => 'cash',
             'amount' => 30.00,
             'received_amount' => 50.00,
         ])
@@ -246,7 +246,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         ->and($session->fresh()->status)->toBe('closed')
         ->and($session->fresh()->closed_at)->not->toBeNull()
         ->and($table->fresh()->status)->toBe('available')
-        ->and($order1->fresh()->status)->toBe('completado');
+        ->and($order1->fresh()->status)->toBe('completed');
 
     // 12. Cierre y Arqueo de Caja (Efectivo esperado = 100 fondo + 30 cobro = S/. 130.00)
     $this->actingAs($cajero)

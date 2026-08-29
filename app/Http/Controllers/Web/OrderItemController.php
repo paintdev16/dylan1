@@ -78,7 +78,7 @@ class OrderItemController extends Controller
 
         $validated = $validator->validate();
 
-        if ($order->status === 'completado' || $order->bill->status !== 'open') {
+        if ($order->status === 'completed' || $order->bill->status !== 'open') {
             return back()->withErrors([
                 'order' => 'No se pueden agregar ítems a esta comanda.',
             ]);
@@ -89,11 +89,11 @@ class OrderItemController extends Controller
             $stockResult = $this->stockService->reserveStockForOrderItem($validated, $quantity);
 
             $productId = $validated['product_id'] ?? null;
-            $kitchenStatus = 'pendiente';
+            $kitchenStatus = 'pending';
             if ($productId) {
                 $prod = Product::query()->with('menuCategory')->whereKey($productId)->first();
-                if ($prod?->menuCategory?->name === 'Bebidas') {
-                    $kitchenStatus = 'entregado';
+                if ($prod?->menuCategory?->code === 'beverages') {
+                    $kitchenStatus = 'delivered';
                 }
             }
 
@@ -126,14 +126,14 @@ class OrderItemController extends Controller
         $validated = $request->validate([
             'kitchen_status' => [
                 'required',
-                'in:en_preparacion,listo,entregado',
+                'in:in_preparation,ready,delivered',
             ],
         ]);
 
         $nextStatuses = [
-            'pendiente' => 'en_preparacion',
-            'en_preparacion' => 'entregado',
-            'listo' => 'entregado',
+            'pending' => 'in_preparation',
+            'in_preparation' => 'delivered',
+            'ready' => 'delivered',
         ];
 
         if (($nextStatuses[$orderItem->kitchen_status] ?? null) !== $validated['kitchen_status']) {
@@ -148,11 +148,11 @@ class OrderItemController extends Controller
             $order = $orderItem->order;
             $hasPendingItems = OrderItem::query()
                 ->where('order_id', $order->id)
-                ->where('kitchen_status', '!=', 'entregado')
+                ->where('kitchen_status', '!=', 'delivered')
                 ->exists();
 
             if (! $hasPendingItems) {
-                $order->update(['status' => 'completado']);
+                $order->update(['status' => 'completed']);
             }
         });
 
@@ -186,7 +186,7 @@ class OrderItemController extends Controller
             'cancellation_reason' => ['required', 'string', 'min:3', 'max:255'],
         ]);
 
-        if ($orderItem->kitchen_status !== 'pendiente') {
+        if ($orderItem->kitchen_status !== 'pending') {
             CancellationRequest::firstOrCreate(
                 ['order_item_id' => $orderItem->id, 'status' => 'pending'],
                 [

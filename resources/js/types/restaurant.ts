@@ -50,7 +50,7 @@ export type BillOrderType = 'dine_in' | 'takeout';
 
 export type BillStatus = 'open' | 'closed';
 
-export type PaymentMethod = 'efectivo' | 'tarjeta' | 'yape' | 'plin';
+export type PaymentMethod = 'cash' | 'card' | 'yape' | 'plin';
 
 export interface Payment {
     id: number;
@@ -75,7 +75,7 @@ export interface OrderItem {
     notes: string | null;
     unit_price: number;
     subtotal: number;
-    kitchen_status: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado';
+    kitchen_status: 'pending' | 'in_preparation' | 'ready' | 'delivered';
     product?: Product | null;
     menu_modality?: {
         id: number;
@@ -90,7 +90,7 @@ export interface Order {
     id: number;
     bill_id: number;
     user_id: number;
-    status: 'pendiente' | 'enviado_cocina' | 'completado';
+    status: 'pending' | 'sent_to_kitchen' | 'completed';
     created_at: string;
     user?: {
         id: number;
@@ -123,6 +123,7 @@ export interface Bill {
 export interface MenuCategory {
     id: number;
     name: string;
+    code: 'food' | 'beverages';
     display_order: number;
     active: boolean;
     has_versions: boolean;
@@ -134,6 +135,7 @@ export type MenuSubcategoryType = {
     id: number;
     menu_subcategory_id: number;
     name: string;
+    code: 'main_course' | 'starter' | 'dessert';
     display_order: number;
     active: boolean;
 };
@@ -142,6 +144,7 @@ export type MenuSubcategory = {
     id: number;
     menu_category_id: number;
     name: string;
+    code: 'economic_menu' | 'special_dishes';
     display_order: number;
     active: boolean;
     types?: MenuSubcategoryType[];
@@ -149,7 +152,7 @@ export type MenuSubcategory = {
 
 export type ProductType = 'simple' | 'prepared';
 
-export type ProductStatus = 'activo' | 'inactivo';
+export type ProductStatus = 'active' | 'inactive';
 
 export type Product = {
     id: number;
@@ -179,7 +182,7 @@ export type ProductStock = {
     movements?: ProductStockMovement[];
 };
 
-export type ProductStockMovementType = 'entrada' | 'salida' | 'ajuste';
+export type ProductStockMovementType = 'stock_in' | 'stock_out' | 'adjustment';
 
 export type ProductStockMovement = {
     id: number;
@@ -239,6 +242,6 @@ export interface MenuModality {
 
 export interface MenuModalityItem {
     daily_menu_product_id: number;
-    item_type: 'segundo' | 'entrada' | 'postre';
+    item_type: 'main_course' | 'stock_in' | 'dessert';
     quantity: number;
 }

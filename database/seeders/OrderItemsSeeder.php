@@ -14,7 +14,7 @@ class OrderItemsSeeder extends Seeder
      */
     public function run(): void
     {
-        $product = Product::query()->where('status', 'activo')->firstOrFail();
+        $product = Product::query()->where('status', 'active')->firstOrFail();
         $orders = Order::query()->orderBy('id')->take(2)->get();
 
         foreach ($orders as $order) {
@@ -26,7 +26,7 @@ class OrderItemsSeeder extends Seeder
                     'notes' => 'Sin picante',
                     'unit_price' => $product->price,
                     'subtotal' => (float) $product->price * 2,
-                    'kitchen_status' => 'pendiente',
+                    'kitchen_status' => 'pending',
                 ]
             );
         }

@@ -16,6 +16,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class MenuSubcategoryType extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (MenuSubcategoryType $type): void {
+            $type->code ??= match ($type->name) {
+                'Segundos' => 'main_course',
+                'Entradas' => 'starter',
+                'Postres' => 'dessert',
+                default => null,
+            };
+        });
+    }
+
     /**
      * Subcategoría a la que pertenece este tipo.
      */

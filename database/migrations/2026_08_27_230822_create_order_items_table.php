@@ -40,11 +40,11 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2);
 
             $table->enum('kitchen_status', [
-                'pendiente',
-                'en_preparacion',
-                'listo',
-                'entregado',
-            ])->default('pendiente');
+                'pending',
+                'in_preparation',
+                'ready',
+                'delivered',
+            ])->default('pending');
 
             $table->timestamps();
         });

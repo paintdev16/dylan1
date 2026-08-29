@@ -87,23 +87,23 @@ export function ProductForm({
         product?.type ?? 'prepared',
     );
 
-    const [status, setStatus] = useState<'activo' | 'inactivo'>(
-        product?.status ?? 'activo',
+    const [status, setStatus] = useState<'active' | 'inactive'>(
+        product?.status ?? 'active',
     );
 
     const selectedCategory = categories.find(
         (category) => category.id.toString() === categoryId,
     );
 
-    const isBeverage = selectedCategory?.name === 'Bebidas';
-    const isFood = selectedCategory?.name === 'Comidas';
+    const isBeverage = selectedCategory?.code === 'beverages';
+    const isFood = selectedCategory?.code === 'food';
 
     const subcategories = selectedCategory?.menu_subcategories ?? [];
     const selectedSubcategory = subcategories.find(
         (sub) => sub.id.toString() === subcategoryId,
     );
 
-    const isEconomicMenu = selectedSubcategory?.name === 'Menú Económico';
+    const isEconomicMenu = selectedSubcategory?.code === 'economic_menu';
     const subcategoryTypes = selectedSubcategory?.types ?? [];
 
     const requiresPresentation =
@@ -174,7 +174,7 @@ export function ProductForm({
                                     setSubcategoryId('');
                                     setSubcategoryTypeId('');
 
-                                    if (newCategory?.name === 'Bebidas') {
+                                    if (newCategory?.code === 'beverages') {
                                         setType('simple');
                                     } else {
                                         setType('prepared');
@@ -467,7 +467,7 @@ export function ProductForm({
                             <Select
                                 value={status}
                                 onValueChange={(value) =>
-                                    setStatus(value as 'activo' | 'inactivo')
+                                    setStatus(value as 'active' | 'inactive')
                                 }
                             >
                                 <SelectTrigger id="status" className="w-full">
@@ -475,11 +475,11 @@ export function ProductForm({
                                 </SelectTrigger>
 
                                 <SelectContent>
-                                    <SelectItem value="activo">
+                                    <SelectItem value="active">
                                         Activo
                                     </SelectItem>
 
-                                    <SelectItem value="inactivo">
+                                    <SelectItem value="inactive">
                                         Inactivo
                                     </SelectItem>
                                 </SelectContent>

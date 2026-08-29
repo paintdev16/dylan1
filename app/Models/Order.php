@@ -26,7 +26,7 @@ class Order extends Model
     use HasFactory;
 
     protected $attributes = [
-        'status' => 'enviado_cocina',
+        'status' => 'sent_to_kitchen',
     ];
 
     /** @return BelongsTo<Bill, $this> */

@@ -13,19 +13,21 @@ class MenuSubcategoriesSeeder extends Seeder
      */
     public function run(): void
     {
-        $comidas = MenuCategory::where('name', 'Comidas')
+        $comidas = MenuCategory::where('code', 'food')
             ->firstOrFail();
 
         $subcategories = [
             [
                 'menu_category_id' => $comidas->id,
                 'name' => 'Menú Económico',
+                'code' => 'economic_menu',
                 'display_order' => 1,
                 'active' => true,
             ],
             [
                 'menu_category_id' => $comidas->id,
                 'name' => 'Platos Especiales',
+                'code' => 'special_dishes',
                 'display_order' => 2,
                 'active' => true,
             ],
@@ -35,7 +37,7 @@ class MenuSubcategoriesSeeder extends Seeder
             MenuSubcategory::updateOrCreate(
                 [
                     'menu_category_id' => $subcategory['menu_category_id'],
-                    'name' => $subcategory['name'],
+                    'code' => $subcategory['code'],
                 ],
                 $subcategory
             );

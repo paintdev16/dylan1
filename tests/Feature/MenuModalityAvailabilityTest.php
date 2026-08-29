@@ -6,6 +6,7 @@ use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
 use App\Models\MenuModality;
+use App\Models\MenuModalityItem;
 use App\Models\MenuSubcategory;
 use App\Models\MenuSubcategoryType;
 use App\Models\Order;
@@ -54,7 +55,7 @@ function setupDailyMenuWithComponents(): array
         'menu_subcategory_type_id' => $typeSegundo->id,
         'name' => 'Seco de pollo',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 14.00,
     ]);
 
@@ -64,7 +65,7 @@ function setupDailyMenuWithComponents(): array
         'menu_subcategory_type_id' => $typeEntrada->id,
         'name' => 'Sopa de verduras',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 4.00,
     ]);
 
@@ -74,7 +75,7 @@ function setupDailyMenuWithComponents(): array
         'menu_subcategory_type_id' => $typePostre->id,
         'name' => 'Gelatina',
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 3.00,
     ]);
 
@@ -82,7 +83,7 @@ function setupDailyMenuWithComponents(): array
         'menu_category_id' => $beverageCategory->id,
         'name' => 'Inca Kola 500ml',
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
         'price' => 4.50,
     ]);
 
@@ -154,6 +155,21 @@ function setupDailyMenuWithComponents(): array
         'active' => true,
     ]);
 
+    foreach ([
+        [$modalityCompleto, $dmpSegundo, 'main_course'],
+        [$modalityCompleto, $dmpEntrada, 'starter'],
+        [$modalityCompleto, $dmpPostre, 'dessert'],
+        [$modalitySoloSegundo, $dmpSegundo, 'main_course'],
+        [$modalityEntradaPostre, $dmpEntrada, 'starter'],
+        [$modalityEntradaPostre, $dmpPostre, 'dessert'],
+    ] as [$modality, $dailyMenuProduct, $itemType]) {
+        MenuModalityItem::create([
+            'menu_modality_id' => $modality->id,
+            'daily_menu_product_id' => $dailyMenuProduct->id,
+            'item_type' => $itemType,
+        ]);
+    }
+
     return compact(
         'dailyMenu',
         'dmpSegundo',
@@ -217,7 +233,7 @@ test('waiter can create an order item with Menu completo and components deductin
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     $response = $this->actingAs($user)
@@ -264,7 +280,7 @@ test('order item creation fails when modality components are incomplete or wrong
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     // Intenta pedir Menú completo sin postre (solo segundo y entrada)
@@ -299,7 +315,7 @@ test('order item creation fails when available portions are insufficient', funct
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     // Pedir 15 porciones cuando solo hay 10
@@ -333,7 +349,7 @@ test('deleting an order item restores portions and beverage stock', function () 
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     // 1. Pedir modalidad y bebida

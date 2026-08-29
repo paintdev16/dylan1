@@ -69,6 +69,13 @@ type Props = {
     }>;
 };
 
+const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+    cash: 'Efectivo',
+    card: 'Tarjeta POS',
+    yape: 'Yape',
+    plin: 'Plin',
+};
+
 function formatCurrency(amount: number): string {
     return `S/. ${Number(amount).toFixed(2)}`;
 }
@@ -102,8 +109,7 @@ export default function CashRegisterIndex({
     const [movementModalOpen, setMovementModalOpen] = useState(false);
 
     // Payment Form state
-    const [paymentMethod, setPaymentMethod] =
-        useState<PaymentMethod>('efectivo');
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
     const [paymentAmount, setPaymentAmount] = useState<string>('');
     const [receivedAmount, setReceivedAmount] = useState<string>('');
     const [receiptNumber, setReceiptNumber] = useState<string>('');
@@ -112,7 +118,7 @@ export default function CashRegisterIndex({
     const [secondPaymentMethod, setSecondPaymentMethod] =
         useState<PaymentMethod>('yape');
     const [receiptType, setReceiptType] = useState<
-        'ticket' | 'boleta' | 'factura'
+        'ticket' | 'receipt' | 'invoice'
     >('ticket');
     const [customerName, setCustomerName] = useState<string>('');
     const [customerDocument, setCustomerDocument] = useState<string>('');
@@ -125,7 +131,7 @@ export default function CashRegisterIndex({
         setSelectedBill(bill);
         setPaymentAmount(bill.balance.toString());
         setReceivedAmount(bill.balance.toString());
-        setPaymentMethod('efectivo');
+        setPaymentMethod('cash');
         setReceiptNumber('');
         setSplitPayment(false);
         setFirstPaymentAmount((bill.balance / 2).toFixed(2));
@@ -632,12 +638,12 @@ export default function CashRegisterIndex({
                                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                             {[
                                                 {
-                                                    id: 'efectivo',
+                                                    id: 'cash',
                                                     label: 'Efectivo',
                                                     icon: Banknote,
                                                 },
                                                 {
-                                                    id: 'tarjeta',
+                                                    id: 'card',
                                                     label: 'Tarjeta POS',
                                                     icon: CreditCard,
                                                 },
@@ -679,9 +685,9 @@ export default function CashRegisterIndex({
                                                             ) {
                                                                 setSecondPaymentMethod(
                                                                     method ===
-                                                                        'efectivo'
+                                                                        'cash'
                                                                         ? 'yape'
-                                                                        : 'efectivo',
+                                                                        : 'cash',
                                                                 );
                                                             }
                                                         }}
@@ -755,8 +761,8 @@ export default function CashRegisterIndex({
                                                 >
                                                     {(
                                                         [
-                                                            'efectivo',
-                                                            'tarjeta',
+                                                            'cash',
+                                                            'card',
                                                             'yape',
                                                             'plin',
                                                         ] as PaymentMethod[]
@@ -771,7 +777,11 @@ export default function CashRegisterIndex({
                                                                 key={method}
                                                                 value={method}
                                                             >
-                                                                {method}
+                                                                {
+                                                                    PAYMENT_METHOD_LABELS[
+                                                                        method
+                                                                    ]
+                                                                }
                                                             </option>
                                                         ))}
                                                 </select>
@@ -831,7 +841,7 @@ export default function CashRegisterIndex({
                                             )}
                                         </div>
 
-                                        {paymentMethod === 'efectivo' && (
+                                        {paymentMethod === 'cash' && (
                                             <div className="space-y-1.5">
                                                 <Label
                                                     htmlFor="received_amount"
@@ -864,7 +874,7 @@ export default function CashRegisterIndex({
                                     </div>
 
                                     {/* Cálculo de Vuelto */}
-                                    {paymentMethod === 'efectivo' && (
+                                    {paymentMethod === 'cash' && (
                                         <div className="flex items-center justify-between rounded-lg border bg-emerald-50/30 p-3 dark:bg-emerald-950/20">
                                             <span className="text-xs font-medium text-muted-foreground">
                                                 Vuelto a entregar al cliente:
@@ -893,8 +903,8 @@ export default function CashRegisterIndex({
                                                     setReceiptType(
                                                         event.target.value as
                                                             | 'ticket'
-                                                            | 'boleta'
-                                                            | 'factura',
+                                                            | 'receipt'
+                                                            | 'invoice',
                                                     )
                                                 }
                                                 className="h-9 w-full rounded-md border bg-background px-3 text-sm"
@@ -902,10 +912,10 @@ export default function CashRegisterIndex({
                                                 <option value="ticket">
                                                     Ticket
                                                 </option>
-                                                <option value="boleta">
+                                                <option value="receipt">
                                                     Boleta
                                                 </option>
-                                                <option value="factura">
+                                                <option value="invoice">
                                                     Factura
                                                 </option>
                                             </select>
@@ -927,7 +937,7 @@ export default function CashRegisterIndex({
                                                     )
                                                 }
                                                 required={
-                                                    receiptType === 'factura'
+                                                    receiptType === 'invoice'
                                                 }
                                             />
                                         </div>
@@ -949,7 +959,7 @@ export default function CashRegisterIndex({
                                                     event.target.value,
                                                 )
                                             }
-                                            required={receiptType === 'factura'}
+                                            required={receiptType === 'invoice'}
                                         />
                                     </div>
 

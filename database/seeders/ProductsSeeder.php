@@ -21,10 +21,10 @@ class ProductsSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
-        $comidas = MenuCategory::where('name', 'Comidas')
+        $comidas = MenuCategory::where('code', 'food')
             ->firstOrFail();
 
-        $bebidas = MenuCategory::where('name', 'Bebidas')
+        $bebidas = MenuCategory::where('code', 'beverages')
             ->firstOrFail();
 
         /*
@@ -43,35 +43,35 @@ class ProductsSeeder extends Seeder
             'menu_category_id',
             $comidas->id
         )
-            ->where('name', 'Menú Económico')
+            ->where('code', 'economic_menu')
             ->firstOrFail();
 
         $platosEspeciales = MenuSubcategory::where(
             'menu_category_id',
             $comidas->id
         )
-            ->where('name', 'Platos Especiales')
+            ->where('code', 'special_dishes')
             ->firstOrFail();
 
         $segundos = MenuSubcategoryType::where(
             'menu_subcategory_id',
             $menuEconomico->id
         )
-            ->where('name', 'Segundos')
+            ->where('code', 'main_course')
             ->firstOrFail();
 
         $entradas = MenuSubcategoryType::where(
             'menu_subcategory_id',
             $menuEconomico->id
         )
-            ->where('name', 'Entradas')
+            ->where('code', 'starter')
             ->firstOrFail();
 
         $postres = MenuSubcategoryType::where(
             'menu_subcategory_id',
             $menuEconomico->id
         )
-            ->where('name', 'Postres')
+            ->where('code', 'dessert')
             ->firstOrFail();
 
         /*
@@ -106,7 +106,7 @@ class ProductsSeeder extends Seeder
                 'price' => 7.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -119,7 +119,7 @@ class ProductsSeeder extends Seeder
                 'price' => 7.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -132,7 +132,7 @@ class ProductsSeeder extends Seeder
                 'price' => 7.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -145,7 +145,7 @@ class ProductsSeeder extends Seeder
                 'price' => 7.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             /*
@@ -171,7 +171,7 @@ class ProductsSeeder extends Seeder
                 'price' => 4.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -184,7 +184,7 @@ class ProductsSeeder extends Seeder
                 'price' => 4.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -197,7 +197,7 @@ class ProductsSeeder extends Seeder
                 'price' => 4.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             /*
@@ -221,7 +221,7 @@ class ProductsSeeder extends Seeder
                 'price' => 3.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -234,7 +234,7 @@ class ProductsSeeder extends Seeder
                 'price' => 3.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -247,7 +247,7 @@ class ProductsSeeder extends Seeder
                 'price' => 3.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             /*
@@ -268,7 +268,7 @@ class ProductsSeeder extends Seeder
                 'price' => 18.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -280,7 +280,7 @@ class ProductsSeeder extends Seeder
                 'price' => 22.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -292,7 +292,7 @@ class ProductsSeeder extends Seeder
                 'price' => 18.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -304,7 +304,7 @@ class ProductsSeeder extends Seeder
                 'price' => 16.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -316,7 +316,7 @@ class ProductsSeeder extends Seeder
                 'price' => 20.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -328,7 +328,7 @@ class ProductsSeeder extends Seeder
                 'price' => 19.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -340,7 +340,7 @@ class ProductsSeeder extends Seeder
                 'price' => 14.00,
                 'image' => null,
                 'type' => 'prepared',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             /*
@@ -358,7 +358,7 @@ class ProductsSeeder extends Seeder
                 'price' => 8.00,
                 'image' => null,
                 'type' => 'simple',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -370,7 +370,7 @@ class ProductsSeeder extends Seeder
                 'price' => 7.00,
                 'image' => null,
                 'type' => 'simple',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -382,7 +382,7 @@ class ProductsSeeder extends Seeder
                 'price' => 8.00,
                 'image' => null,
                 'type' => 'simple',
-                'status' => 'activo',
+                'status' => 'active',
             ],
 
             [
@@ -394,7 +394,7 @@ class ProductsSeeder extends Seeder
                 'price' => 3.00,
                 'image' => null,
                 'type' => 'simple',
-                'status' => 'activo',
+                'status' => 'active',
             ],
         ];
 

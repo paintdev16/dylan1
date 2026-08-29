@@ -29,8 +29,8 @@ class CashRegisterController extends Controller
 
         if ($activeSession) {
             $payments = $activeSession->payments()->get();
-            $cashTotal = $payments->where('payment_method', 'efectivo')->sum('amount');
-            $cardTotal = $payments->where('payment_method', 'tarjeta')->sum('amount');
+            $cashTotal = $payments->where('payment_method', 'cash')->sum('amount');
+            $cardTotal = $payments->where('payment_method', 'card')->sum('amount');
             $digitalTotal = $payments->whereIn('payment_method', ['yape', 'plin'])->sum('amount');
             $totalCollected = $payments->sum('amount');
             $movementBalance = (float) $activeSession->movements()
@@ -127,16 +127,16 @@ class CashRegisterController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required_without:payments', 'nullable', 'in:efectivo,tarjeta,yape,plin'],
+            'payment_method' => ['required_without:payments', 'nullable', 'in:cash,card,yape,plin'],
             'amount' => ['required_without:payments', 'nullable', 'numeric', 'min:0.01'],
             'received_amount' => ['nullable', 'numeric', 'min:0'],
             'receipt_number' => ['nullable', 'string', 'max:50'],
             'operation_code' => ['nullable', 'string', 'max:100'],
-            'receipt_type' => ['nullable', 'in:ticket,boleta,factura'],
-            'customer_name' => [Rule::requiredIf($request->receipt_type === 'factura'), 'nullable', 'string', 'max:150'],
-            'customer_document' => [Rule::requiredIf($request->receipt_type === 'factura'), 'nullable', 'string', 'max:20'],
+            'receipt_type' => ['nullable', 'in:ticket,receipt,invoice'],
+            'customer_name' => [Rule::requiredIf($request->receipt_type === 'invoice'), 'nullable', 'string', 'max:150'],
+            'customer_document' => [Rule::requiredIf($request->receipt_type === 'invoice'), 'nullable', 'string', 'max:20'],
             'payments' => ['nullable', 'array', 'min:2'],
-            'payments.*.payment_method' => ['required_with:payments', 'distinct', 'in:efectivo,tarjeta,yape,plin'],
+            'payments.*.payment_method' => ['required_with:payments', 'distinct', 'in:cash,card,yape,plin'],
             'payments.*.amount' => ['required_with:payments', 'numeric', 'min:0.01'],
             'payments.*.operation_code' => ['nullable', 'string', 'max:100'],
         ]);
@@ -168,7 +168,7 @@ class CashRegisterController extends Controller
 
             foreach ($paymentParts as $paymentPart) {
                 if (
-                    $paymentPart['payment_method'] === 'efectivo'
+                    $paymentPart['payment_method'] === 'cash'
                     && isset($validated['received_amount'])
                     && (float) $validated['received_amount'] < (float) $paymentPart['amount']
                 ) {
@@ -186,7 +186,7 @@ class CashRegisterController extends Controller
 
             $paymentGroupId = (string) Str::uuid();
             foreach ($paymentParts as $index => $part) {
-                $receivedAmount = $part['payment_method'] === 'efectivo'
+                $receivedAmount = $part['payment_method'] === 'cash'
                     ? (float) ($validated['received_amount'] ?? $part['amount'])
                     : null;
                 Payment::create([
@@ -233,12 +233,12 @@ class CashRegisterController extends Controller
 
                 // 4. Marcar comandas como completadas
                 $lockedBill->orders()
-                    ->where('status', '!=', 'completado')
-                    ->update(['status' => 'completado']);
+                    ->where('status', '!=', 'completed')
+                    ->update(['status' => 'completed']);
             }
 
             $change = null;
-            if (count($paymentParts) === 1 && $paymentParts[0]['payment_method'] === 'efectivo' && ! empty($validated['received_amount'] ?? null)) {
+            if (count($paymentParts) === 1 && $paymentParts[0]['payment_method'] === 'cash' && ! empty($validated['received_amount'] ?? null)) {
                 $change = max(0, (float) $validated['received_amount'] - (float) $paymentParts[0]['amount']);
             }
 
@@ -337,7 +337,7 @@ class CashRegisterController extends Controller
         ]);
 
         $cashCollected = $session->payments()
-            ->where('payment_method', 'efectivo')
+            ->where('payment_method', 'cash')
             ->sum('amount');
 
         $movementBalance = (float) $session->movements()

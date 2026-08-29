@@ -21,7 +21,7 @@ function setupCancellationTestData(): array
         'name' => 'Inca Kola 500ml',
         'price' => 4.00,
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $stock = ProductStock::create([
@@ -48,7 +48,7 @@ function setupCancellationTestData(): array
     $order = Order::create([
         'bill_id' => $bill->id,
         'user_id' => $user->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     return compact('user', 'beverage', 'stock', 'table', 'bill', 'order');
@@ -68,7 +68,7 @@ test('ordering beverage creates stock movement and cancelling it restores stock 
     expect($data['stock']->fresh()->quantity)->toBe(18);
 
     // Verificar stock movement de salida
-    $movementSale = StockMovement::where('type', 'salida_venta')->first();
+    $movementSale = StockMovement::where('type', 'sale')->first();
     expect($movementSale)->not->toBeNull()
         ->and($movementSale->previous_quantity)->toBe(20)
         ->and($movementSale->quantity)->toBe(2)
@@ -103,7 +103,7 @@ test('ordering beverage creates stock movement and cancelling it restores stock 
     expect($data['stock']->fresh()->quantity)->toBe(20);
 
     // Verificar stock movement de cancelación
-    $movementCancel = StockMovement::where('type', 'cancelacion')->first();
+    $movementCancel = StockMovement::where('type', 'cancellation')->first();
     expect($movementCancel)->not->toBeNull()
         ->and($movementCancel->previous_quantity)->toBe(18)
         ->and($movementCancel->quantity)->toBe(2)

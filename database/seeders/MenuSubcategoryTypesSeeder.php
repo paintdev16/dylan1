@@ -13,30 +13,30 @@ class MenuSubcategoryTypesSeeder extends Seeder
      */
     public function run(): void
     {
-        $menuEconomico = MenuSubcategory::where('name', 'Menú Económico')
+        $menuEconomico = MenuSubcategory::where('code', 'economic_menu')
             ->whereHas('menuCategory', function ($query) {
-                $query->where('name', 'Comidas');
+                $query->where('code', 'food');
             })
             ->firstOrFail();
 
         $types = [
             [
                 'menu_subcategory_id' => $menuEconomico->id,
-                'code' => 'segundo',
+                'code' => 'main_course',
                 'name' => 'Segundos',
                 'display_order' => 1,
                 'active' => true,
             ],
             [
                 'menu_subcategory_id' => $menuEconomico->id,
-                'code' => 'entrada',
+                'code' => 'starter',
                 'name' => 'Entradas',
                 'display_order' => 2,
                 'active' => true,
             ],
             [
                 'menu_subcategory_id' => $menuEconomico->id,
-                'code' => 'postre',
+                'code' => 'dessert',
                 'name' => 'Postres',
                 'display_order' => 3,
                 'active' => true,

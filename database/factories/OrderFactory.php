@@ -32,9 +32,9 @@ class OrderFactory extends Factory
             },
             'user_id' => User::factory(),
             'status' => fake()->randomElement([
-                'pendiente',
-                'enviado_cocina',
-                'completado',
+                'pending',
+                'sent_to_kitchen',
+                'completed',
             ]),
         ];
     }

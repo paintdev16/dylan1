@@ -22,7 +22,7 @@ function createProductForStockController(): Product
         'name' => 'Lomo saltado',
         'price' => 18.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 }
 
@@ -44,7 +44,7 @@ test('authenticated users can register a stock entry', function () {
     ]);
 
     $this->assertDatabaseHas('stock_movements', [
-        'type' => 'entrada',
+        'type' => 'stock_in',
         'previous_quantity' => 0,
         'new_quantity' => 12,
     ]);
@@ -80,7 +80,7 @@ test('authenticated users can adjust stock to an exact quantity', function () {
         ->assertSessionHas('success');
 
     $this->assertDatabaseHas('stock_movements', [
-        'type' => 'ajuste',
+        'type' => 'adjustment',
         'quantity' => 7,
         'previous_quantity' => 0,
         'new_quantity' => 7,
@@ -169,7 +169,7 @@ test('creating a beverage registers its initial stock as an entry movement', fun
             'name' => 'Inca Kola',
             'price' => 8.00,
             'type' => 'simple',
-            'status' => 'activo',
+            'status' => 'active',
             'initial_stock' => 24,
         ])
         ->assertRedirect(route('products.index'))
@@ -183,7 +183,7 @@ test('creating a beverage registers its initial stock as an entry movement', fun
     ]);
 
     $this->assertDatabaseHas('stock_movements', [
-        'type' => 'entrada',
+        'type' => 'stock_in',
         'quantity' => 24,
         'previous_quantity' => 0,
         'new_quantity' => 24,

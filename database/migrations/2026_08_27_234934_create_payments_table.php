@@ -21,8 +21,8 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->enum('payment_method', [
-                'efectivo',
-                'tarjeta',
+                'cash',
+                'card',
                 'yape',
                 'plin',
             ]);

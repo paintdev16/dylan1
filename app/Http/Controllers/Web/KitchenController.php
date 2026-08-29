@@ -18,7 +18,7 @@ class KitchenController extends Controller
                 'bill.restaurantTable',
                 'user',
                 'items' => function ($query) {
-                    $query->whereIn('kitchen_status', ['pendiente', 'en_preparacion', 'listo'])
+                    $query->whereIn('kitchen_status', ['pending', 'in_preparation', 'ready'])
                         ->with([
                             'product',
                             'menuModality',
@@ -27,7 +27,7 @@ class KitchenController extends Controller
                 },
             ])
             ->whereHas('items', function ($query) {
-                $query->whereIn('kitchen_status', ['pendiente', 'en_preparacion']);
+                $query->whereIn('kitchen_status', ['pending', 'in_preparation']);
             })
             ->whereHas('bill', fn ($query) => $query->where('status', 'open'))
             ->orderBy('created_at', 'asc')
@@ -39,7 +39,7 @@ class KitchenController extends Controller
     public function updateItemStatus(Request $request, OrderItem $orderItem): RedirectResponse
     {
         $validated = $request->validate([
-            'kitchen_status' => ['required', 'in:pendiente,en_preparacion,listo,entregado'],
+            'kitchen_status' => ['required', 'in:pending,in_preparation,ready,delivered'],
         ]);
 
         $orderItem->update([

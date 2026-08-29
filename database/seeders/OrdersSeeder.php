@@ -25,7 +25,7 @@ class OrdersSeeder extends Seeder
             Order::updateOrCreate(
                 [
                     'bill_id' => $bill->id,
-                    'status' => $index === 0 ? 'pendiente' : 'enviado_cocina',
+                    'status' => $index === 0 ? 'pending' : 'sent_to_kitchen',
                 ],
                 [
                     'user_id' => $user->id,

@@ -16,9 +16,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->enum('type', [
-                'entrada',
-                'salida',
-                'ajuste',
+                'stock_in',
+                'stock_out',
+                'adjustment',
             ]);
 
             $table->unsignedInteger('quantity');

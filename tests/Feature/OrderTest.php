@@ -22,30 +22,30 @@ test('legacy empty order creation and physical deletion routes are unavailable',
 
 test('orders advance through their allowed statuses', function () {
     $user = User::factory()->create();
-    $order = Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pendiente']);
+    $order = Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pending']);
 
-    $this->actingAs($user)->patch(route('orders.update-status', $order), ['status' => 'enviado_cocina'])->assertRedirect(route('orders.index'));
-    $this->actingAs($user)->patch(route('orders.update-status', $order), ['status' => 'completado'])->assertRedirect(route('orders.index'));
+    $this->actingAs($user)->patch(route('orders.update-status', $order), ['status' => 'sent_to_kitchen'])->assertRedirect(route('orders.index'));
+    $this->actingAs($user)->patch(route('orders.update-status', $order), ['status' => 'completed'])->assertRedirect(route('orders.index'));
 
-    expect($order->refresh()->status)->toBe('completado');
+    expect($order->refresh()->status)->toBe('completed');
 });
 
 test('orders cannot skip or reverse status transitions', function () {
     $user = User::factory()->create();
-    $order = Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pendiente']);
+    $order = Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pending']);
 
     $this->actingAs($user)
         ->from(route('orders.index'))
-        ->patch(route('orders.update-status', $order), ['status' => 'completado'])
+        ->patch(route('orders.update-status', $order), ['status' => 'completed'])
         ->assertRedirect(route('orders.index'))
         ->assertSessionHasErrors('status');
 
-    expect($order->refresh()->status)->toBe('pendiente');
+    expect($order->refresh()->status)->toBe('pending');
 });
 
 test('authenticated users can render orders index page', function () {
     $user = User::factory()->create();
-    Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pendiente']);
+    Order::create(['bill_id' => createOpenBill($user)->id, 'user_id' => $user->id, 'status' => 'pending']);
 
     $this->actingAs($user)->get(route('orders.index'))->assertOk();
 });

@@ -19,15 +19,15 @@ class DashboardController extends Controller
 
         $todayPayments = Payment::whereDate('created_at', $today)->get();
         $todaySales = (float) $todayPayments->sum('amount');
-        $todaySalesCash = (float) $todayPayments->where('payment_method', 'efectivo')->sum('amount');
-        $todaySalesCard = (float) $todayPayments->where('payment_method', 'tarjeta')->sum('amount');
+        $todaySalesCash = (float) $todayPayments->where('payment_method', 'cash')->sum('amount');
+        $todaySalesCard = (float) $todayPayments->where('payment_method', 'card')->sum('amount');
         $todaySalesDigital = (float) $todayPayments->whereIn('payment_method', ['yape', 'plin'])->sum('amount');
 
         $occupiedTables = RestaurantTable::where('status', 'occupied')->count();
         $totalTables = RestaurantTable::count();
 
         $pendingKitchenItems = OrderItem::where('is_cancelled', false)
-            ->whereIn('kitchen_status', ['pendiente', 'en_preparacion'])
+            ->whereIn('kitchen_status', ['pending', 'in_preparation'])
             ->count();
 
         $openBills = Bill::where('status', 'open')->get();

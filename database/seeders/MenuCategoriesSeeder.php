@@ -15,11 +15,13 @@ class MenuCategoriesSeeder extends Seeder
         $categories = [
             [
                 'name' => 'Comidas',
+                'code' => 'food',
                 'display_order' => 1,
                 'active' => true,
             ],
             [
                 'name' => 'Bebidas',
+                'code' => 'beverages',
                 'display_order' => 2,
                 'active' => true,
             ],
@@ -27,7 +29,7 @@ class MenuCategoriesSeeder extends Seeder
 
         foreach ($categories as $category) {
             MenuCategory::updateOrCreate(
-                ['name' => $category['name']],
+                ['code' => $category['code']],
                 $category
             );
         }

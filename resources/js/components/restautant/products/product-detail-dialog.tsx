@@ -27,7 +27,7 @@ export function ProductDetailDialog({
 }: Props) {
     const typeLabel =
         product.type === 'prepared' ? 'Preparado' : 'Venta directa';
-    const isActive = product.status === 'activo';
+    const isActive = product.status === 'active';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

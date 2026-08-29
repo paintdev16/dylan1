@@ -22,8 +22,8 @@ return new class extends Migration
                 ->constrained('users')
                 ->restrictOnDelete();
             $table->uuid('request_token')->nullable()->unique();
-            $table->enum('status', ['pendiente', 'enviado_cocina', 'completado'])
-                ->default('enviado_cocina')
+            $table->enum('status', ['pending', 'sent_to_kitchen', 'completed'])
+                ->default('sent_to_kitchen')
                 ->index();
             $table->timestamps();
         });

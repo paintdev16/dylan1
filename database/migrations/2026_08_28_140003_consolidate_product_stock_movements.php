@@ -21,7 +21,7 @@ return new class extends Migration
                 DB::table('stock_movements')->insert([
                     'product_id' => $movement->product_id,
                     'user_id' => null,
-                    'type' => $movement->type === 'salida' ? 'salida_venta' : $movement->type,
+                    'type' => $movement->type === 'stock_out' ? 'sale' : $movement->type,
                     'quantity' => $movement->quantity,
                     'quantity_change' => $movement->quantity_after - $movement->quantity_before,
                     'previous_quantity' => $movement->quantity_before,
@@ -43,7 +43,7 @@ return new class extends Migration
         Schema::create('product_stock_movements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_stock_id')->constrained()->cascadeOnDelete();
-            $table->enum('type', ['entrada', 'salida', 'ajuste']);
+            $table->enum('type', ['stock_in', 'stock_out', 'adjustment']);
             $table->unsignedInteger('quantity');
             $table->unsignedInteger('quantity_before');
             $table->unsignedInteger('quantity_after');

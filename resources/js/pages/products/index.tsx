@@ -26,7 +26,7 @@ type Props = {
     categories: MenuCategory[];
 };
 
-type CategoryFilter = 'all' | 'Bebidas' | 'Comidas';
+type CategoryFilter = 'all' | 'beverages' | 'food';
 
 export default function Index({ products, categories }: Props) {
     const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
@@ -39,7 +39,7 @@ export default function Index({ products, categories }: Props) {
         return (
             categories.find(
                 (category) => category.id === product.menu_category_id,
-            )?.name === categoryFilter
+            )?.code === categoryFilter
         );
     });
 
@@ -65,8 +65,8 @@ export default function Index({ products, categories }: Props) {
                     {(
                         [
                             ['all', 'Todos'],
-                            ['Bebidas', 'Bebidas'],
-                            ['Comidas', 'Comidas'],
+                            ['beverages', 'Bebidas'],
+                            ['food', 'Comidas'],
                         ] as const
                     ).map(([value, label]) => (
                         <Button
@@ -126,10 +126,10 @@ export default function Index({ products, categories }: Props) {
                                         );
 
                                         const isActive =
-                                            product.status === 'activo';
+                                            product.status === 'active';
 
                                         const stockQuantity =
-                                            category?.name === 'Comidas'
+                                            category?.code === 'food'
                                                 ? (product.daily_menu_quantity ??
                                                   0)
                                                 : (product.product_stock
@@ -228,8 +228,8 @@ export default function Index({ products, categories }: Props) {
                                                                     `/products/${product.id}/status`,
                                                                     {
                                                                         status: checked
-                                                                            ? 'activo'
-                                                                            : 'inactivo',
+                                                                            ? 'active'
+                                                                            : 'inactive',
                                                                     },
                                                                     {
                                                                         preserveScroll: true,

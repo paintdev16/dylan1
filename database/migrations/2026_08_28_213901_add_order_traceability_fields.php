@@ -46,13 +46,13 @@ return new class extends Migration
 
         DB::table('menu_subcategory_types')
             ->where('name', 'Segundos')
-            ->update(['code' => 'segundo']);
+            ->update(['code' => 'main_course']);
         DB::table('menu_subcategory_types')
             ->where('name', 'Entradas')
-            ->update(['code' => 'entrada']);
+            ->update(['code' => 'starter']);
         DB::table('menu_subcategory_types')
             ->where('name', 'Postres')
-            ->update(['code' => 'postre']);
+            ->update(['code' => 'dessert']);
 
     }
 

@@ -33,7 +33,7 @@ class ProductFactory extends Factory
             'price' => fake()->randomFloat(2, 5, 100),
             'image' => null,
             'type' => 'simple',
-            'status' => 'activo',
+            'status' => 'active',
         ];
     }
 
@@ -114,14 +114,14 @@ class ProductFactory extends Factory
     public function soldOut(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'inactivo',
+            'status' => 'inactive',
         ]);
     }
 
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'inactivo',
+            'status' => 'inactive',
         ]);
     }
 }

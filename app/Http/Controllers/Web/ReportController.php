@@ -43,8 +43,8 @@ class ReportController extends Controller
             'summary' => [
                 'total' => (float) $payments->sum('amount'),
                 'transactions' => $payments->count(),
-                'cash' => (float) $payments->where('payment_method', 'efectivo')->sum('amount'),
-                'card' => (float) $payments->where('payment_method', 'tarjeta')->sum('amount'),
+                'cash' => (float) $payments->where('payment_method', 'cash')->sum('amount'),
+                'card' => (float) $payments->where('payment_method', 'card')->sum('amount'),
                 'digital' => (float) $payments->whereIn('payment_method', ['yape', 'plin'])->sum('amount'),
             ],
             'topProducts' => $topProducts,

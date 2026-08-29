@@ -91,9 +91,9 @@ class DailyMenuProductsSeeder extends Seeder
                 'menuSubcategory',
             ])
                 ->where('name', $item['product'])
-                ->where('status', 'activo')
+                ->where('status', 'active')
                 ->whereHas('menuCategory', function ($query) {
-                    $query->where('name', 'Comidas');
+                    $query->where('code', 'food');
                 })
                 ->first();
 

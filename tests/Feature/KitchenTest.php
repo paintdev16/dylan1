@@ -5,6 +5,7 @@ use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
 use App\Models\MenuModality;
+use App\Models\MenuModalityItem;
 use App\Models\MenuSubcategory;
 use App\Models\MenuSubcategoryType;
 use App\Models\Order;
@@ -49,7 +50,7 @@ function setupKitchenTestData(): array
         'name' => 'Ají de gallina',
         'price' => 14.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pEntrada = Product::create([
@@ -59,7 +60,7 @@ function setupKitchenTestData(): array
         'name' => 'Tequeños',
         'price' => 4.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pPostre = Product::create([
@@ -69,7 +70,7 @@ function setupKitchenTestData(): array
         'name' => 'Mazamorra',
         'price' => 3.00,
         'type' => 'prepared',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     $pBeverage = Product::create([
@@ -77,7 +78,7 @@ function setupKitchenTestData(): array
         'name' => 'Agua San Luis 500ml',
         'price' => 3.00,
         'type' => 'simple',
-        'status' => 'activo',
+        'status' => 'active',
     ]);
 
     ProductStock::create([
@@ -127,6 +128,10 @@ function setupKitchenTestData(): array
         'active' => true,
     ]);
 
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpSegundo->id, 'item_type' => 'main_course']);
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpEntrada->id, 'item_type' => 'starter']);
+    MenuModalityItem::create(['menu_modality_id' => $modality->id, 'daily_menu_product_id' => $dmpPostre->id, 'item_type' => 'dessert']);
+
     $table = RestaurantTable::create([
         'number' => 12,
         'capacity' => 4,
@@ -162,7 +167,7 @@ test('prepared dishes and modalities start with kitchen status pendiente while s
     $order = Order::create([
         'bill_id' => $data['bill']->id,
         'user_id' => $data['user']->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     // 1. Agregar modalidad (comida preparada)
@@ -187,8 +192,8 @@ test('prepared dishes and modalities start with kitchen status pendiente while s
     $modalityItem = OrderItem::where('menu_modality_id', $data['modality']->id)->first();
     $beverageItem = OrderItem::where('product_id', $data['pBeverage']->id)->first();
 
-    expect($modalityItem->kitchen_status)->toBe('pendiente')
-        ->and($beverageItem->kitchen_status)->toBe('entregado');
+    expect($modalityItem->kitchen_status)->toBe('pending')
+        ->and($beverageItem->kitchen_status)->toBe('delivered');
 });
 
 test('kitchen index displays only pending or in preparation orders and dishes', function () {
@@ -197,7 +202,7 @@ test('kitchen index displays only pending or in preparation orders and dishes', 
     $order = Order::create([
         'bill_id' => $data['bill']->id,
         'user_id' => $data['user']->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     // Agregar plato que va a cocina
@@ -219,7 +224,7 @@ test('cook can advance dish status to en_preparacion and listo', function () {
     $order = Order::create([
         'bill_id' => $data['bill']->id,
         'user_id' => $data['user']->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     $item = OrderItem::create([
@@ -228,26 +233,26 @@ test('cook can advance dish status to en_preparacion and listo', function () {
         'quantity' => 2,
         'unit_price' => 14.00,
         'subtotal' => 28.00,
-        'kitchen_status' => 'pendiente',
+        'kitchen_status' => 'pending',
     ]);
 
     // Pasar a en_preparacion
     $this->actingAs($data['user'])
         ->patch(route('kitchen.items.update-status', $item), [
-            'kitchen_status' => 'en_preparacion',
+            'kitchen_status' => 'in_preparation',
         ])
         ->assertRedirect();
 
-    expect($item->fresh()->kitchen_status)->toBe('en_preparacion');
+    expect($item->fresh()->kitchen_status)->toBe('in_preparation');
 
     // Pasar a listo
     $this->actingAs($data['user'])
         ->patch(route('kitchen.items.update-status', $item), [
-            'kitchen_status' => 'listo',
+            'kitchen_status' => 'ready',
         ])
         ->assertRedirect();
 
-    expect($item->fresh()->kitchen_status)->toBe('listo');
+    expect($item->fresh()->kitchen_status)->toBe('ready');
 });
 
 test('progressive orders on the same table add up to the same bill correctly', function () {
@@ -257,7 +262,7 @@ test('progressive orders on the same table add up to the same bill correctly', f
     $order1 = Order::create([
         'bill_id' => $data['bill']->id,
         'user_id' => $data['user']->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     $this->actingAs($data['user'])
@@ -277,7 +282,7 @@ test('progressive orders on the same table add up to the same bill correctly', f
     $order2 = Order::create([
         'bill_id' => $data['bill']->id,
         'user_id' => $data['user']->id,
-        'status' => 'pendiente',
+        'status' => 'pending',
     ]);
 
     $this->actingAs($data['user'])
