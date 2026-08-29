@@ -21,7 +21,7 @@ const statusConfig = {
 };
 
 export function CategoryStatusBadge({ active }: Props) {
-    const config = statusConfig[active?'active':'inactive'];
+    const config = statusConfig[active ? 'active' : 'inactive'];
 
     return (
         <Badge className={config.className}>

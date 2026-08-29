@@ -120,6 +120,7 @@ function setupKitchenTestData(): array
 
     $modality = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'full_menu',
         'name' => 'Menú completo',
         'price' => 14.00,
         'display_order' => 1,

@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ProductStock;
-use App\Models\ProductStockMovement;
+use App\Models\StockMovement;
 use Illuminate\Database\Seeder;
 
 class ProductStockMovementsSeeder extends Seeder
@@ -14,15 +14,15 @@ class ProductStockMovementsSeeder extends Seeder
     public function run(): void
     {
         ProductStock::query()->get()->each(function (ProductStock $stock): void {
-            ProductStockMovement::updateOrCreate(
+            StockMovement::updateOrCreate(
                 [
-                    'product_stock_id' => $stock->id,
+                    'product_id' => $stock->product_id,
                     'type' => 'entrada',
                 ],
                 [
                     'quantity' => $stock->quantity,
-                    'quantity_before' => 0,
-                    'quantity_after' => $stock->quantity,
+                    'previous_quantity' => 0,
+                    'new_quantity' => $stock->quantity,
                     'description' => 'Carga de inventario inicial del restaurante.',
                 ]
             );

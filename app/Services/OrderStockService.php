@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\DailyMenuProduct;
 use App\Models\MenuModality;
-use App\Models\MenuSubcategoryType;
 use App\Models\OrderItem;
 use App\Models\OrderItemMenuProduct;
 use App\Models\Product;
@@ -59,7 +58,7 @@ class OrderStockService
         if ($product->menuCategory?->name === 'Bebidas') {
             $stock = ProductStock::where('product_id', $product->id)->lockForUpdate()->first();
             if (! $stock || $stock->quantity < $quantity) {
-                $available = $stock?->quantity ?? 0;
+                $available = $stock ? $stock->quantity : 0;
                 throw ValidationException::withMessages([
                     'product_id' => "Stock insuficiente para {$product->name} (Disponibles: {$available}).",
                 ]);
@@ -82,7 +81,8 @@ class OrderStockService
         // Si está en el menú diario de hoy (ej. plato especial)
         $todayDate = now('America/Lima')->toDateString();
         $dailyMenuProduct = DailyMenuProduct::where('product_id', $product->id)
-            ->whereHas('dailyMenu', fn ($q) => $q->where('date', $todayDate))
+            ->where('active', true)
+            ->whereHas('dailyMenu', fn ($q) => $q->whereDate('date', $todayDate)->where('active', true))
             ->lockForUpdate()
             ->first();
 
@@ -93,10 +93,17 @@ class OrderStockService
                 ]);
             }
             $dailyMenuProduct->decrement('quantity_available', $quantity);
-            $this->syncComplementaryQuantities($dailyMenuProduct->daily_menu_id);
         }
 
-        $unitPrice = (float) $product->price;
+        if ($product->menuCategory?->name !== 'Bebidas' && ! $dailyMenuProduct) {
+            throw ValidationException::withMessages([
+                'product_id' => 'El producto no está publicado en el menú activo de hoy.',
+            ]);
+        }
+
+        $unitPrice = $dailyMenuProduct
+            ? (float) $dailyMenuProduct->price
+            : (float) $product->price;
 
         return [
             'unit_price' => $unitPrice,
@@ -111,7 +118,7 @@ class OrderStockService
      */
     private function reserveModalityStock(int $modalityId, array $componentIds, int $quantity): array
     {
-        $modality = MenuModality::with('dailyMenu')->lockForUpdate()->findOrFail($modalityId);
+        $modality = MenuModality::with(['dailyMenu', 'items'])->lockForUpdate()->findOrFail($modalityId);
 
         if (! $modality->active) {
             throw ValidationException::withMessages([
@@ -145,15 +152,13 @@ class OrderStockService
         // Validar cantidades y descontar
         foreach ($components as $component) {
             if ($component->quantity_available < $quantity) {
-                $name = $component->product?->name ?? 'Plato';
+                $name = $component->product->name;
                 throw ValidationException::withMessages([
                     'components' => "Porciones insuficientes para {$name} (Disponibles: {$component->quantity_available}).",
                 ]);
             }
             $component->decrement('quantity_available', $quantity);
         }
-
-        $this->syncComplementaryQuantities($modality->daily_menu_id);
 
         $unitPrice = (float) $modality->price;
 
@@ -169,33 +174,29 @@ class OrderStockService
      */
     private function validateModalityComponents(MenuModality $modality, Collection $components): void
     {
-        $modalityName = mb_strtolower(trim($modality->name));
-
         $types = $components->map(fn ($c) => $c->product?->menuSubcategoryType?->name)->filter()->values();
+        $selected = [
+            'segundo' => $types->filter(fn ($type) => $type === 'Segundos')->count(),
+            'entrada' => $types->filter(fn ($type) => $type === 'Entradas')->count(),
+            'postre' => $types->filter(fn ($type) => $type === 'Postres')->count(),
+        ];
+        $required = $modality->items->groupBy('item_type')
+            ->map(fn ($items) => (int) $items->max('quantity'))
+            ->all();
 
-        $segundosCount = $types->filter(fn ($t) => $t === 'Segundos')->count();
-        $entradasCount = $types->filter(fn ($t) => $t === 'Entradas')->count();
-        $postresCount = $types->filter(fn ($t) => $t === 'Postres')->count();
+        if ($required === []) {
+            $required = match ($modality->code) {
+                'full_menu' => ['segundo' => 1, 'entrada' => 1, 'postre' => 1],
+                'main_only' => ['segundo' => 1],
+                'starter_dessert' => ['entrada' => 1, 'postre' => 1],
+                default => [],
+            };
+        }
 
-        if (str_contains($modalityName, 'completo')) {
-            // Requiere 1 Segundo, 1 Entrada, 1 Postre
-            if ($segundosCount !== 1 || $entradasCount !== 1 || $postresCount !== 1 || $components->count() !== 3) {
+        foreach (['segundo', 'entrada', 'postre'] as $type) {
+            if ($selected[$type] !== ($required[$type] ?? 0)) {
                 throw ValidationException::withMessages([
-                    'components' => 'El Menú completo debe incluir exactamente un Segundo, una Entrada y un Postre.',
-                ]);
-            }
-        } elseif (str_contains($modalityName, 'segundo')) {
-            // Requiere 1 Segundo
-            if ($segundosCount !== 1 || $components->count() !== 1) {
-                throw ValidationException::withMessages([
-                    'components' => 'La modalidad Solo segundo debe incluir exactamente un plato de Segundo.',
-                ]);
-            }
-        } elseif (str_contains($modalityName, 'entrada') && str_contains($modalityName, 'postre')) {
-            // Requiere 1 Entrada y 1 Postre
-            if ($entradasCount !== 1 || $postresCount !== 1 || $components->count() !== 2) {
-                throw ValidationException::withMessages([
-                    'components' => 'La modalidad Entrada + postre debe incluir exactamente una Entrada y un Postre.',
+                    'components' => 'La composición elegida no coincide con la configuración de la modalidad.',
                 ]);
             }
         }
@@ -211,18 +212,11 @@ class OrderStockService
         // Si era modalidad con componentes
         if ($orderItem->menu_modality_id) {
             $componentRelations = OrderItemMenuProduct::where('order_item_id', $orderItem->id)->get();
-            $dailyMenuId = null;
-
             foreach ($componentRelations as $rel) {
                 $dmp = DailyMenuProduct::whereKey($rel->daily_menu_product_id)->lockForUpdate()->first();
                 if ($dmp) {
                     $dmp->increment('quantity_available', $quantity);
-                    $dailyMenuId = $dmp->daily_menu_id;
                 }
-            }
-
-            if ($dailyMenuId) {
-                $this->syncComplementaryQuantities($dailyMenuId);
             }
         }
 
@@ -257,30 +251,8 @@ class OrderStockService
 
                 if ($dmp) {
                     $dmp->increment('quantity_available', $quantity);
-                    $this->syncComplementaryQuantities($dmp->daily_menu_id);
                 }
             }
         }
-    }
-
-    private function syncComplementaryQuantities(int $dailyMenuId): void
-    {
-        $secondType = MenuSubcategoryType::where('name', 'Segundos')->first();
-        if (! $secondType) {
-            return;
-        }
-
-        $totalSeconds = (int) DailyMenuProduct::query()
-            ->where('daily_menu_id', $dailyMenuId)
-            ->where('active', true)
-            ->whereHas('product', fn ($q) => $q->where('menu_subcategory_type_id', $secondType->id))
-            ->sum('quantity_available');
-
-        $complementaryTypes = MenuSubcategoryType::whereIn('name', ['Entradas', 'Postres'])->pluck('id');
-
-        DailyMenuProduct::query()
-            ->where('daily_menu_id', $dailyMenuId)
-            ->whereHas('product', fn ($q) => $q->whereIn('menu_subcategory_type_id', $complementaryTypes))
-            ->update(['quantity_available' => $totalSeconds]);
     }
 }

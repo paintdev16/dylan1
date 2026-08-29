@@ -3,7 +3,7 @@
 use App\Http\Controllers\DailyMenuProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
     Route::get('daily-menu-products', [DailyMenuProductController::class, 'index'])
         ->name('daily-menu-products.index');
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,9 +19,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $unit_price
  * @property string $subtotal
  * @property string $kitchen_status
+ * @property bool $is_cancelled
  * @property-read Order $order
  * @property-read Product|null $product
  * @property-read MenuModality|null $menuModality
+ * @property-read Collection<int, DailyMenuProduct> $dailyMenuProducts
  */
 #[Fillable([
     'order_id',
@@ -93,5 +96,11 @@ class OrderItem extends Model
             'order_item_id',
             'daily_menu_product_id'
         )->withPivot('quantity')->withTimestamps();
+    }
+
+    /** @return HasMany<CancellationRequest, $this> */
+    public function cancellationRequests(): HasMany
+    {
+        return $this->hasMany(CancellationRequest::class);
     }
 }

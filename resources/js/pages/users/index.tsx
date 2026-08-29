@@ -179,7 +179,9 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setDeleteTarget(user)}
+                                            onClick={() =>
+                                                setDeleteTarget(user)
+                                            }
                                             aria-label="Eliminar"
                                             className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                         >
@@ -222,7 +224,10 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                                 router.get(
                                     index.url(),
                                     { page: pagination.current_page - 1 },
-                                    { preserveState: true, preserveScroll: true },
+                                    {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    },
                                 )
                             }
                         >
@@ -235,12 +240,17 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                         <Button
                             variant="outline"
                             size="sm"
-                            disabled={pagination.current_page >= pagination.last_page}
+                            disabled={
+                                pagination.current_page >= pagination.last_page
+                            }
                             onClick={() =>
                                 router.get(
                                     index.url(),
                                     { page: pagination.current_page + 1 },
-                                    { preserveState: true, preserveScroll: true },
+                                    {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    },
                                 )
                             }
                         >
@@ -268,7 +278,9 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                             <Input
                                 id="user-name"
                                 value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
                                 placeholder="Nombre completo"
                                 autoComplete="off"
                             />
@@ -303,7 +315,11 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
-                                placeholder={editingUser ? 'Sin cambios' : 'Mínimo 8 caracteres'}
+                                placeholder={
+                                    editingUser
+                                        ? 'Sin cambios'
+                                        : 'Mínimo 8 caracteres'
+                                }
                                 autoComplete="new-password"
                             />
                             <InputError message={errors.password} />

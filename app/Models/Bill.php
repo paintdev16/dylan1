@@ -28,6 +28,8 @@ use Illuminate\Support\Carbon;
     'status',
     'opened_at',
     'closed_at',
+    'sale_snapshot',
+    'closed_by',
 ])]
 class Bill extends Model
 {
@@ -44,6 +46,7 @@ class Bill extends Model
         return [
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
+            'sale_snapshot' => 'array',
         ];
     }
 

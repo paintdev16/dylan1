@@ -40,7 +40,7 @@ function createActiveProductForOrderItemTest(): Product
         ['display_order' => 0, 'active' => true]
     );
 
-    return Product::create([
+    $product = Product::create([
         'menu_category_id' => $category->id,
         'menu_subcategory_id' => $subcategory->id,
         'name' => 'Lomo saltado',
@@ -48,6 +48,15 @@ function createActiveProductForOrderItemTest(): Product
         'type' => 'prepared',
         'status' => 'activo',
     ]);
+
+    $dailyMenu = DailyMenu::query()->whereDate('date', now('America/Lima')->toDateString())->first()
+        ?? DailyMenu::create(['date' => now('America/Lima')->toDateString(), 'active' => true]);
+    DailyMenuProduct::firstOrCreate(
+        ['daily_menu_id' => $dailyMenu->id, 'product_id' => $product->id],
+        ['price' => 18.50, 'quantity_available' => 20, 'display_order' => 1, 'active' => true]
+    );
+
+    return $product;
 }
 
 function createActiveMenuModalityForOrderItemTest(): array
@@ -78,10 +87,8 @@ function createActiveMenuModalityForOrderItemTest(): array
     $pPostre = Product::create(['menu_category_id' => $category->id, 'menu_subcategory_id' => $subcategory->id, 'menu_subcategory_type_id' => $typePostre->id, 'name' => 'Flan', 'price' => 2.00, 'type' => 'prepared', 'status' => 'activo']);
 
     $todayDate = now('America/Lima')->toDateString();
-    $dailyMenu = DailyMenu::firstOrCreate(
-        ['date' => $todayDate],
-        ['active' => true]
-    );
+    $dailyMenu = DailyMenu::query()->whereDate('date', $todayDate)->first()
+        ?? DailyMenu::create(['date' => $todayDate, 'active' => true]);
 
     $dmpSegundo = DailyMenuProduct::create(['daily_menu_id' => $dailyMenu->id, 'product_id' => $pSegundo->id, 'price' => 15.00, 'quantity_available' => 10, 'display_order' => 1, 'active' => true]);
     $dmpEntrada = DailyMenuProduct::create(['daily_menu_id' => $dailyMenu->id, 'product_id' => $pEntrada->id, 'price' => 3.00, 'quantity_available' => 10, 'display_order' => 2, 'active' => true]);
@@ -89,6 +96,7 @@ function createActiveMenuModalityForOrderItemTest(): array
 
     $modality = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'full_menu',
         'name' => 'Menú completo',
         'price' => 15.00,
         'active' => true,
@@ -225,8 +233,11 @@ test('authenticated users can delete pending order items', function () {
     ]);
 
     $this->actingAs($user)
-        ->delete(route('order-items.destroy', $item))
+        ->post(route('order-items.cancel', $item), [
+            'cancellation_reason' => 'El cliente retiró el consumo',
+        ])
         ->assertRedirect(route('orders.index'));
 
-    expect(OrderItem::query()->count())->toBe(0);
+    expect(OrderItem::query()->count())->toBe(1)
+        ->and($item->fresh()->is_cancelled)->toBeTrue();
 });

@@ -7,8 +7,10 @@ import {
     Package,
     Plus,
     ReceiptText,
+    BarChart3,
     Users,
 } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import { LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -42,62 +44,86 @@ import { index as ordersIndex } from '@/routes/orders';
 import products from '@/routes/products';
 import { ChefHat, Table2, UtensilsCrossed } from 'lucide-react';
 import { index as tablesIndex } from '@/routes/tables';
+import { index as dailyMenuIndex } from '@/routes/daily-menu';
+import { index as kitchenIndex } from '@/routes/kitchen';
+import { index as cashRegisterIndex } from '@/routes/cash-register';
+import { index as reportsIndex } from '@/routes/reports';
+import type { User } from '@/types';
 
-const mainNavItems: NavItem[] = [
+type RestaurantNavItem = NavItem & { roles: string[] };
+
+const mainNavItems: RestaurantNavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        roles: ['super-admin', 'admin', 'mozo', 'cocina', 'cajero'],
     },
     {
         title: 'Mesas',
         href: tablesIndex(),
         icon: Table2,
+        roles: ['super-admin', 'admin', 'mozo'],
     },
     {
         title: 'Menú Diario',
-        href: '/daily-menu',
+        href: dailyMenuIndex(),
         icon: UtensilsCrossed,
+        roles: ['super-admin', 'admin'],
     },
     {
         title: 'Comandas',
         href: ordersIndex(),
         icon: UtensilsCrossed,
+        roles: ['super-admin', 'admin', 'mozo'],
     },
     {
         title: 'Cocina',
-        href: '/kitchen',
+        href: kitchenIndex(),
         icon: ChefHat,
+        roles: ['super-admin', 'admin', 'cocina'],
     },
     {
         title: 'Caja',
-        href: '/cash-register',
+        href: cashRegisterIndex(),
         icon: CircleDollarSign,
+        roles: ['super-admin', 'admin', 'cajero'],
     },
     {
         title: 'Cuentas',
         href: billsIndex(),
         icon: ReceiptText,
+        roles: ['super-admin', 'admin', 'mozo', 'cajero'],
     },
     {
         title: 'Categorías',
         href: index(),
         icon: GalleryVerticalEnd,
+        roles: ['super-admin', 'admin'],
     },
     {
         title: 'Productos',
         href: products.index(),
         icon: AudioWaveform,
+        roles: ['super-admin', 'admin'],
     },
     {
         title: 'Inventario',
         href: '/product-stock',
         icon: Package,
+        roles: ['super-admin', 'admin'],
     },
     {
         title: 'Usuarios',
         href: '/users',
         icon: Users,
+        roles: ['super-admin', 'admin'],
+    },
+    {
+        title: 'Reportes',
+        href: reportsIndex(),
+        icon: BarChart3,
+        roles: ['super-admin', 'admin'],
     },
 ];
 
@@ -119,6 +145,11 @@ const teams = [
 
 export function AppSidebar() {
     const sidebar = useSidebar();
+    const { auth } = usePage<{ auth: { user: User } }>().props;
+    const userRoles = auth.user.roles ?? [];
+    const visibleNavItems = mainNavItems.filter((item) =>
+        item.roles.some((role) => userRoles.includes(role)),
+    );
 
     return (
         <Sidebar collapsible="icon" variant="floating">
@@ -199,7 +230,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain groupLabel="Plataforma" items={mainNavItems} />
+                <NavMain groupLabel="Plataforma" items={visibleNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

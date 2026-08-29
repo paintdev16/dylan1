@@ -24,18 +24,6 @@ const statusConfig = {
             'bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
         dot: 'bg-blue-500',
     },
-    awaiting_payment: {
-        label: 'Esperando pago',
-        className:
-            'bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400',
-        dot: 'bg-amber-500',
-    },
-    cleaning: {
-        label: 'En limpieza',
-        className:
-            'bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400',
-        dot: 'bg-purple-500',
-    },
     out_of_service: {
         label: 'Fuera de servicio',
         className:

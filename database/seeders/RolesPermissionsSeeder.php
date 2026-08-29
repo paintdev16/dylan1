@@ -20,22 +20,32 @@ class RolesPermissionsSeeder extends Seeder
             'edit users',
             'delete users',
             'view users',
+            'manage catalog',
+            'manage daily menu',
+            'manage tables',
+            'open tables',
+            'manage orders',
+            'manage kitchen',
+            'manage cash register',
+            'view bills',
+            'manage inventory',
+            'approve cancellations',
+            'view reports',
         ];
         foreach ($permissions as $permission) {
             Permission::findOrCreate($permission);
         }
         $superAdmin = Role::findOrCreate('super-admin');
-        $superAdmin->givePermissionTo(Permission::all());
+        $superAdmin->syncPermissions(Permission::all());
         $admin = Role::findOrCreate('admin');
-        $admin->givePermissionTo([
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
-        ]);
+        $admin->syncPermissions(Permission::all());
 
-        Role::findOrCreate('mozo');
-        Role::findOrCreate('cocina');
-        Role::findOrCreate('cajero');
+        Role::findOrCreate('mozo')->syncPermissions([
+            'manage tables', 'open tables', 'manage orders', 'view bills',
+        ]);
+        Role::findOrCreate('cocina')->syncPermissions(['manage kitchen']);
+        Role::findOrCreate('cajero')->syncPermissions([
+            'manage cash register', 'view bills', 'approve cancellations',
+        ]);
     }
 }

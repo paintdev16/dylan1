@@ -46,6 +46,44 @@ test('payments are blocked when cashier does not have an open cash register sess
     expect(Payment::count())->toBe(0);
 });
 
+test('cash payment accepts cent amounts and rejects insufficient received cash', function () {
+    $cashier = User::factory()->create();
+    CashRegisterSession::create([
+        'user_id' => $cashier->id,
+        'opening_amount' => 0,
+        'status' => 'open',
+        'opened_at' => now(),
+    ]);
+    $bill = Bill::create([
+        'opening_waiter_id' => $cashier->id,
+        'order_type' => 'takeout',
+        'status' => 'open',
+        'opened_at' => now(),
+    ]);
+    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pendiente']);
+    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 45.50, 'subtotal' => 45.50, 'kitchen_status' => 'pendiente']);
+
+    $this->actingAs($cashier)
+        ->post(route('cash-register.pay', $bill), [
+            'payment_method' => 'efectivo',
+            'amount' => 45.50,
+            'received_amount' => 40,
+        ])
+        ->assertSessionHasErrors('received_amount');
+
+    expect(Payment::query()->count())->toBe(0);
+
+    $this->actingAs($cashier)
+        ->post(route('cash-register.pay', $bill), [
+            'payment_method' => 'efectivo',
+            'amount' => 45.50,
+            'received_amount' => 50,
+        ])
+        ->assertRedirect(route('cash-register.index'));
+
+    expect((float) Payment::query()->firstOrFail()->amount)->toBe(45.5);
+});
+
 test('paying 100% of the bill automatically closes bill, table session, completes orders and frees table to available', function () {
     $cashier = User::factory()->create();
     $table = RestaurantTable::create(['number' => 21, 'capacity' => 4, 'status' => 'occupied']);
@@ -178,4 +216,44 @@ test('cashier can close cash register session with physical count and difference
         ->and((float) $freshSession->expected_amount)->toBe(130.00)
         ->and((float) $freshSession->difference)->toBe(2.50)
         ->and($freshSession->notes)->toBe('Sobrante de monedas');
+});
+
+test('cashier can split a payment across distinct methods and preserves the sale snapshot', function () {
+    $cashier = User::factory()->create();
+    CashRegisterSession::create(['user_id' => $cashier->id, 'opening_amount' => 0, 'status' => 'open', 'opened_at' => now()]);
+    $bill = Bill::create(['opening_waiter_id' => $cashier->id, 'order_type' => 'takeout', 'status' => 'open', 'opened_at' => now()]);
+    $order = Order::create(['bill_id' => $bill->id, 'user_id' => $cashier->id, 'status' => 'pendiente']);
+    OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'unit_price' => 30, 'subtotal' => 30, 'kitchen_status' => 'pendiente']);
+
+    $this->actingAs($cashier)->post(route('cash-register.pay', $bill), [
+        'payments' => [
+            ['payment_method' => 'efectivo', 'amount' => 10],
+            ['payment_method' => 'yape', 'amount' => 20],
+        ],
+    ])->assertRedirect(route('cash-register.index'));
+
+    expect(Payment::query()->count())->toBe(2)
+        ->and(Payment::query()->distinct()->count('payment_group_id'))->toBe(1)
+        ->and($bill->fresh()->status)->toBe('closed')
+        ->and($bill->fresh()->sale_snapshot)->toBeArray()
+        ->and($bill->fresh()->sale_snapshot[0]['items'][0]['subtotal'])->toBe('30.00');
+});
+
+test('manual cash movements are included in the expected closing amount', function () {
+    $cashier = User::factory()->create();
+    $session = CashRegisterSession::create(['user_id' => $cashier->id, 'opening_amount' => 100, 'status' => 'open', 'opened_at' => now()]);
+
+    $this->actingAs($cashier)->post(route('cash-register.movements.store'), [
+        'type' => 'income', 'amount' => 25, 'description' => 'Ingreso adicional',
+    ])->assertRedirect();
+    $this->actingAs($cashier)->post(route('cash-register.movements.store'), [
+        'type' => 'expense', 'amount' => 10, 'description' => 'Compra menor',
+    ])->assertRedirect();
+
+    $this->actingAs($cashier)->post(route('cash-register.close', $session), [
+        'closing_amount' => 115,
+    ])->assertRedirect(route('cash-register.index'));
+
+    expect((float) $session->fresh()->expected_amount)->toBe(115.0)
+        ->and((float) $session->fresh()->difference)->toBe(0.0);
 });

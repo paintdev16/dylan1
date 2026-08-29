@@ -60,7 +60,7 @@ class PaymentController extends Controller
 
                 if (
                     $restaurantTable !== null
-                    && in_array($restaurantTable->status, ['occupied', 'awaiting_payment'], true)
+                    && $restaurantTable->status === 'occupied'
                 ) {
                     $restaurantTable->update(['status' => 'available']);
                 }

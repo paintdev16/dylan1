@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -18,8 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable(['number', 'capacity', 'status'])]
 class RestaurantTable extends Model
 {
-    use HasFactory;
-
     /** @return HasMany<Bill, $this> */
     public function bills(): HasMany
     {

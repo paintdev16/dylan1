@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { PageHeader } from '@/components/page-header';
+import { MenuModality } from '@/types/restaurant';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -74,7 +75,9 @@ export default function Index({
 }: Props) {
     const [showHistory, setShowHistory] = useState(false);
     const [isMenuUpdating, setIsMenuUpdating] = useState(false);
-    const [editingModalityId, setEditingModalityId] = useState<number | null>(null);
+    const [editingModalityId, setEditingModalityId] = useState<number | null>(
+        null,
+    );
     const [modalityPrice, setModalityPrice] = useState<string>('');
 
     const isDailyMenuActive = dailyMenu.active;
@@ -144,7 +147,9 @@ export default function Index({
                                 className="gap-2"
                             >
                                 <History className="size-4" />
-                                {showHistory ? 'Ver Menú de Hoy' : 'Historial de Menús'}
+                                {showHistory
+                                    ? 'Ver Menú de Hoy'
+                                    : 'Historial de Menús'}
                             </Button>
                         )}
 
@@ -235,9 +240,16 @@ export default function Index({
                                                         {modality.name}
                                                     </span>
                                                     <Switch
-                                                        checked={modality.active}
-                                                        onCheckedChange={(checked) =>
-                                                            handleModalityToggle(modality, checked)
+                                                        checked={
+                                                            modality.active
+                                                        }
+                                                        onCheckedChange={(
+                                                            checked,
+                                                        ) =>
+                                                            handleModalityToggle(
+                                                                modality,
+                                                                checked,
+                                                            )
                                                         }
                                                         aria-label={`Activar modalidad ${modality.name}`}
                                                     />
@@ -251,14 +263,24 @@ export default function Index({
                                                 <span className="text-xs text-muted-foreground">
                                                     Precio de venta:
                                                 </span>
-                                                {editingModalityId === modality.id ? (
+                                                {editingModalityId ===
+                                                modality.id ? (
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-xs font-semibold">S/</span>
+                                                        <span className="text-xs font-semibold">
+                                                            S/
+                                                        </span>
                                                         <input
                                                             type="number"
                                                             step="0.5"
-                                                            value={modalityPrice}
-                                                            onChange={(e) => setModalityPrice(e.target.value)}
+                                                            value={
+                                                                modalityPrice
+                                                            }
+                                                            onChange={(e) =>
+                                                                setModalityPrice(
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
                                                             className="w-16 rounded border px-1.5 py-0.5 text-xs font-semibold"
                                                             autoFocus
                                                         />
@@ -266,7 +288,11 @@ export default function Index({
                                                             size="sm"
                                                             variant="default"
                                                             className="h-6 px-2 text-xs"
-                                                            onClick={() => handleSaveModalityPrice(modality)}
+                                                            onClick={() =>
+                                                                handleSaveModalityPrice(
+                                                                    modality,
+                                                                )
+                                                            }
                                                         >
                                                             OK
                                                         </Button>
@@ -274,7 +300,11 @@ export default function Index({
                                                             size="sm"
                                                             variant="ghost"
                                                             className="h-6 px-1.5 text-xs"
-                                                            onClick={() => setEditingModalityId(null)}
+                                                            onClick={() =>
+                                                                setEditingModalityId(
+                                                                    null,
+                                                                )
+                                                            }
                                                         >
                                                             X
                                                         </Button>
@@ -282,15 +312,24 @@ export default function Index({
                                                 ) : (
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                                            S/ {Number(modality.price).toFixed(2)}
+                                                            S/{' '}
+                                                            {Number(
+                                                                modality.price,
+                                                            ).toFixed(2)}
                                                         </span>
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
                                                             className="h-6 px-1.5 text-xs"
                                                             onClick={() => {
-                                                                setEditingModalityId(modality.id);
-                                                                setModalityPrice(String(modality.price));
+                                                                setEditingModalityId(
+                                                                    modality.id,
+                                                                );
+                                                                setModalityPrice(
+                                                                    String(
+                                                                        modality.price,
+                                                                    ),
+                                                                );
                                                             }}
                                                         >
                                                             Editar
@@ -409,7 +448,10 @@ export default function Index({
                                                                 </span>
                                                                 {type && (
                                                                     <span className="text-xs text-muted-foreground">
-                                                                        Tipo: {type.name}
+                                                                        Tipo:{' '}
+                                                                        {
+                                                                            type.name
+                                                                        }
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -426,7 +468,9 @@ export default function Index({
                                                                     S/{' '}
                                                                     {Number(
                                                                         item.price,
-                                                                    ).toFixed(2)}
+                                                                    ).toFixed(
+                                                                        2,
+                                                                    )}
                                                                 </span>
                                                             </div>
                                                         </TableCell>
@@ -452,7 +496,9 @@ export default function Index({
                                                         <TableCell>
                                                             <div className="flex items-center gap-2">
                                                                 <Switch
-                                                                    checked={isActive}
+                                                                    checked={
+                                                                        isActive
+                                                                    }
                                                                     onCheckedChange={(
                                                                         checked,
                                                                     ) => {
@@ -495,7 +541,9 @@ export default function Index({
                                                                     dailyMenuProduct={
                                                                         item
                                                                     }
-                                                                    products={products}
+                                                                    products={
+                                                                        products
+                                                                    }
                                                                     dailyMenu={
                                                                         dailyMenu
                                                                     }
@@ -528,7 +576,8 @@ export default function Index({
                                 </p>
 
                                 <p className="mt-1 text-sm text-muted-foreground">
-                                    Comienza agregando los platos del Menú Económico y Platos Especiales del día.
+                                    Comienza agregando los platos del Menú
+                                    Económico y Platos Especiales del día.
                                 </p>
                             </div>
                         )}
@@ -537,7 +586,9 @@ export default function Index({
                     /* Historial de Menús Anteriores */
                     <div className="space-y-4">
                         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
-                            Los menús de fechas anteriores se conservan como historial inmutable para fines de auditoría y reportes. No pueden ser modificados.
+                            Los menús de fechas anteriores se conservan como
+                            historial inmutable para fines de auditoría y
+                            reportes. No pueden ser modificados.
                         </div>
 
                         <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
@@ -572,14 +623,21 @@ export default function Index({
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1.5">
-                                                    {pastMenu.products.map((p) => (
-                                                        <span
-                                                            key={p.id}
-                                                            className="rounded-md border bg-muted/40 px-2 py-0.5 text-xs font-medium"
-                                                        >
-                                                            {p.product_name} (S/ {Number(p.price).toFixed(2)})
-                                                        </span>
-                                                    ))}
+                                                    {pastMenu.products.map(
+                                                        (p) => (
+                                                            <span
+                                                                key={p.id}
+                                                                className="rounded-md border bg-muted/40 px-2 py-0.5 text-xs font-medium"
+                                                            >
+                                                                {p.product_name}{' '}
+                                                                (S/{' '}
+                                                                {Number(
+                                                                    p.price,
+                                                                ).toFixed(2)}
+                                                                )
+                                                            </span>
+                                                        ),
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="pr-5 text-right">

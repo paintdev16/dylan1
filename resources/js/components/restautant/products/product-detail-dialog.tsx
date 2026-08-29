@@ -66,7 +66,9 @@ export function ProductDetailDialog({
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <DetailItem label="Categoría">
-                        {category?.name ?? product.menu_category?.name ?? 'Sin categoría'}
+                        {category?.name ??
+                            product.menu_category?.name ??
+                            'Sin categoría'}
                     </DetailItem>
 
                     {product.menu_subcategory && (

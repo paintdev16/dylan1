@@ -144,7 +144,7 @@ class ProductController extends Controller
      */
     private function normalizeProductData(array $data): array
     {
-        $category = MenuCategory::find($data['menu_category_id'] ?? null);
+        $category = MenuCategory::query()->whereKey($data['menu_category_id'] ?? null)->first();
 
         if ($category && $category->name === 'Bebidas') {
             $data['menu_subcategory_id'] = null;
@@ -152,7 +152,7 @@ class ProductController extends Controller
             $data['type'] = 'simple';
         } else {
             $subcategory = isset($data['menu_subcategory_id'])
-                ? MenuSubcategory::find($data['menu_subcategory_id'])
+                ? MenuSubcategory::query()->whereKey($data['menu_subcategory_id'])->first()
                 : null;
 
             if ($subcategory && $subcategory->name === 'Platos Especiales') {
@@ -171,12 +171,12 @@ class ProductController extends Controller
     private function rules(Request $request, ?Product $product = null): array
     {
         $categoryId = $request->input('menu_category_id');
-        $category = $categoryId ? MenuCategory::find($categoryId) : null;
+        $category = $categoryId ? MenuCategory::query()->whereKey($categoryId)->first() : null;
         $isBeverage = $category && $category->name === 'Bebidas';
         $isFood = $category && $category->name === 'Comidas';
 
         $subcategoryId = $request->input('menu_subcategory_id');
-        $subcategory = $subcategoryId ? MenuSubcategory::find($subcategoryId) : null;
+        $subcategory = $subcategoryId ? MenuSubcategory::query()->whereKey($subcategoryId)->first() : null;
         $isEconomicMenu = $subcategory && $subcategory->name === 'Menú Económico';
 
         return [
@@ -200,7 +200,7 @@ class ProductController extends Controller
                         return;
                     }
 
-                    $sub = MenuSubcategory::find($value);
+                    $sub = MenuSubcategory::query()->whereKey($value)->first();
                     if (! $sub || (int) $sub->menu_category_id !== (int) $categoryId) {
                         $fail('La subcategoría no pertenece a la categoría seleccionada.');
                     }
@@ -222,7 +222,7 @@ class ProductController extends Controller
                         return;
                     }
 
-                    $type = MenuSubcategoryType::find($value);
+                    $type = MenuSubcategoryType::query()->whereKey($value)->first();
                     if (! $type || (int) $type->menu_subcategory_id !== (int) $subcategoryId) {
                         $fail('El tipo de menú seleccionado no pertenece a la subcategoría Menú Económico.');
                     }

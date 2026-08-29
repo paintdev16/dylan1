@@ -99,9 +99,9 @@ class DailyMenuProductController extends Controller
                 'products_count' => $menu->dailyMenuProducts->count(),
                 'products' => $menu->dailyMenuProducts->map(fn ($item) => [
                     'id' => $item->id,
-                    'product_name' => $item->product?->name ?? 'Producto',
-                    'subcategory_name' => $item->product?->menuSubcategory?->name,
-                    'type_name' => $item->product?->menuSubcategoryType?->name,
+                    'product_name' => $item->product->name,
+                    'subcategory_name' => $item->product->menuSubcategory?->name,
+                    'type_name' => $item->product->menuSubcategoryType?->name,
                     'price' => $item->price,
                     'quantity_available' => $item->quantity_available,
                     'active' => $item->active,
@@ -122,7 +122,7 @@ class DailyMenuProductController extends Controller
     {
         $todayDate = now('America/Lima')->toDateString();
 
-        if ($menuModality->dailyMenu->date->format('Y-m-d') < $todayDate) {
+        if ($menuModality->dailyMenu()->firstOrFail()->date->format('Y-m-d') < $todayDate) {
             return back()->withErrors([
                 'daily_menu' => 'No se puede modificar una modalidad de un menú de una fecha pasada.',
             ]);
@@ -143,6 +143,7 @@ class DailyMenuProductController extends Controller
     {
         $defaultModalities = [
             [
+                'code' => 'full_menu',
                 'name' => 'Menú completo',
                 'description' => 'Segundo + entrada + postre.',
                 'price' => 14.00,
@@ -150,6 +151,7 @@ class DailyMenuProductController extends Controller
                 'active' => true,
             ],
             [
+                'code' => 'main_only',
                 'name' => 'Solo segundo',
                 'description' => 'Solo segundo del menú económico.',
                 'price' => 9.00,
@@ -157,6 +159,7 @@ class DailyMenuProductController extends Controller
                 'active' => true,
             ],
             [
+                'code' => 'starter_dessert',
                 'name' => 'Entrada + postre',
                 'description' => 'Una entrada + un postre.',
                 'price' => 5.00,
@@ -169,7 +172,7 @@ class DailyMenuProductController extends Controller
             MenuModality::firstOrCreate(
                 [
                     'daily_menu_id' => $dailyMenu->id,
-                    'name' => $modality['name'],
+                    'code' => $modality['code'],
                 ],
                 $modality
             );
@@ -204,7 +207,7 @@ class DailyMenuProductController extends Controller
     {
         $validated = $this->validateData($request);
 
-        $dailyMenu = DailyMenu::findOrFail($validated['daily_menu_id']);
+        $dailyMenu = DailyMenu::query()->whereKey($validated['daily_menu_id'])->firstOrFail();
         $todayDate = now('America/Lima')->toDateString();
 
         if ($dailyMenu->date->format('Y-m-d') < $todayDate) {

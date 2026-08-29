@@ -6,7 +6,7 @@ Implementar un sistema de atención presencial para restaurante en el que:
 
 - El administrador configura manualmente los productos del menú disponible cada día.
 - La fecha del menú diario se determina automáticamente usando la zona horaria de Perú.
-- El mozo abre una mesa numerada y registra lo solicitado por el cliente.
+- El mozo trabaja desde el módulo Comandas, donde visualiza las mesas enumeradas y registra lo solicitado por el cliente mediante un Drawer.
 - El sistema crea y actualiza automáticamente la cuenta de la mesa.
 - Cocina recibe únicamente las comidas que debe preparar.
 - Caja visualiza en tiempo real todo el consumo y es el único módulo autorizado para registrar pagos.
@@ -14,6 +14,19 @@ Implementar un sistema de atención presencial para restaurante en el que:
 - Después del pago completo, el sistema cierra la atención y libera automáticamente la mesa.
 
 Los pedidos online quedan fuera del alcance.
+
+## Decisiones funcionales definitivas
+
+- El módulo **Mesas** se utilizará para administrar las mesas: crear, editar número, editar capacidad, activar y poner fuera de servicio.
+- El módulo **Comandas** será el punto de trabajo principal del mozo.
+- En Comandas se mostrarán todas las mesas enumeradas con su estado y consumo actual.
+- Al seleccionar una mesa disponible se abrirá un Drawer para indicar la cantidad de clientes y tomar el primer pedido.
+- Al confirmar el primer pedido, el sistema abrirá automáticamente la mesa y creará la sesión, cuenta y comanda.
+- Al seleccionar una mesa ocupada se abrirá el mismo Drawer con su consumo actual, total, comandas y opción para agregar nuevos productos.
+- Cocina recibirá automáticamente solo los productos de la categoría Comidas.
+- La cuenta será creada y actualizada automáticamente; el módulo Cuentas será únicamente de consulta.
+- El pago se registrará exclusivamente desde Caja.
+- El cajero confirmará manualmente el pago; después de esa confirmación el sistema cerrará automáticamente la cuenta, sesión y comandas, y liberará la mesa.
 
 ## 2. Orden general de implementación
 
@@ -106,6 +119,8 @@ Permitir vender correctamente las modalidades acordadas.
 - Asociar cada modalidad únicamente al menú diario correspondiente.
 - Permitir configurar manualmente precio, descripción, orden y estado.
 - Definir los tipos de componentes requeridos por cada modalidad.
+- Utilizar una composición estructurada o un código estable para cada modalidad; no depender del texto visible de su nombre.
+- Utilizar realmente la configuración de `menu_modality_items` para validar la composición.
 - Mostrar solamente productos activos y publicados en el menú actual.
 - Permitir múltiples opciones de segundo, entrada y postre.
 - Validar que cada modalidad tenga la composición correcta antes de activarse.
@@ -128,6 +143,8 @@ Evitar ventas por encima de las cantidades disponibles.
 - La capacidad total de entradas será igual a la suma de los segundos activos del día.
 - La capacidad total de postres será igual a la suma de los segundos activos del día.
 - Entradas y postres no tendrán una cantidad independiente asignada a cada producto.
+- La capacidad inicial de entradas y la capacidad inicial de postres se calcularán una sola vez a partir de la suma inicial de segundos.
+- Después de calcular la capacidad inicial, segundos, entradas y postres conservarán saldos independientes.
 
 ### Actividades
 
@@ -137,6 +154,11 @@ Evitar ventas por encima de las cantidades disponibles.
 - Restaurar la disponibilidad cuando una cancelación válida lo requiera.
 - Ocultar o bloquear productos agotados para nuevos pedidos.
 - Mantener disponible la modalidad Solo segundo cuando ya no existan entradas o postres, siempre que queden segundos.
+- Evitar volver a igualar las cantidades de todas las entradas y postres después de cada venta.
+- Aplicar exactamente estos consumos:
+  - Menú completo: resta un segundo, una entrada y un postre.
+  - Solo segundo: resta únicamente un segundo.
+  - Entrada más postre: resta una entrada y un postre, sin modificar segundos.
 
 ### Resultado esperado
 
@@ -146,37 +168,64 @@ Dos mesas no podrán consumir la misma última porción y la disponibilidad ser�
 
 ### Objetivo
 
-Hacer que todo el proceso de atención comience desde una mesa numerada.
+Preparar las mesas y sesiones que serán utilizadas desde el módulo Comandas.
 
 ### Actividades
 
 - Mantener las mesas enumeradas y su capacidad.
 - Mostrar los estados disponible, ocupada y fuera de servicio.
 - Incorporar sesiones de mesa para registrar cada atención por separado.
-- Permitir al mozo seleccionar una mesa disponible e indicar la cantidad de clientes.
-- Al abrir una mesa, crear automáticamente y dentro de una sola transacción:
+- Permitir que Comandas consulte las mesas y sus sesiones activas.
+- Al confirmar el primer pedido de una mesa disponible, crear automáticamente y dentro de una sola transacción:
   - La sesión de atención.
   - La cuenta pendiente.
   - La relación con el mozo.
   - El estado ocupado de la mesa.
+  - La primera comanda y sus productos.
 - Impedir que una mesa tenga más de una sesión abierta simultáneamente.
 - Retirar la apertura manual de cuentas desde el módulo Cuentas.
 
 ### Resultado esperado
 
-Una sola acción del mozo dejará preparada la mesa para recibir pedidos y mostrará inmediatamente su cuenta pendiente en Caja.
+Una sola confirmación del mozo desde Comandas abrirá la mesa, registrará el primer pedido y mostrará inmediatamente la cuenta en Caja.
 
-## 8. Fase 6: implementar pedidos progresivos
+## 8. Fase 6: implementar Comandas con mesas y Drawer
 
 ### Objetivo
 
-Permitir que el cliente realice uno o varios pedidos durante la misma atención.
+Permitir que el mozo abra la atención y registre uno o varios pedidos desde una vista de mesas enumeradas.
 
 ### Actividades
 
-- Permitir al mozo ingresar a una mesa abierta.
+- Mostrar dentro de Comandas todas las mesas enumeradas.
+- Mostrar en cada mesa:
+  - Número.
+  - Capacidad.
+  - Estado.
+  - Mozo responsable cuando esté ocupada.
+  - Total consumido cuando esté ocupada.
+- Diferenciar visualmente mesas disponibles, ocupadas y fuera de servicio.
+- Al seleccionar una mesa disponible, abrir un Drawer con:
+  - Número de mesa.
+  - Cantidad de clientes.
+  - Menú activo del día.
+  - Modalidades del Menú Económico.
+  - Platos Especiales.
+  - Bebidas con stock.
+  - Cantidades y observaciones.
+- El botón principal del primer pedido será **Abrir mesa y confirmar pedido**.
+- Al seleccionar una mesa ocupada, abrir el Drawer con:
+  - Consumo actual.
+  - Total acumulado.
+  - Historial de comandas.
+  - Estado de los productos enviados a Cocina.
+  - Formulario para agregar consumo.
+- El botón principal para una mesa ocupada será **Agregar consumo**.
 - Mostrar solamente el menú activo de la fecha actual.
 - Mostrar únicamente productos y modalidades activos y disponibles.
+- Para comidas individuales, utilizar exclusivamente productos publicados en el menú de hoy.
+- Para bebidas, utilizar productos activos con stock disponible.
+- Utilizar el precio de `daily_menu_products` para los productos publicados ese día, no el precio general del catálogo.
 - Cada confirmación del mozo creará un nuevo grupo de pedido o comanda.
 - Todos los grupos de pedido pertenecerán a la misma cuenta de la mesa.
 - Guardar por cada ítem:
@@ -193,7 +242,7 @@ Permitir que el cliente realice uno o varios pedidos durante la misma atención.
 
 ### Resultado esperado
 
-El cliente podrá seguir consumiendo sin crear cuentas nuevas y Caja verá siempre el total actualizado.
+El mozo podrá atender completamente desde Comandas sin seleccionar manualmente una cuenta; el cliente podrá seguir consumiendo y Caja verá siempre el total actualizado.
 
 ## 9. Fase 7: completar los componentes del pedido
 
@@ -229,6 +278,8 @@ Enviar a Cocina únicamente aquello que requiere preparación.
 - Identificar automáticamente si el ítem pertenece a Comidas o Bebidas.
 - Enviar a Cocina el Menú Económico y los Platos Especiales.
 - Mantener las bebidas en la cuenta sin enviarlas a Cocina.
+- Determinar el destino por la categoría del producto o por un campo explícito de preparación, no únicamente por `type`.
+- Excluir de Cocina todos los ítems cancelados.
 - Mostrar en Cocina:
   - Mesa.
   - Número de comanda.
@@ -238,6 +289,7 @@ Enviar a Cocina únicamente aquello que requiere preparación.
   - Hora del pedido.
   - Tiempo transcurrido.
 - Permitir que Cocina cambie manualmente el estado a pendiente, en preparación y listo.
+- Impedir saltos y retrocesos no autorizados entre estados.
 - Permitir que el mozo marque el producto como entregado.
 - Generar una nueva comanda para consumos adicionales sin reenviar las anteriores.
 
@@ -265,6 +317,10 @@ Eliminar la creación y modificación manual de cuentas.
   - Cerrar una cuenta.
   - Liberar una mesa.
   - Modificar consumos.
+- Eliminar también las rutas y controladores antiguos que permitan abrir, pagar o cerrar cuentas fuera del flujo autorizado.
+- Retirar el pago antiguo desde el detalle de Cuentas para impedir que se omita la apertura de Caja.
+- Guardar al completar el pago un detalle definitivo e inmutable de la venta con descripción, componentes, cantidad, precio y subtotal.
+- Diferenciar claramente los estados pendiente, pagada y anulada.
 - Permitir consultar cuentas pendientes, pagadas y anuladas con todo su detalle.
 
 ### Resultado esperado
@@ -290,11 +346,14 @@ Hacer de Caja el único módulo autorizado para registrar pagos.
   - Confirmación del pago.
 - Soportar efectivo, tarjeta, Yape, Plin y pago mixto.
 - Decidir e implementar si se permitirán pagos parciales.
+- Generar un identificador interno único para cada pago, incluyendo pagos parciales de la misma cuenta.
+- Guardar el monto recibido y el vuelto cuando el pago sea en efectivo.
 - Calcular automáticamente total, pagado, saldo y vuelto.
 - Mantener la cuenta pendiente si el cajero todavía no confirma el pago completo.
 - Impedir pagos sin una caja abierta.
 - Impedir que otros roles registren pagos.
 - Implementar cierre manual de caja con efectivo contado y comparación contra el efectivo esperado.
+- Incorporar movimientos manuales de Caja para ingresos, egresos, retiros y gastos menores.
 
 ### Resultado esperado
 
@@ -336,6 +395,7 @@ Conservar el historial y controlar situaciones excepcionales.
 ### Actividades
 
 - Reemplazar la eliminación física de pedidos e ítems por cancelaciones.
+- Retirar los endpoints y botones de eliminación física de comandas e ítems operativos.
 - Guardar usuario, fecha, motivo y estado anterior.
 - Si el producto todavía no fue preparado:
   - Cancelarlo.
@@ -344,6 +404,7 @@ Conservar el historial y controlar situaciones excepcionales.
   - Informar a Cocina.
 - Si ya está en preparación o fue entregado, exigir autorización del cajero o administrador.
 - Registrar solicitudes de autorización y su resultado.
+- Excluir inmediatamente los ítems cancelados de Cocina y del total de la cuenta.
 - Impedir la modificación de una venta pagada.
 - Si el cliente consume después de pagar, crear una nueva sesión, pedido y cuenta.
 - Permitir reabrir el mismo pedido solamente si fue cerrado por error y no existe un pago confirmado.
@@ -361,8 +422,10 @@ Conectar automáticamente las ventas con el stock y la disponibilidad.
 ### Actividades
 
 - Mantener entradas, salidas y ajustes de stock.
+- Unificar `product_stock_movements` y `stock_movements` en una sola fuente de historial.
 - Descontar automáticamente las bebidas vendidas.
 - Registrar el consumo de productos del menú.
+- Registrar también los movimientos de porciones del Menú Económico y Platos Especiales.
 - Restaurar cantidades por cancelaciones autorizadas.
 - Evitar cantidades negativas.
 - Guardar cantidad anterior, cantidad posterior, usuario, fecha y descripción de cada movimiento.
@@ -371,6 +434,7 @@ Conectar automáticamente las ventas con el stock y la disponibilidad.
   - Producto agotado en el menú del día.
   - Producto sin stock.
 - No desactivar globalmente un producto solamente porque la disponibilidad de un día llegó a cero.
+- Retirar la lógica que cambia automáticamente el estado general del producto cuando su stock llega a cero.
 
 ### Resultado esperado
 
@@ -427,7 +491,7 @@ Hacer que la interfaz represente el proceso real del restaurante.
 
 1. Dashboard.
 2. Mesas.
-3. Pedidos.
+3. Comandas.
 4. Cocina.
 5. Caja.
 6. Cuentas.
@@ -439,6 +503,21 @@ Hacer que la interfaz represente el proceso real del restaurante.
 12. Reportes.
 
 Cada rol verá únicamente los módulos que le correspondan.
+
+### Responsabilidad de Mesas
+
+- Administración de número y capacidad.
+- Activación o puesta fuera de servicio.
+- Consulta administrativa del estado.
+- No será el módulo principal para tomar pedidos.
+
+### Responsabilidad de Comandas
+
+- Mostrar las mesas enumeradas.
+- Abrir el Drawer de atención.
+- Abrir automáticamente una mesa al confirmar el primer pedido.
+- Registrar consumos adicionales en mesas ocupadas.
+- Consultar el seguimiento de las comandas de cada mesa.
 
 ## 18. Fase 16: migrar y corregir los datos existentes
 
@@ -452,10 +531,15 @@ Conservar la información válida del repositorio durante la implementación.
 - No editar migraciones que ya hayan sido ejecutadas en entornos compartidos o producción.
 - Completar el tipo de los productos del Menú Económico existentes.
 - Unificar menús duplicados o inconsistentes.
+- Retirar el módulo antiguo que permite crear fechas manualmente y conservar únicamente el Menú Diario con fecha automática.
 - Corregir modalidades vinculadas a fechas incorrectas.
 - Convertir las cuentas actuales al nuevo flujo.
 - Conservar pagos e historial existentes.
 - Corregir estados contradictorios entre mesa, cuenta, pedido y pago.
+- Agregar restricciones para asegurar una sola cuenta por sesión y una sola sesión abierta por mesa.
+- Evitar eliminar mesas que tengan historial; deberán desactivarse.
+- Hacer que las restricciones esenciales funcionen tanto en MySQL como en PostgreSQL.
+- Incorporar historial de estados y solicitudes de reapertura o autorización.
 - Revisar y actualizar seeders y factories.
 
 ## 19. Fase 17: pruebas del proceso completo
@@ -470,34 +554,39 @@ Verificar el flujo real del restaurante y no solamente cada tabla aislada.
 2. El menú de hoy se crea automáticamente como borrador al entrar al módulo.
 3. El administrador configura manualmente sus productos, cantidades, precios y estado.
 4. Un producto del Menú Económico requiere Segundo, Entrada o Postre.
-5. El mozo abre una mesa disponible.
-6. El sistema crea automáticamente sesión y cuenta.
-7. El mozo confirma un pedido usando el menú activo de hoy.
-8. La cuenta se actualiza automáticamente.
-9. Cocina recibe solamente las comidas.
-10. Las bebidas permanecen en la cuenta y descuentan stock.
-11. Las modalidades descuentan correctamente sus componentes.
-12. Se pueden agregar consumos adicionales a la misma cuenta.
-13. Una cancelación válida restaura disponibilidad.
-14. Solo Caja puede registrar el pago.
-15. Una cuenta no confirmada permanece pendiente.
-16. Un pago parcial no libera la mesa.
-17. El pago completo cierra pedidos, sesión y cuenta.
-18. La mesa se libera después del pago completo.
-19. Una venta pagada no puede modificarse.
-20. Un nuevo consumo después del pago genera una cuenta nueva.
-21. Dos solicitudes simultáneas no pueden consumir la misma última porción.
-22. Dos solicitudes simultáneas no pueden cobrar dos veces la misma cuenta.
+5. Comandas muestra todas las mesas enumeradas.
+6. El mozo selecciona una mesa disponible y se abre el Drawer.
+7. El mozo confirma el primer pedido y el sistema abre automáticamente la mesa, sesión y cuenta.
+8. El pedido utiliza el menú activo y el precio configurado para hoy.
+9. La cuenta se actualiza automáticamente.
+10. Cocina recibe solamente las comidas no canceladas.
+11. Las bebidas permanecen en la cuenta y descuentan stock.
+12. Menú completo descuenta segundo, entrada y postre.
+13. Solo segundo no descuenta entrada ni postre.
+14. Entrada más postre no descuenta segundos.
+15. Se pueden agregar consumos adicionales desde el Drawer de la misma mesa.
+16. Una cancelación válida restaura disponibilidad una sola vez.
+17. Solo Caja puede registrar el pago.
+18. Una cuenta no confirmada permanece pendiente.
+19. Varios pagos parciales de una cuenta generan identificadores únicos.
+20. Un pago parcial no libera la mesa.
+21. El pago completo cierra pedidos, sesión y cuenta.
+22. La mesa se libera después del pago completo.
+23. Una venta pagada no puede modificarse.
+24. Un nuevo consumo después del pago genera una cuenta nueva.
+25. Los permisos impiden que cada rol ejecute acciones ajenas.
+26. Dos solicitudes simultáneas no pueden consumir la misma última porción.
+27. Dos solicitudes simultáneas no pueden cobrar dos veces la misma cuenta.
 
 ## 20. Criterio de finalización
 
 La implementación estará completa cuando pueda ejecutarse sin intervención manual innecesaria este proceso:
 
 1. El administrador ingresa al menú de la fecha actual y configura manualmente los productos disponibles.
-2. El mozo abre una mesa y registra lo solicitado por el cliente.
-3. El sistema crea y actualiza automáticamente sesión, pedidos, disponibilidad y cuenta.
-4. Cocina recibe únicamente las comidas y actualiza su preparación.
-5. El cliente puede seguir consumiendo mientras la cuenta permanezca pendiente.
-6. Caja visualiza la cuenta actualizada y el cajero confirma manualmente el pago.
-7. El sistema registra la venta, cierra la atención y libera automáticamente la mesa.
-
+2. El mozo entra a Comandas, visualiza las mesas enumeradas y selecciona una mesa.
+3. El Drawer permite tomar el primer pedido o agregar consumo a una mesa ocupada.
+4. Al confirmar el primer pedido, el sistema abre automáticamente la mesa y crea sesión, cuenta y comanda.
+5. Cocina recibe únicamente las comidas y actualiza su preparación.
+6. El cliente puede seguir consumiendo mientras la cuenta permanezca pendiente.
+7. Caja visualiza la cuenta actualizada y el cajero confirma manualmente el pago.
+8. El sistema registra la venta, cierra la atención y libera automáticamente la mesa.

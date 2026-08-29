@@ -43,10 +43,10 @@ test('authenticated users can register a stock entry', function () {
         'quantity' => 12,
     ]);
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'type' => 'entrada',
-        'quantity_before' => 0,
-        'quantity_after' => 12,
+        'previous_quantity' => 0,
+        'new_quantity' => 12,
     ]);
 });
 
@@ -79,11 +79,11 @@ test('authenticated users can adjust stock to an exact quantity', function () {
         ->assertRedirect()
         ->assertSessionHas('success');
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'type' => 'ajuste',
         'quantity' => 7,
-        'quantity_before' => 0,
-        'quantity_after' => 7,
+        'previous_quantity' => 0,
+        'new_quantity' => 7,
     ]);
 });
 
@@ -182,11 +182,11 @@ test('creating a beverage registers its initial stock as an entry movement', fun
         'quantity' => 24,
     ]);
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'type' => 'entrada',
         'quantity' => 24,
-        'quantity_before' => 0,
-        'quantity_after' => 24,
+        'previous_quantity' => 0,
+        'new_quantity' => 24,
         'description' => 'Stock inicial del producto.',
     ]);
 });

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -31,8 +30,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class TableSession extends Model
 {
-    use HasFactory;
-
     protected function casts(): array
     {
         return [
@@ -42,16 +39,19 @@ class TableSession extends Model
         ];
     }
 
+    /** @return BelongsTo<RestaurantTable, $this> */
     public function restaurantTable(): BelongsTo
     {
         return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function waiter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'waiter_id');
     }
 
+    /** @return HasOne<Bill, $this> */
     public function bill(): HasOne
     {
         return $this->hasOne(Bill::class, 'table_session_id');

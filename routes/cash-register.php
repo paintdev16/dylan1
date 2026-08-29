@@ -3,7 +3,7 @@
 use App\Http\Controllers\Web\CashRegisterController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin|cajero'])->group(function () {
     Route::get('cash-register', [CashRegisterController::class, 'index'])
         ->name('cash-register.index');
 
@@ -12,6 +12,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('cash-register/bills/{bill}/pay', [CashRegisterController::class, 'storePayment'])
         ->name('cash-register.pay');
+
+    Route::post('cash-register/movements', [CashRegisterController::class, 'storeMovement'])
+        ->name('cash-register.movements.store');
 
     Route::post('cash-register/sessions/{session}/close', [CashRegisterController::class, 'closeSession'])
         ->name('cash-register.close');

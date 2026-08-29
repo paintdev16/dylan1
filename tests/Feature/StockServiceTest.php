@@ -34,12 +34,12 @@ test('adds stock and records the resulting movement', function () {
 
     expect($product->fresh('productStock')->productStock->quantity)->toBe(10);
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
         'type' => 'entrada',
         'quantity' => 10,
-        'quantity_before' => 0,
-        'quantity_after' => 10,
+        'previous_quantity' => 0,
+        'new_quantity' => 10,
         'description' => 'Compra de insumos',
     ]);
 });
@@ -53,12 +53,12 @@ test('removes stock and prevents quantities below zero', function () {
 
     expect($product->fresh('productStock')->productStock->quantity)->toBe(6);
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
-        'type' => 'salida',
+        'type' => 'salida_venta',
         'quantity' => 4,
-        'quantity_before' => 10,
-        'quantity_after' => 6,
+        'previous_quantity' => 10,
+        'new_quantity' => 6,
     ]);
 
     expect(fn () => $stockService->remove($product, 7))
@@ -74,22 +74,22 @@ test('adjusts stock and preserves the before and after quantities', function () 
 
     expect($product->fresh('productStock')->productStock->quantity)->toBe(7);
 
-    $this->assertDatabaseHas('product_stock_movements', [
+    $this->assertDatabaseHas('stock_movements', [
         'id' => $movement->id,
         'type' => 'ajuste',
         'quantity' => 3,
-        'quantity_before' => 10,
-        'quantity_after' => 7,
+        'previous_quantity' => 10,
+        'new_quantity' => 7,
         'description' => 'Inventario físico',
     ]);
 });
 
-test('deactivates a product when its stock reaches zero', function () {
+test('keeps the catalog product active when its stock reaches zero', function () {
     $product = createStockProduct();
     $stockService = app(StockService::class);
 
     $stockService->add($product, 10);
     $stockService->adjust($product, 0, 'Inventario físico');
 
-    expect($product->fresh()->status)->toBe('inactivo');
+    expect($product->fresh()->status)->toBe('activo');
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\CancellationRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemMenuProduct;
@@ -90,8 +91,8 @@ class OrderItemController extends Controller
             $productId = $validated['product_id'] ?? null;
             $kitchenStatus = 'pendiente';
             if ($productId) {
-                $prod = Product::find($productId);
-                if ($prod && $prod->type === 'simple') {
+                $prod = Product::query()->with('menuCategory')->whereKey($productId)->first();
+                if ($prod?->menuCategory?->name === 'Bebidas') {
                     $kitchenStatus = 'entregado';
                 }
             }
@@ -131,7 +132,7 @@ class OrderItemController extends Controller
 
         $nextStatuses = [
             'pendiente' => 'en_preparacion',
-            'en_preparacion' => 'listo',
+            'en_preparacion' => 'entregado',
             'listo' => 'entregado',
         ];
 
@@ -141,7 +142,19 @@ class OrderItemController extends Controller
             ]);
         }
 
-        $orderItem->update(['kitchen_status' => $validated['kitchen_status']]);
+        DB::transaction(function () use ($orderItem, $validated): void {
+            $orderItem->update(['kitchen_status' => $validated['kitchen_status']]);
+
+            $order = $orderItem->order;
+            $hasPendingItems = OrderItem::query()
+                ->where('order_id', $order->id)
+                ->where('kitchen_status', '!=', 'entregado')
+                ->exists();
+
+            if (! $hasPendingItems) {
+                $order->update(['status' => 'completado']);
+            }
+        });
 
         return redirect()
             ->route('orders.index')
@@ -150,20 +163,9 @@ class OrderItemController extends Controller
 
     public function destroy(OrderItem $orderItem): RedirectResponse
     {
-        if ($orderItem->kitchen_status === 'entregado' && $orderItem->order->status !== 'pendiente') {
-            return back()->withErrors([
-                'item' => 'No se puede eliminar un ítem que ya ha sido entregado.',
-            ]);
-        }
-
-        DB::transaction(function () use ($orderItem): void {
-            $this->stockService->restoreStockForOrderItem($orderItem);
-            $orderItem->delete();
-        });
-
-        return redirect()
-            ->route('orders.index')
-            ->with('success', 'Ítem eliminado de la comanda.');
+        return back()->withErrors([
+            'item' => 'Los consumos no se eliminan. Registra una cancelación para conservar el historial.',
+        ]);
     }
 
     public function cancel(Request $request, OrderItem $orderItem): RedirectResponse
@@ -183,6 +185,21 @@ class OrderItemController extends Controller
         $validated = $request->validate([
             'cancellation_reason' => ['required', 'string', 'min:3', 'max:255'],
         ]);
+
+        if ($orderItem->kitchen_status !== 'pendiente') {
+            CancellationRequest::firstOrCreate(
+                ['order_item_id' => $orderItem->id, 'status' => 'pending'],
+                [
+                    'requested_by' => $request->user()->id,
+                    'previous_status' => $orderItem->kitchen_status,
+                    'reason' => $validated['cancellation_reason'],
+                ]
+            );
+
+            return redirect()
+                ->route('orders.index')
+                ->with('success', 'Cancelación enviada a Caja para autorización.');
+        }
 
         DB::transaction(function () use ($orderItem, $validated, $request): void {
             $orderItem->update([

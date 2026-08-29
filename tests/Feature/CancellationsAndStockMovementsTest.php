@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Bill;
+use App\Models\CancellationRequest;
 use App\Models\MenuCategory;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -84,6 +85,14 @@ test('ordering beverage creates stock movement and cancelling it restores stock 
             'cancellation_reason' => 'Cliente cambió de opinión antes del despacho',
         ])
         ->assertRedirect(route('orders.index'));
+
+    $cancellationRequest = CancellationRequest::firstOrFail();
+
+    $this->actingAs($data['user'])
+        ->patch(route('cancellation-requests.review', $cancellationRequest), [
+            'decision' => 'approved',
+        ])
+        ->assertRedirect();
 
     $freshItem = $item->fresh();
     expect($freshItem->is_cancelled)->toBeTrue()

@@ -28,9 +28,7 @@ export function CategoryForm({
         category?.has_versions ?? false,
     );
 
-    const [active, setActive] = useState(
-        category?.active ?? true,
-    );
+    const [active, setActive] = useState(category?.active ?? true);
 
     return (
         <Form
@@ -43,9 +41,7 @@ export function CategoryForm({
                 <>
                     {/* Nombre */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">
-                            Nombre de categoría
-                        </Label>
+                        <Label htmlFor="name">Nombre de categoría</Label>
 
                         <Input
                             id="name"
@@ -73,9 +69,7 @@ export function CategoryForm({
                             name="display_order"
                             type="number"
                             min="0"
-                            defaultValue={
-                                category?.display_order ?? 0
-                            }
+                            defaultValue={category?.display_order ?? 0}
                             placeholder="Ej. 1"
                         />
 
@@ -111,8 +105,8 @@ export function CategoryForm({
                             </Label>
 
                             <p className="text-sm text-muted-foreground">
-                                Permite opciones como completo, solo
-                                segundo o solo entrada/postre.
+                                Permite opciones como completo, solo segundo o
+                                solo entrada/postre.
                             </p>
                         </div>
                     </div>
@@ -139,10 +133,7 @@ export function CategoryForm({
                             value={active ? '1' : '0'}
                         />
 
-                        <Label
-                            htmlFor="active"
-                            className="cursor-pointer"
-                        >
+                        <Label htmlFor="active" className="cursor-pointer">
                             Categoría activa
                         </Label>
                     </div>
@@ -155,13 +146,8 @@ export function CategoryForm({
 
                     {/* Acciones */}
                     <div className="flex justify-end">
-                        <Button
-                            type="submit"
-                            disabled={processing}
-                        >
-                            {processing
-                                ? 'Guardando...'
-                                : submitLabel}
+                        <Button type="submit" disabled={processing}>
+                            {processing ? 'Guardando...' : submitLabel}
                         </Button>
                     </div>
                 </>

@@ -20,11 +20,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Fillable([
     'cash_register_session_id',
+    'payment_group_id',
     'bill_id',
     'cashier_id',
     'payment_method',
     'amount',
+    'received_amount',
+    'change_amount',
+    'operation_code',
+    'receipt_type',
     'receipt_number',
+    'customer_name',
+    'customer_document',
 ])]
 class Payment extends Model
 {
@@ -32,6 +39,8 @@ class Payment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'received_amount' => 'decimal:2',
+            'change_amount' => 'decimal:2',
         ];
     }
 

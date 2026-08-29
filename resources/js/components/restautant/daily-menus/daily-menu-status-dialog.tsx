@@ -18,10 +18,7 @@ type Props = {
     status: 'available' | 'out_of_service';
 };
 
-export function TableStatusDialog({
-    table,
-    status: newStatus,
-}: Props) {
+export function TableStatusDialog({ table, status: newStatus }: Props) {
     const [open, setOpen] = useState(false);
 
     const isDisabling = newStatus === 'out_of_service';
@@ -36,16 +33,10 @@ export function TableStatusDialog({
     };
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={setOpen}
-        >
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
                 render={
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                    >
+                    <Button variant="ghost" size="icon">
                         {isDisabling ? (
                             <AlertTriangle className="size-4 text-destructive" />
                         ) : (
@@ -78,11 +69,7 @@ export function TableStatusDialog({
                         closeDialog();
                     }}
                 >
-                    <input
-                        type="hidden"
-                        name="status"
-                        value={newStatus}
-                    />
+                    <input type="hidden" name="status" value={newStatus} />
 
                     <Button
                         type="button"
@@ -94,11 +81,7 @@ export function TableStatusDialog({
 
                     <Button
                         type="submit"
-                        variant={
-                            isDisabling
-                                ? 'destructive'
-                                : 'default'
-                        }
+                        variant={isDisabling ? 'destructive' : 'default'}
                     >
                         {isDisabling
                             ? 'Poner fuera de servicio'

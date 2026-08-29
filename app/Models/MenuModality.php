@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'daily_menu_id',
+    'code',
     'name',
     'description',
     'price',

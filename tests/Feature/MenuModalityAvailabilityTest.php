@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Bill;
+use App\Models\CancellationRequest;
 use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
@@ -125,6 +126,7 @@ function setupDailyMenuWithComponents(): array
 
     $modalityCompleto = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'full_menu',
         'name' => 'Menú completo',
         'description' => 'Segundo + entrada + postre.',
         'price' => 14.00,
@@ -134,6 +136,7 @@ function setupDailyMenuWithComponents(): array
 
     $modalitySoloSegundo = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'main_only',
         'name' => 'Solo segundo',
         'description' => 'Solo segundo.',
         'price' => 9.00,
@@ -143,6 +146,7 @@ function setupDailyMenuWithComponents(): array
 
     $modalityEntradaPostre = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'starter_dessert',
         'name' => 'Entrada + postre',
         'description' => 'Entrada y postre.',
         'price' => 5.00,
@@ -356,17 +360,22 @@ test('deleting an order item restores portions and beverage stock', function () 
     $item1 = OrderItem::where('menu_modality_id', $data['modalityCompleto']->id)->first();
     $item2 = OrderItem::where('product_id', $data['pBeverage']->id)->first();
 
-    // Eliminar ítem 1 (modalidad)
+    // Cancelar ítem 1 (modalidad)
     $this->actingAs($user)
-        ->delete(route('order-items.destroy', $item1))
+        ->post(route('order-items.cancel', $item1), ['cancellation_reason' => 'Cambio solicitado'])
         ->assertRedirect(route('orders.index'));
 
     expect($data['dmpSegundo']->fresh()->quantity_available)->toBe(10);
 
-    // Eliminar ítem 2 (bebida)
+    // La bebida ya figura entregada, por lo que requiere aprobación.
     $this->actingAs($user)
-        ->delete(route('order-items.destroy', $item2))
+        ->post(route('order-items.cancel', $item2), ['cancellation_reason' => 'Cambio solicitado'])
         ->assertRedirect(route('orders.index'));
+
+    $this->actingAs($user)
+        ->patch(route('cancellation-requests.review', CancellationRequest::firstOrFail()), [
+            'decision' => 'approved',
+        ]);
 
     expect(ProductStock::where('product_id', $data['pBeverage']->id)->first()->quantity)->toBe(20);
 });

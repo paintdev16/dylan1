@@ -1,5 +1,12 @@
 import { Link, router } from '@inertiajs/react';
-import { BadgeCheck, Bell, CreditCard, LogOut, Settings, Sparkles } from 'lucide-react';
+import {
+    BadgeCheck,
+    Bell,
+    CreditCard,
+    LogOut,
+    Settings,
+    Sparkles,
+} from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,

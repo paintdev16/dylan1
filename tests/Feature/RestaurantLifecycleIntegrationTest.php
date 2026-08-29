@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Bill;
+use App\Models\CancellationRequest;
 use App\Models\CashRegisterSession;
 use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
@@ -105,6 +106,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
 
     $modalityCompleto = MenuModality::create([
         'daily_menu_id' => $dailyMenu->id,
+        'code' => 'full_menu',
         'name' => 'Menú completo',
         'price' => 15.00,
         'display_order' => 1,
@@ -116,7 +118,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     $cocinero = User::factory()->create(['name' => 'Chef Juan']);
     $cajero = User::factory()->create(['name' => 'Cajera Lucía']);
 
-    // 3. Apertura de Mesa por el Mozo
+    // 3. Apertura de Mesa y primera comanda por el Mozo
     $table = RestaurantTable::create([
         'number' => 8,
         'capacity' => 4,
@@ -124,10 +126,14 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     ]);
 
     $this->actingAs($mozo)
-        ->post(route('tables.open-session', $table), [
+        ->post(route('orders.tables.store', $table), [
             'customer_count' => 2,
+            'menu_modality_id' => $modalityCompleto->id,
+            'components' => [$dmpSegundo->id, $dmpEntrada->id, $dmpPostre->id],
+            'quantity' => 2,
+            'notes' => 'Sin cebolla en la huancaína',
         ])
-        ->assertRedirect(route('tables.index'));
+        ->assertRedirect(route('orders.index'));
 
     expect($table->fresh()->status)->toBe('occupied');
 
@@ -139,22 +145,7 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     $bill = Bill::where('table_id', $table->id)->first();
     expect($bill)->not->toBeNull()
         ->and($bill->status)->toBe('open')
-        ->and((float) $bill->total_amount)->toBe(0.00);
-
-    // 4. Primera comanda: 2 Menús Completos (Segundo + Entrada + Postre)
-    $this->actingAs($mozo)
-        ->post(route('orders.store'), [
-            'bill_id' => $bill->id,
-            'menu_modality_id' => $modalityCompleto->id,
-            'components' => [
-                $dmpSegundo->id,
-                $dmpEntrada->id,
-                $dmpPostre->id,
-            ],
-            'quantity' => 2,
-            'notes' => 'Sin cebolla en la huancaína',
-        ])
-        ->assertRedirect(route('orders.index'));
+        ->and((float) $bill->total_amount)->toBe(30.00);
 
     // Verificar deducción de porciones: 12 - 2 = 10
     expect($dmpSegundo->fresh()->quantity_available)->toBe(10)
@@ -213,6 +204,11 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     $this->actingAs($mozo)
         ->post(route('order-items.cancel', $beverageItem), [
             'cancellation_reason' => 'Cliente canceló las gaseosas antes de destaparlas',
+        ]);
+
+    $this->actingAs($cajero)
+        ->patch(route('cancellation-requests.review', CancellationRequest::firstOrFail()), [
+            'decision' => 'approved',
         ]);
 
     // Stock restaurado: 23 + 2 = 25

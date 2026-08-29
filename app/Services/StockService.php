@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\ProductStock;
-use App\Models\ProductStockMovement;
+use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -14,7 +14,7 @@ class StockService
         Product $product,
         int $quantity,
         ?string $description = null
-    ): ProductStockMovement {
+    ): StockMovement {
         $this->ensurePositiveQuantity($quantity);
 
         return $this->recordMovement(
@@ -30,12 +30,12 @@ class StockService
         Product $product,
         int $quantity,
         ?string $description = null
-    ): ProductStockMovement {
+    ): StockMovement {
         $this->ensurePositiveQuantity($quantity);
 
         return $this->recordMovement(
             $product,
-            'salida',
+            'salida_venta',
             $quantity,
             $description,
             function (int $quantityBefore) use ($quantity): int {
@@ -54,7 +54,7 @@ class StockService
         Product $product,
         int $quantity,
         ?string $description = null
-    ): ProductStockMovement {
+    ): StockMovement {
         if ($quantity < 0) {
             throw new InvalidArgumentException(
                 'La cantidad ajustada no puede ser negativa.'
@@ -85,14 +85,14 @@ class StockService
         int $quantity,
         ?string $description,
         callable $resolveQuantityAfter
-    ): ProductStockMovement {
+    ): StockMovement {
         return DB::transaction(function () use (
             $product,
             $type,
             $quantity,
             $description,
             $resolveQuantityAfter
-        ): ProductStockMovement {
+        ): StockMovement {
             $lockedProduct = Product::query()
                 ->whereKey($product->id)
                 ->lockForUpdate()
@@ -109,17 +109,15 @@ class StockService
 
             $stock->update(['quantity' => $quantityAfter]);
 
-            if ($quantityAfter === 0) {
-                $lockedProduct->update(['status' => 'inactivo']);
-            }
-
-            return $stock->movements()->create([
+            return StockMovement::create([
+                'product_id' => $lockedProduct->id,
+                'user_id' => auth()->id(),
                 'type' => $type,
                 'quantity' => $type === 'ajuste'
                     ? abs($quantityAfter - $quantityBefore)
                     : $quantity,
-                'quantity_before' => $quantityBefore,
-                'quantity_after' => $quantityAfter,
+                'previous_quantity' => $quantityBefore,
+                'new_quantity' => $quantityAfter,
                 'description' => $description,
             ]);
         });

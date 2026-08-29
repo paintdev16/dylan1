@@ -5,7 +5,6 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,8 +36,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class CashRegisterSession extends Model
 {
-    use HasFactory;
-
     protected function casts(): array
     {
         return [
@@ -51,13 +48,21 @@ class CashRegisterSession extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function cashier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /** @return HasMany<Payment, $this> */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'cash_register_session_id');
+    }
+
+    /** @return HasMany<CashRegisterMovement, $this> */
+    public function movements(): HasMany
+    {
+        return $this->hasMany(CashRegisterMovement::class);
     }
 }

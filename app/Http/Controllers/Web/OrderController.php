@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Orders\StoreTableOrderRequest;
 use App\Models\Bill;
 use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\Order;
 use App\Models\OrderItemMenuProduct;
 use App\Models\Product;
+use App\Models\RestaurantTable;
 use App\Services\OrderStockService;
+use App\Services\TableOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +21,8 @@ use Inertia\Response;
 class OrderController extends Controller
 {
     public function __construct(
-        private readonly OrderStockService $stockService = new OrderStockService
+        private readonly OrderStockService $stockService,
+        private readonly TableOrderService $tableOrderService,
     ) {}
 
     public function index(): Response
@@ -36,15 +40,16 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        $openBills = Bill::query()
-            ->with(['restaurantTable', 'openingWaiter'])
-            ->where('status', 'open')
-            ->orderByDesc('opened_at')
+        $tables = RestaurantTable::query()
+            ->with(['activeSession.waiter', 'activeSession.bill.orders.user', 'activeSession.bill.orders.items.product.menuCategory', 'activeSession.bill.orders.items.menuModality', 'activeSession.bill.orders.items.dailyMenuProducts.product'])
+            ->orderBy('number')
             ->get();
 
         $products = Product::query()
-            ->with(['menuCategory', 'menuSubcategory', 'menuSubcategoryType', 'stock'])
+            ->with(['menuCategory', 'menuSubcategory', 'menuSubcategoryType', 'productStock'])
             ->where('status', 'activo')
+            ->whereHas('menuCategory', fn ($query) => $query->where('name', 'Bebidas'))
+            ->whereHas('productStock', fn ($query) => $query->where('quantity', '>', 0))
             ->orderBy('name')
             ->get();
 
@@ -70,11 +75,18 @@ class OrderController extends Controller
 
         return inertia('orders/index', compact(
             'orders',
-            'openBills',
+            'tables',
             'products',
             'menuModalities',
             'dailyMenuProducts'
         ));
+    }
+
+    public function storeForTable(StoreTableOrderRequest $request, RestaurantTable $table): RedirectResponse
+    {
+        $this->tableOrderService->create($table, $request->user(), $request->validated());
+
+        return redirect()->route('orders.index')->with('success', 'Comanda confirmada correctamente.');
     }
 
     public function store(Request $request): RedirectResponse
@@ -101,7 +113,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'bill_id' => $bill->id,
                 'user_id' => $request->user()->id,
-                'status' => 'pendiente',
+                'status' => 'enviado_cocina',
             ]);
 
             // Create initial item if specified
@@ -115,8 +127,8 @@ class OrderController extends Controller
 
                 $kitchenStatus = 'pendiente';
                 if ($productId) {
-                    $prod = Product::find($productId);
-                    if ($prod && $prod->type === 'simple') {
+                    $prod = Product::query()->with('menuCategory')->whereKey($productId)->first();
+                    if ($prod?->menuCategory?->name === 'Bebidas') {
                         $kitchenStatus = 'entregado';
                     }
                 }

@@ -43,6 +43,7 @@ class MenuModalitiesSeeder extends Seeder
 
         $modalities = [
             [
+                'code' => 'full_menu',
                 'name' => 'Menú completo',
                 'description' => 'Segundo + entrada + postre.',
                 'price' => 14.00,
@@ -51,6 +52,7 @@ class MenuModalitiesSeeder extends Seeder
             ],
 
             [
+                'code' => 'main_only',
                 'name' => 'Solo segundo',
                 'description' => 'Solo segundo del menú económico.',
                 'price' => 9.00,
@@ -59,6 +61,7 @@ class MenuModalitiesSeeder extends Seeder
             ],
 
             [
+                'code' => 'starter_dessert',
                 'name' => 'Entrada + postre',
                 'description' => 'Una entrada + un postre.',
                 'price' => 5.00,
@@ -77,9 +80,10 @@ class MenuModalitiesSeeder extends Seeder
             MenuModality::updateOrCreate(
                 [
                     'daily_menu_id' => $dailyMenu->id,
-                    'name' => $modality['name'],
+                    'code' => $modality['code'],
                 ],
                 [
+                    'name' => $modality['name'],
                     'description' => $modality['description'],
                     'price' => $modality['price'],
                     'display_order' => $modality['display_order'],

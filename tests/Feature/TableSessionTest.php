@@ -1,9 +1,28 @@
 <?php
 
 use App\Models\Bill;
+use App\Models\MenuCategory;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductStock;
 use App\Models\RestaurantTable;
 use App\Models\TableSession;
 use App\Models\User;
+
+function tableSessionProduct(): Product
+{
+    $category = MenuCategory::firstOrCreate(['name' => 'Bebidas'], ['display_order' => 2, 'active' => true]);
+    $product = Product::create([
+        'menu_category_id' => $category->id,
+        'name' => 'Agua de prueba',
+        'price' => 3,
+        'type' => 'simple',
+        'status' => 'activo',
+    ]);
+    ProductStock::create(['product_id' => $product->id, 'quantity' => 20]);
+
+    return $product;
+}
 
 test('waiter can open an available table creating session and bill atomically', function () {
     $waiter = User::factory()->create(['name' => 'Carlos Mozo']);
@@ -12,13 +31,16 @@ test('waiter can open an available table creating session and bill atomically', 
         'capacity' => 4,
         'status' => 'available',
     ]);
+    $product = tableSessionProduct();
 
     $response = $this->actingAs($waiter)
-        ->post(route('tables.open-session', $table), [
+        ->post(route('orders.tables.store', $table), [
             'customer_count' => 3,
+            'product_id' => $product->id,
+            'quantity' => 1,
         ]);
 
-    $response->assertRedirect(route('tables.index'));
+    $response->assertRedirect(route('orders.index'));
 
     // Verify table is occupied
     expect($table->fresh()->status)->toBe('occupied');
@@ -37,7 +59,8 @@ test('waiter can open an available table creating session and bill atomically', 
         ->and($bill->opening_waiter_id)->toBe($waiter->id)
         ->and($bill->order_type)->toBe('dine_in')
         ->and($bill->status)->toBe('open')
-        ->and((float) $bill->total_amount)->toBe(0.00);
+        ->and((float) $bill->total_amount)->toBe(3.00)
+        ->and(Order::where('bill_id', $bill->id)->count())->toBe(1);
 });
 
 test('cannot open a table that is already occupied', function () {
@@ -47,13 +70,16 @@ test('cannot open a table that is already occupied', function () {
         'capacity' => 4,
         'status' => 'occupied',
     ]);
+    $product = tableSessionProduct();
 
     $this->actingAs($waiter)
-        ->from(route('tables.index'))
-        ->post(route('tables.open-session', $table), [
+        ->from(route('orders.index'))
+        ->post(route('orders.tables.store', $table), [
             'customer_count' => 2,
+            'product_id' => $product->id,
+            'quantity' => 1,
         ])
-        ->assertRedirect(route('tables.index'))
+        ->assertRedirect(route('orders.index'))
         ->assertSessionHasErrors('table');
 
     expect(TableSession::where('restaurant_table_id', $table->id)->count())->toBe(0);
@@ -66,13 +92,16 @@ test('cannot open a table that is out of service', function () {
         'capacity' => 2,
         'status' => 'out_of_service',
     ]);
+    $product = tableSessionProduct();
 
     $this->actingAs($waiter)
-        ->from(route('tables.index'))
-        ->post(route('tables.open-session', $table), [
+        ->from(route('orders.index'))
+        ->post(route('orders.tables.store', $table), [
             'customer_count' => 2,
+            'product_id' => $product->id,
+            'quantity' => 1,
         ])
-        ->assertRedirect(route('tables.index'))
+        ->assertRedirect(route('orders.index'))
         ->assertSessionHasErrors('table');
 
     expect(TableSession::where('restaurant_table_id', $table->id)->count())->toBe(0);
@@ -85,13 +114,16 @@ test('opening a table requires a valid customer count', function () {
         'capacity' => 4,
         'status' => 'available',
     ]);
+    $product = tableSessionProduct();
 
     $this->actingAs($waiter)
-        ->from(route('tables.index'))
-        ->post(route('tables.open-session', $table), [
+        ->from(route('orders.index'))
+        ->post(route('orders.tables.store', $table), [
             'customer_count' => 0,
+            'product_id' => $product->id,
+            'quantity' => 1,
         ])
-        ->assertRedirect(route('tables.index'))
+        ->assertRedirect(route('orders.index'))
         ->assertSessionHasErrors('customer_count');
 
     expect($table->fresh()->status)->toBe('available')

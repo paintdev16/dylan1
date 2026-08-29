@@ -3,7 +3,7 @@
 use App\Http\Controllers\Web\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
     Route::get('products', [ProductController::class, 'index'])
         ->name('products.index');
 

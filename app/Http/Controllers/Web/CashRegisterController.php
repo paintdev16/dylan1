@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
+use App\Models\CancellationRequest;
+use App\Models\CashRegisterMovement;
 use App\Models\CashRegisterSession;
 use App\Models\Payment;
 use App\Models\RestaurantTable;
@@ -11,6 +13,8 @@ use App\Models\TableSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 class CashRegisterController extends Controller
@@ -29,7 +33,10 @@ class CashRegisterController extends Controller
             $cardTotal = $payments->where('payment_method', 'tarjeta')->sum('amount');
             $digitalTotal = $payments->whereIn('payment_method', ['yape', 'plin'])->sum('amount');
             $totalCollected = $payments->sum('amount');
-            $expectedCash = (float) $activeSession->opening_amount + (float) $cashTotal;
+            $movementBalance = (float) $activeSession->movements()
+                ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0) AS balance")
+                ->value('balance');
+            $expectedCash = (float) $activeSession->opening_amount + (float) $cashTotal + $movementBalance;
 
             $summary = [
                 'cash_total' => (float) $cashTotal,
@@ -59,11 +66,23 @@ class CashRegisterController extends Controller
             ->limit(5)
             ->get();
 
+        $cancellationRequests = CancellationRequest::query()
+            ->where('status', 'pending')
+            ->with([
+                'requester:id,name',
+                'orderItem.order.bill.restaurantTable',
+                'orderItem.product:id,name',
+                'orderItem.menuModality:id,name',
+            ])
+            ->latest()
+            ->get();
+
         return inertia('cash-register/index', compact(
             'activeSession',
             'summary',
             'pendingBills',
-            'pastSessions'
+            'pastSessions',
+            'cancellationRequests'
         ));
     }
 
@@ -108,10 +127,18 @@ class CashRegisterController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_method' => ['required', 'in:efectivo,tarjeta,yape,plin'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_method' => ['required_without:payments', 'nullable', 'in:efectivo,tarjeta,yape,plin'],
+            'amount' => ['required_without:payments', 'nullable', 'numeric', 'min:0.01'],
             'received_amount' => ['nullable', 'numeric', 'min:0'],
             'receipt_number' => ['nullable', 'string', 'max:50'],
+            'operation_code' => ['nullable', 'string', 'max:100'],
+            'receipt_type' => ['nullable', 'in:ticket,boleta,factura'],
+            'customer_name' => [Rule::requiredIf($request->receipt_type === 'factura'), 'nullable', 'string', 'max:150'],
+            'customer_document' => [Rule::requiredIf($request->receipt_type === 'factura'), 'nullable', 'string', 'max:20'],
+            'payments' => ['nullable', 'array', 'min:2'],
+            'payments.*.payment_method' => ['required_with:payments', 'distinct', 'in:efectivo,tarjeta,yape,plin'],
+            'payments.*.amount' => ['required_with:payments', 'numeric', 'min:0.01'],
+            'payments.*.operation_code' => ['nullable', 'string', 'max:100'],
         ]);
 
         return DB::transaction(function () use ($bill, $validated, $request, $activeSession) {
@@ -123,22 +150,61 @@ class CashRegisterController extends Controller
                 ]);
             }
 
-            if ($validated['amount'] > ($lockedBill->balance + 0.01)) {
+            $paymentParts = $validated['payments'] ?? [[
+                'payment_method' => $validated['payment_method'],
+                'amount' => $validated['amount'],
+                'operation_code' => $validated['operation_code'] ?? null,
+            ]];
+            $paymentTotal = 0.0;
+            foreach ($paymentParts as $paymentPart) {
+                $paymentTotal += (float) $paymentPart['amount'];
+            }
+
+            if ($paymentTotal > ($lockedBill->balance + 0.01)) {
                 return back()->withErrors([
                     'amount' => 'El importe ingresado excede el saldo pendiente (S/. '.number_format($lockedBill->balance, 2).').',
                 ]);
             }
 
-            $receiptNum = ($validated['receipt_number'] ?? null) ?: ('B001-'.str_pad((string) $lockedBill->id, 6, '0', STR_PAD_LEFT));
+            foreach ($paymentParts as $paymentPart) {
+                if (
+                    $paymentPart['payment_method'] === 'efectivo'
+                    && isset($validated['received_amount'])
+                    && (float) $validated['received_amount'] < (float) $paymentPart['amount']
+                ) {
+                    return back()->withErrors([
+                        'received_amount' => 'El efectivo recibido no puede ser menor que el importe cobrado.',
+                    ]);
+                }
+            }
 
-            Payment::create([
-                'cash_register_session_id' => $activeSession->id,
-                'bill_id' => $lockedBill->id,
-                'cashier_id' => $request->user()->id,
-                'payment_method' => $validated['payment_method'],
-                'amount' => $validated['amount'],
-                'receipt_number' => $receiptNum,
-            ]);
+            $receiptNum = ($validated['receipt_number'] ?? null) ?: sprintf(
+                'B001-%06d-%02d',
+                $lockedBill->id,
+                $lockedBill->payments()->count() + 1
+            );
+
+            $paymentGroupId = (string) Str::uuid();
+            foreach ($paymentParts as $index => $part) {
+                $receivedAmount = $part['payment_method'] === 'efectivo'
+                    ? (float) ($validated['received_amount'] ?? $part['amount'])
+                    : null;
+                Payment::create([
+                    'cash_register_session_id' => $activeSession->id,
+                    'payment_group_id' => $paymentGroupId,
+                    'bill_id' => $lockedBill->id,
+                    'cashier_id' => $request->user()->id,
+                    'payment_method' => $part['payment_method'],
+                    'amount' => $part['amount'],
+                    'received_amount' => $receivedAmount,
+                    'change_amount' => $receivedAmount === null ? 0 : max(0, $receivedAmount - (float) $part['amount']),
+                    'operation_code' => $part['operation_code'] ?? null,
+                    'receipt_type' => $validated['receipt_type'] ?? 'ticket',
+                    'receipt_number' => count($paymentParts) === 1 ? $receiptNum : $receiptNum.'-'.($index + 1),
+                    'customer_name' => $validated['customer_name'] ?? null,
+                    'customer_document' => $validated['customer_document'] ?? null,
+                ]);
+            }
 
             // Comprobar si la cuenta quedó totalmente saldada
             if ($lockedBill->fresh()->balance <= 0.01) {
@@ -146,6 +212,8 @@ class CashRegisterController extends Controller
                 $lockedBill->update([
                     'status' => 'closed',
                     'closed_at' => now(),
+                    'closed_by' => $request->user()->id,
+                    'sale_snapshot' => $this->createSaleSnapshot($lockedBill),
                 ]);
 
                 // 2. Cerrar sesión de mesa
@@ -170,8 +238,8 @@ class CashRegisterController extends Controller
             }
 
             $change = null;
-            if ($validated['payment_method'] === 'efectivo' && ! empty($validated['received_amount'] ?? null)) {
-                $change = max(0, (float) $validated['received_amount'] - (float) $validated['amount']);
+            if (count($paymentParts) === 1 && $paymentParts[0]['payment_method'] === 'efectivo' && ! empty($validated['received_amount'] ?? null)) {
+                $change = max(0, (float) $validated['received_amount'] - (float) $paymentParts[0]['amount']);
             }
 
             $successMsg = 'Pago registrado exitosamente.';
@@ -183,6 +251,76 @@ class CashRegisterController extends Controller
                 ->route('cash-register.index')
                 ->with('success', $successMsg);
         });
+    }
+
+    public function storeMovement(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'in:income,expense,withdrawal,petty_cash'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'description' => ['required', 'string', 'max:255'],
+        ]);
+        $session = CashRegisterSession::query()
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (! $session) {
+            return back()->withErrors(['session' => 'Debes tener una caja abierta.']);
+        }
+
+        CashRegisterMovement::create($validated + [
+            'cash_register_session_id' => $session->id,
+            'user_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Movimiento de caja registrado.');
+    }
+
+    /**
+     * @return list<array{order_id: int, items: list<array{description: string, components: list<string>, quantity: int, unit_price: string, subtotal: string}>}>
+     */
+    private function createSaleSnapshot(Bill $bill): array
+    {
+        $bill->load([
+            'orders.items.product',
+            'orders.items.menuModality',
+            'orders.items.dailyMenuProducts.product',
+        ]);
+
+        $snapshot = [];
+        foreach ($bill->orders as $order) {
+            $items = [];
+            foreach ($order->items as $item) {
+                if ($item->is_cancelled) {
+                    continue;
+                }
+
+                $components = [];
+                foreach ($item->dailyMenuProducts as $dailyMenuProduct) {
+                    $components[] = $dailyMenuProduct->product->name;
+                }
+
+                $description = 'Ítem de consumo';
+                if ($item->product !== null) {
+                    $description = $item->product->name;
+                } elseif ($item->menuModality !== null) {
+                    $description = $item->menuModality->name;
+                }
+
+                $items[] = [
+                    'description' => $description,
+                    'components' => $components,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'subtotal' => $item->subtotal,
+                ];
+            }
+
+            $snapshot[] = ['order_id' => $order->id, 'items' => $items];
+        }
+
+        return $snapshot;
     }
 
     public function closeSession(Request $request, CashRegisterSession $session): RedirectResponse
@@ -202,7 +340,10 @@ class CashRegisterController extends Controller
             ->where('payment_method', 'efectivo')
             ->sum('amount');
 
-        $expectedAmount = (float) $session->opening_amount + (float) $cashCollected;
+        $movementBalance = (float) $session->movements()
+            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0) AS balance")
+            ->value('balance');
+        $expectedAmount = (float) $session->opening_amount + (float) $cashCollected + $movementBalance;
         $difference = (float) $validated['closing_amount'] - $expectedAmount;
 
         $session->update([

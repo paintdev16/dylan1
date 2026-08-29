@@ -1,10 +1,5 @@
 export type RestaurantTableStatus =
-    | 'available'
-    | 'occupied'
-    | 'reserved'
-    | 'awaiting_payment'
-    | 'cleaning'
-    | 'out_of_service';
+    'available' | 'occupied' | 'reserved' | 'out_of_service';
 
 export interface TableSession {
     id: number;
@@ -88,6 +83,7 @@ export interface OrderItem {
         price: number;
     } | null;
     daily_menu_products?: DailyMenuProduct[];
+    is_cancelled?: boolean;
 }
 
 export interface Order {
@@ -101,6 +97,7 @@ export interface Order {
         name: string;
     };
     items?: OrderItem[];
+    bill?: Bill;
 }
 
 export interface Bill {
@@ -231,6 +228,7 @@ export interface DailyMenuProduct {
 export interface MenuModality {
     id: number;
     daily_menu_id: number;
+    code: 'full_menu' | 'main_only' | 'starter_dessert';
     name: string;
     description: string | null;
     price: number;

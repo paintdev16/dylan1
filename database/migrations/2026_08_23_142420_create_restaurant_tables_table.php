@@ -19,8 +19,6 @@ return new class extends Migration
                 'available',
                 'occupied',
                 'reserved',
-                'awaiting_payment',
-                'cleaning',
                 'out_of_service',
             ])->default('available');
             $table->timestamps();

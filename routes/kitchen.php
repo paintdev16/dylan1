@@ -3,7 +3,7 @@
 use App\Http\Controllers\Web\KitchenController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin|cocina'])->group(function () {
     Route::get('kitchen', [KitchenController::class, 'index'])
         ->name('kitchen.index');
 

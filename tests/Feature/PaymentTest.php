@@ -1,12 +1,14 @@
 <?php
 
 use App\Models\Bill;
+use App\Models\CashRegisterSession;
 use App\Models\Payment;
 use App\Models\RestaurantTable;
 use App\Models\User;
 
 test('authenticated users can register a partial payment for a bill', function () {
     $user = User::factory()->create();
+    CashRegisterSession::create(['user_id' => $user->id, 'opening_amount' => 0, 'status' => 'open', 'opened_at' => now()]);
     $bill = Bill::create([
         'opening_waiter_id' => $user->id,
         'order_type' => 'takeout',
@@ -23,12 +25,12 @@ test('authenticated users can register a partial payment for a bill', function (
     ]);
 
     $this->actingAs($user)
-        ->post(route('bills.payments.store', $bill), [
+        ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'efectivo',
             'amount' => 40.00,
             'receipt_number' => 'REC-001',
         ])
-        ->assertRedirect(route('bills.index'));
+        ->assertRedirect(route('cash-register.index'));
 
     expect(Payment::query()->count())->toBe(1);
 
@@ -50,6 +52,7 @@ test('authenticated users can register a partial payment for a bill', function (
 
 test('paying the full balance automatically closes the bill and frees the table', function () {
     $user = User::factory()->create();
+    CashRegisterSession::create(['user_id' => $user->id, 'opening_amount' => 0, 'status' => 'open', 'opened_at' => now()]);
     $table = RestaurantTable::create([
         'number' => 5,
         'capacity' => 4,
@@ -73,12 +76,13 @@ test('paying the full balance automatically closes the bill and frees the table'
     ]);
 
     $this->actingAs($user)
-        ->post(route('bills.payments.store', $bill), [
+        ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'yape',
             'amount' => 75.50,
+            'operation_code' => 'YAPE-9988',
             'receipt_number' => 'YAPE-9988',
         ])
-        ->assertRedirect(route('bills.index'));
+        ->assertRedirect(route('cash-register.index'));
 
     $bill->refresh();
     expect($bill)
@@ -91,6 +95,7 @@ test('paying the full balance automatically closes the bill and frees the table'
 
 test('cannot pay an amount greater than the pending balance', function () {
     $user = User::factory()->create();
+    CashRegisterSession::create(['user_id' => $user->id, 'opening_amount' => 0, 'status' => 'open', 'opened_at' => now()]);
     $bill = Bill::create([
         'opening_waiter_id' => $user->id,
         'order_type' => 'takeout',
@@ -108,9 +113,10 @@ test('cannot pay an amount greater than the pending balance', function () {
 
     $this->actingAs($user)
         ->from(route('bills.index'))
-        ->post(route('bills.payments.store', $bill), [
+        ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'tarjeta',
             'amount' => 50.00,
+            'operation_code' => 'POS-50',
         ])
         ->assertRedirect(route('bills.index'))
         ->assertSessionHasErrors('amount');

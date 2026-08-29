@@ -3,7 +3,7 @@
 use App\Http\Controllers\Web\ProductStockController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
     Route::post('products/{product}/stock/add', [ProductStockController::class, 'add'])
         ->name('products.stock.add');
 

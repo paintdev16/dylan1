@@ -50,15 +50,13 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 size="sm"
                                 variant="ghost"
                                 render={<Link href={item.href} />}
-                                    nativeButton={false}
+                                nativeButton={false}
 
                                 className={cn('w-full justify-start', {
                                     'bg-muted': isCurrentOrParentUrl(item.href),
                                 })}
                             >
-                                {item.icon && (
-                                    <item.icon className="h-4 w-4" />
-                                )}
+                                {item.icon && <item.icon className="h-4 w-4" />}
                                 {item.title}
                             </Button>
                         ))}

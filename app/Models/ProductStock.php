@@ -23,12 +23,13 @@ class ProductStock extends Model
         );
     }
 
-    /** @return HasMany<ProductStockMovement, $this> */
+    /** @return HasMany<StockMovement, $this> */
     public function movements(): HasMany
     {
         return $this->hasMany(
-            ProductStockMovement::class,
-            'product_stock_id'
+            StockMovement::class,
+            'product_id',
+            'product_id'
         );
     }
 }

@@ -22,10 +22,7 @@ export function TableDialog({ table }: Props) {
     const isEditing = !!table;
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={setOpen}
-        >
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
                 render={
                     isEditing ? (
@@ -44,28 +41,16 @@ export function TableDialog({ table }: Props) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing
-                            ? 'Editar producto'
-                            : 'Crear producto'}
+                        {isEditing ? 'Editar producto' : 'Crear producto'}
                     </DialogTitle>
                 </DialogHeader>
 
                 <TableForm
                     table={table}
-                    action={
-                        isEditing
-                            ? update(table.id)
-                            : store()
-                    }
-                    method={
-                        isEditing
-                            ? 'put'
-                            : 'post'
-                    }
+                    action={isEditing ? update(table.id) : store()}
+                    method={isEditing ? 'put' : 'post'}
                     submitLabel={
-                        isEditing
-                            ? 'Actualizar producto'
-                            : 'Crear producto'
+                        isEditing ? 'Actualizar producto' : 'Crear producto'
                     }
                     onSuccess={() => setOpen(false)}
                 />

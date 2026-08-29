@@ -29,6 +29,7 @@ class KitchenController extends Controller
             ->whereHas('items', function ($query) {
                 $query->whereIn('kitchen_status', ['pendiente', 'en_preparacion']);
             })
+            ->whereHas('bill', fn ($query) => $query->where('status', 'open'))
             ->orderBy('created_at', 'asc')
             ->get();
 

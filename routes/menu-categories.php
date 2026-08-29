@@ -3,7 +3,7 @@
 use App\Http\Controllers\Web\MenuCategoryController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
     Route::get('menu-categories', [MenuCategoryController::class, 'index'])
         ->name('menu-categories.index');
 
