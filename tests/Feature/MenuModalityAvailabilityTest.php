@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\RestaurantTable;
 use App\Models\User;
+use Database\Seeders\MenuModalityItemsSeeder;
 
 function setupDailyMenuWithComponents(): array
 {
@@ -195,6 +196,20 @@ test('visiting daily menu products initializes the 3 default modalities', functi
         ->and($dailyMenu->menuModalities()->count())->toBe(3)
         ->and($dailyMenu->menuModalities()->pluck('name')->all())
         ->toContain('Menú completo', 'Solo segundo', 'Entrada + postre');
+});
+
+test('modality item seeder links every eligible product by stable component code', function () {
+    $data = setupDailyMenuWithComponents();
+
+    MenuModalityItem::query()->delete();
+
+    $this->seed(MenuModalityItemsSeeder::class);
+
+    expect($data['modalityCompleto']->items()->count())->toBe(3)
+        ->and($data['modalitySoloSegundo']->items()->count())->toBe(1)
+        ->and($data['modalityEntradaPostre']->items()->count())->toBe(2)
+        ->and($data['modalityCompleto']->items()->pluck('item_type')->all())
+        ->toContain('main_course', 'starter', 'dessert');
 });
 
 test('admin can update modality price and active status', function () {

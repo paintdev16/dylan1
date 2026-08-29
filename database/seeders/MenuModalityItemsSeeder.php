@@ -7,177 +7,85 @@ use App\Models\DailyMenuProduct;
 use App\Models\MenuModality;
 use App\Models\MenuModalityItem;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class MenuModalityItemsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    /** @var array<string, list<string>> */
+    private const COMPONENT_TYPES_BY_MODALITY = [
+        'full_menu' => ['main_course', 'starter', 'dessert'],
+        'main_only' => ['main_course'],
+        'starter_dessert' => ['starter', 'dessert'],
+    ];
+
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Obtener menú del día
-        |--------------------------------------------------------------------------
-        */
-
-        $dailyMenu = DailyMenu::where('date', today())
+        $dailyMenu = DailyMenu::query()
+            ->whereDate('date', now('America/Lima')->toDateString())
+            ->where('active', true)
             ->firstOrFail();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Obtener modalidades
-        |--------------------------------------------------------------------------
-        */
+        $dailyMenuProducts = DailyMenuProduct::query()
+            ->with('product.menuSubcategoryType')
+            ->where('daily_menu_id', $dailyMenu->id)
+            ->where('active', true)
+            ->get();
 
-        $menuCompleto = MenuModality::where(
-            'daily_menu_id',
-            $dailyMenu->id
-        )
-            ->where('name', 'Menú completo')
-            ->firstOrFail();
+        $modalities = MenuModality::query()
+            ->where('daily_menu_id', $dailyMenu->id)
+            ->whereIn('code', array_keys(self::COMPONENT_TYPES_BY_MODALITY))
+            ->get()
+            ->keyBy('code');
 
-        $soloSegundo = MenuModality::where(
-            'daily_menu_id',
-            $dailyMenu->id
-        )
-            ->where('name', 'Solo segundo')
-            ->firstOrFail();
+        foreach (self::COMPONENT_TYPES_BY_MODALITY as $modalityCode => $componentTypes) {
+            $modality = $modalities->get($modalityCode);
 
-        $entradaPostre = MenuModality::where(
-            'daily_menu_id',
-            $dailyMenu->id
-        )
-            ->where('name', 'Entrada + postre')
-            ->firstOrFail();
+            if (! $modality) {
+                continue;
+            }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Obtener productos del menú del día
-        |--------------------------------------------------------------------------
-        |
-        | Estos registros vienen de daily_menu_products.
-        |
-        */
-
-        $ajiDeGallina = $this->getDailyMenuProduct(
-            $dailyMenu->id,
-            'Ají de Gallina'
-        );
-
-        $secoDePollo = $this->getDailyMenuProduct(
-            $dailyMenu->id,
-            'Seco de Pollo'
-        );
-
-        $causaRellena = $this->getDailyMenuProduct(
-            $dailyMenu->id,
-            'Causa Rellena'
-        );
-
-        $arrozConLeche = $this->getDailyMenuProduct(
-            $dailyMenu->id,
-            'Arroz con Leche'
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Modalidad: Menú completo
-        |--------------------------------------------------------------------------
-        |
-        | Segundo + entrada + postre
-        |
-        */
-
-        $this->createItem(
-            $menuCompleto,
-            $ajiDeGallina,
-            'main_course'
-        );
-
-        $this->createItem(
-            $menuCompleto,
-            $causaRellena,
-            'starter'
-        );
-
-        $this->createItem(
-            $menuCompleto,
-            $arrozConLeche,
-            'dessert'
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Modalidad: Solo segundo
-        |--------------------------------------------------------------------------
-        |
-        | Solo segundo
-        |
-        */
-
-        $this->createItem(
-            $soloSegundo,
-            $ajiDeGallina,
-            'main_course'
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Modalidad: Entrada + postre
-        |--------------------------------------------------------------------------
-        |
-        | Entrada + postre
-        |
-        */
-
-        $this->createItem(
-            $entradaPostre,
-            $causaRellena,
-            'starter'
-        );
-
-        $this->createItem(
-            $entradaPostre,
-            $arrozConLeche,
-            'dessert'
-        );
+            $this->synchronizeItems($modality, $dailyMenuProducts, $componentTypes);
+        }
     }
 
     /**
-     * Obtener un producto publicado en el menú del día.
+     * @param  Collection<int, DailyMenuProduct>  $dailyMenuProducts
+     * @param  list<string>  $componentTypes
      */
-    private function getDailyMenuProduct(
-        int $dailyMenuId,
-        string $productName
-    ): DailyMenuProduct {
-        return DailyMenuProduct::where(
-            'daily_menu_id',
-            $dailyMenuId
-        )
-            ->whereHas('product', function ($query) use ($productName) {
-                $query->where('name', $productName);
-            })
-            ->firstOrFail();
-    }
-
-    /**
-     * Crear o actualizar un componente de la modalidad.
-     */
-    private function createItem(
+    private function synchronizeItems(
         MenuModality $modality,
-        DailyMenuProduct $dailyMenuProduct,
-        string $itemType
+        Collection $dailyMenuProducts,
+        array $componentTypes
     ): void {
-        MenuModalityItem::updateOrCreate(
-            [
-                'menu_modality_id' => $modality->id,
-                'daily_menu_product_id' => $dailyMenuProduct->id,
-                'item_type' => $itemType,
-            ],
-            [
-                'quantity' => 1,
-            ]
+        $eligibleProducts = $dailyMenuProducts->filter(
+            fn (DailyMenuProduct $dailyMenuProduct): bool => in_array(
+                $dailyMenuProduct->product?->menuSubcategoryType?->code,
+                $componentTypes,
+                true
+            )
         );
+
+        $eligibleProductIds = $eligibleProducts->pluck('id');
+
+        $modality->items()
+            ->when(
+                $eligibleProductIds->isNotEmpty(),
+                fn ($query) => $query->whereNotIn('daily_menu_product_id', $eligibleProductIds),
+                fn ($query) => $query
+            )
+            ->delete();
+
+        foreach ($eligibleProducts as $dailyMenuProduct) {
+            MenuModalityItem::updateOrCreate(
+                [
+                    'menu_modality_id' => $modality->id,
+                    'daily_menu_product_id' => $dailyMenuProduct->id,
+                ],
+                [
+                    'item_type' => $dailyMenuProduct->product->menuSubcategoryType->code,
+                    'quantity' => 1,
+                ]
+            );
+        }
     }
 }

@@ -242,6 +242,6 @@ export interface MenuModality {
 
 export interface MenuModalityItem {
     daily_menu_product_id: number;
-    item_type: 'main_course' | 'stock_in' | 'dessert';
+    item_type: 'main_course' | 'starter' | 'dessert';
     quantity: number;
 }

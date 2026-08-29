@@ -51,6 +51,7 @@ type Props = {
 };
 
 type Kind = 'food' | 'beverage' | 'modality';
+type MenuComponentType = 'main_course' | 'starter' | 'dessert';
 type ComboboxOption = { value: string; label: string; price: number };
 type OrderDraft = {
     product_id?: string;
@@ -69,11 +70,16 @@ const KIND_CONFIG: Record<Kind, { label: string; icon: typeof Sandwich }> = {
     modality: { label: 'Menú económico', icon: Wallet },
 };
 
-// Qué tipos de componente (Segundos/Entradas/Postres) exige cada modalidad
-const REQUIRED_TYPES_BY_MODALITY: Record<string, string[]> = {
-    full_menu: ['Segundos', 'Entradas', 'Postres'],
-    main_only: ['Segundos'],
-    starter_dessert: ['Entradas', 'Postres'],
+const COMPONENT_TYPE_LABELS: Record<MenuComponentType, string> = {
+    main_course: 'Segundo',
+    starter: 'Entrada',
+    dessert: 'Postre',
+};
+
+const REQUIRED_TYPES_BY_MODALITY: Record<string, MenuComponentType[]> = {
+    full_menu: ['main_course', 'starter', 'dessert'],
+    main_only: ['main_course'],
+    starter_dessert: ['starter', 'dessert'],
 };
 
 const money = (value: number | string) => `S/. ${Number(value).toFixed(2)}`;
@@ -166,8 +172,9 @@ export function TableOrderSheet({
     const isMobile = useIsMobile();
     const [kind, setKind] = useState<Kind>('food');
     const [selection, setSelection] = useState('');
-    const [components, setComponents] = useState<Record<string, string>>({});
-    const [hasConfirmedFirstOrder, setHasConfirmedFirstOrder] = useState(false);
+    const [components, setComponents] = useState<
+        Partial<Record<MenuComponentType, string>>
+    >({});
     const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>([]);
     const [quantity, setQuantity] = useState(1);
     const [notes, setNotes] = useState('');
@@ -184,23 +191,17 @@ export function TableOrderSheet({
         : [];
 
     const isAvailable = table.status === 'available';
-    const canOpenTable = isAvailable && !hasConfirmedFirstOrder;
+    const canOpenTable = isAvailable;
 
-    const byType = (type: string) => {
-        const modalityType = {
-            Segundos: 'main_course',
-            Entradas: 'starter',
-            Postres: 'dessert',
-        }[type];
-
+    const byType = (type: MenuComponentType) => {
         return dailyMenuProducts.filter(
             (item) =>
-                item.product?.menu_subcategory_type?.name === type &&
+                item.product?.menu_subcategory_type?.code === type &&
                 item.quantity_available > 0 &&
                 (selectedModality?.items ?? []).some(
                     (modalityItem) =>
                         modalityItem.daily_menu_product_id === item.id &&
-                        modalityItem.item_type === modalityType,
+                        modalityItem.item_type === type,
                 ),
         );
     };
@@ -210,8 +211,8 @@ export function TableOrderSheet({
             ? dailyMenuProducts
                   .filter(
                       (item) =>
-                          item.product?.menu_subcategory?.name ===
-                          'Platos Especiales',
+                          item.product?.menu_subcategory?.code ===
+                          'special_dishes',
                   )
                   .map((item) => ({
                       value: String(item.product_id),
@@ -246,7 +247,6 @@ export function TableOrderSheet({
 
     const closeAndReset = () => {
         reset();
-        setHasConfirmedFirstOrder(false);
         setOrderDrafts([]);
         setCustomerCount(1);
         setRequestToken(crypto.randomUUID());
@@ -352,9 +352,7 @@ export function TableOrderSheet({
                     <Form
                         {...store.form(table)}
                         onSuccess={() => {
-                            setHasConfirmedFirstOrder(true);
-                            reset();
-                            setOrderDrafts([]);
+                            closeAndReset();
                             onOpenChange(false);
                         }}
                         className="space-y-5"
@@ -425,7 +423,9 @@ export function TableOrderSheet({
 
                                 {requiredTypes.map((type) => (
                                     <div key={type} className="space-y-2">
-                                        <Label>{type}</Label>
+                                        <Label>
+                                            {COMPONENT_TYPE_LABELS[type]}
+                                        </Label>
                                         <OrderCombobox
                                             value={components[type] ?? ''}
                                             onValueChange={(value) => {
@@ -442,7 +442,7 @@ export function TableOrderSheet({
                                                     label: `${item.product.name} · ${item.quantity_available} disp.`,
                                                 }),
                                             )}
-                                            placeholder={`Selecciona ${type.toLowerCase()}`}
+                                            placeholder={`Selecciona ${COMPONENT_TYPE_LABELS[type].toLowerCase()}`}
                                         />
                                     </div>
                                 ))}
@@ -478,7 +478,6 @@ export function TableOrderSheet({
                                         </Label>
                                         <Input
                                             id="notes"
-                                            name="notes"
                                             placeholder="Sin cebolla..."
                                             value={notes}
                                             onChange={(event) =>
@@ -488,18 +487,10 @@ export function TableOrderSheet({
                                     </div>
                                 </div>
 
-                                {(errors.product_id ||
-                                    errors.menu_modality_id ||
-                                    errors.components ||
-                                    errors.table) && (
+                                {Object.values(errors)[0] && (
                                     <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                                        <span>
-                                            {errors.product_id ||
-                                                errors.menu_modality_id ||
-                                                errors.components ||
-                                                errors.table}
-                                        </span>
+                                        <span>{Object.values(errors)[0]}</span>
                                     </div>
                                 )}
 
@@ -609,23 +600,6 @@ export function TableOrderSheet({
                                     type="hidden"
                                     name="request_token"
                                     value={requestToken}
-                                />
-                                <input
-                                    type="hidden"
-                                    name="product_id"
-                                    value={orderDrafts[0]?.product_id ?? ''}
-                                />
-                                <input
-                                    type="hidden"
-                                    name="menu_modality_id"
-                                    value={
-                                        orderDrafts[0]?.menu_modality_id ?? ''
-                                    }
-                                />
-                                <input
-                                    type="hidden"
-                                    name="quantity"
-                                    value={orderDrafts[0]?.quantity ?? 1}
                                 />
 
                                 <Button
