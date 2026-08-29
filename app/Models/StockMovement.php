@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $user_id
  * @property string $type
  * @property int $quantity
+ * @property int $quantity_change
  * @property int $previous_quantity
  * @property int $new_quantity
  * @property string|null $description
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'user_id',
     'type',
     'quantity',
+    'quantity_change',
     'previous_quantity',
     'new_quantity',
     'description',
@@ -33,6 +35,7 @@ class StockMovement extends Model
     {
         return [
             'quantity' => 'integer',
+            'quantity_change' => 'integer',
             'previous_quantity' => 'integer',
             'new_quantity' => 'integer',
         ];

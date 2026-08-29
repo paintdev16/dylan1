@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $order_id
  * @property int|null $product_id
  * @property int|null $menu_modality_id
+ * @property int|null $daily_menu_product_id
  * @property int $quantity
  * @property string|null $notes
  * @property string $unit_price
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'order_id',
     'product_id',
     'menu_modality_id',
+    'daily_menu_product_id',
     'quantity',
     'notes',
     'unit_price',
@@ -79,6 +81,12 @@ class OrderItem extends Model
     public function menuModality(): BelongsTo
     {
         return $this->belongsTo(MenuModality::class, 'menu_modality_id');
+    }
+
+    /** @return BelongsTo<DailyMenuProduct, $this> */
+    public function dailyMenuProduct(): BelongsTo
+    {
+        return $this->belongsTo(DailyMenuProduct::class);
     }
 
     /** @return HasMany<OrderItemMenuProduct, $this> */

@@ -22,6 +22,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->enum('type', ['entrada', 'salida_venta', 'ajuste', 'cancelacion']);
             $table->integer('quantity');
+            $table->integer('quantity_change');
             $table->integer('previous_quantity');
             $table->integer('new_quantity');
             $table->string('description')->nullable();

@@ -22,18 +22,21 @@ class MenuSubcategoryTypesSeeder extends Seeder
         $types = [
             [
                 'menu_subcategory_id' => $menuEconomico->id,
+                'code' => 'segundo',
                 'name' => 'Segundos',
                 'display_order' => 1,
                 'active' => true,
             ],
             [
                 'menu_subcategory_id' => $menuEconomico->id,
+                'code' => 'entrada',
                 'name' => 'Entradas',
                 'display_order' => 2,
                 'active' => true,
             ],
             [
                 'menu_subcategory_id' => $menuEconomico->id,
+                'code' => 'postre',
                 'name' => 'Postres',
                 'display_order' => 3,
                 'active' => true,

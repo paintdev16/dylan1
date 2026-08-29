@@ -23,6 +23,7 @@ return new class extends Migration
                     'user_id' => null,
                     'type' => $movement->type === 'salida' ? 'salida_venta' : $movement->type,
                     'quantity' => $movement->quantity,
+                    'quantity_change' => $movement->quantity_after - $movement->quantity_before,
                     'previous_quantity' => $movement->quantity_before,
                     'new_quantity' => $movement->quantity_after,
                     'description' => $movement->description,

@@ -18,7 +18,7 @@ class OrderStockService
      * Valida y procesa la reserva de stock/porciones para un OrderItem.
      *
      * @param  array<string, mixed>  $data
-     * @return array{unit_price: float, subtotal: float, component_ids: array<int>}
+     * @return array{unit_price: float, subtotal: float, component_ids: array<int>, daily_menu_product_id: int|null}
      *
      * @throws ValidationException
      */
@@ -42,7 +42,7 @@ class OrderStockService
     }
 
     /**
-     * @return array{unit_price: float, subtotal: float, component_ids: array<int>}
+     * @return array{unit_price: float, subtotal: float, component_ids: array<int>, daily_menu_product_id: int|null}
      */
     private function reserveProductStock(int $productId, int $quantity): array
     {
@@ -72,10 +72,18 @@ class OrderStockService
                 'user_id' => auth()->id(),
                 'type' => 'salida_venta',
                 'quantity' => $quantity,
+                'quantity_change' => -$quantity,
                 'previous_quantity' => $previousQty,
                 'new_quantity' => $newQty,
                 'description' => 'Venta de comanda',
             ]);
+
+            return [
+                'unit_price' => (float) $product->price,
+                'subtotal' => round((float) $product->price * $quantity, 2),
+                'component_ids' => [],
+                'daily_menu_product_id' => null,
+            ];
         }
 
         // Si está en el menú diario de hoy (ej. plato especial)
@@ -109,12 +117,13 @@ class OrderStockService
             'unit_price' => $unitPrice,
             'subtotal' => round($unitPrice * $quantity, 2),
             'component_ids' => [],
+            'daily_menu_product_id' => $dailyMenuProduct?->id,
         ];
     }
 
     /**
      * @param  array<int>  $componentIds
-     * @return array{unit_price: float, subtotal: float, component_ids: array<int>}
+     * @return array{unit_price: float, subtotal: float, component_ids: array<int>, daily_menu_product_id: int|null}
      */
     private function reserveModalityStock(int $modalityId, array $componentIds, int $quantity): array
     {
@@ -136,6 +145,14 @@ class OrderStockService
         if (empty($componentIds)) {
             throw ValidationException::withMessages([
                 'components' => 'Debes seleccionar los componentes requeridos para la modalidad.',
+            ]);
+        }
+
+        $allowedComponentIds = $modality->items->pluck('daily_menu_product_id')->map(fn ($id) => (int) $id)->all();
+        $requestedComponentIds = array_map('intval', $componentIds);
+        if (count($requestedComponentIds) !== count(array_unique($requestedComponentIds)) || array_diff($requestedComponentIds, $allowedComponentIds) !== []) {
+            throw ValidationException::withMessages([
+                'components' => 'Los componentes elegidos no pertenecen a esta modalidad.',
             ]);
         }
 
@@ -166,6 +183,7 @@ class OrderStockService
             'unit_price' => $unitPrice,
             'subtotal' => round($unitPrice * $quantity, 2),
             'component_ids' => $components->pluck('id')->all(),
+            'daily_menu_product_id' => null,
         ];
     }
 
@@ -174,11 +192,11 @@ class OrderStockService
      */
     private function validateModalityComponents(MenuModality $modality, Collection $components): void
     {
-        $types = $components->map(fn ($c) => $c->product?->menuSubcategoryType?->name)->filter()->values();
+        $types = $components->map(fn ($c) => $c->product?->menuSubcategoryType?->code)->filter()->values();
         $selected = [
-            'segundo' => $types->filter(fn ($type) => $type === 'Segundos')->count(),
-            'entrada' => $types->filter(fn ($type) => $type === 'Entradas')->count(),
-            'postre' => $types->filter(fn ($type) => $type === 'Postres')->count(),
+            'segundo' => $types->filter(fn ($type) => $type === 'segundo')->count(),
+            'entrada' => $types->filter(fn ($type) => $type === 'entrada')->count(),
+            'postre' => $types->filter(fn ($type) => $type === 'postre')->count(),
         ];
         $required = $modality->items->groupBy('item_type')
             ->map(fn ($items) => (int) $items->max('quantity'))
@@ -236,6 +254,7 @@ class OrderStockService
                             'user_id' => auth()->id(),
                             'type' => 'cancelacion',
                             'quantity' => $quantity,
+                            'quantity_change' => $quantity,
                             'previous_quantity' => $previousQty,
                             'new_quantity' => $newQty,
                             'description' => 'Restauración por anulación/cancelación de ítem',
@@ -243,9 +262,7 @@ class OrderStockService
                     }
                 }
 
-                $todayDate = now('America/Lima')->toDateString();
-                $dmp = DailyMenuProduct::where('product_id', $product->id)
-                    ->whereHas('dailyMenu', fn ($q) => $q->where('date', $todayDate))
+                $dmp = DailyMenuProduct::whereKey($orderItem->daily_menu_product_id)
                     ->lockForUpdate()
                     ->first();
 

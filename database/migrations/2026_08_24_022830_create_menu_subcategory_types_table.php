@@ -19,6 +19,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('name');
+            $table->string('code')->nullable();
 
             $table->unsignedInteger('display_order')
                 ->default(0);
@@ -32,6 +33,7 @@ return new class extends Migration
                 'menu_subcategory_id',
                 'name',
             ]);
+            $table->unique(['menu_subcategory_id', 'code']);
         });
     }
 

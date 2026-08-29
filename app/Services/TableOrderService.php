@@ -27,12 +27,6 @@ class TableOrderService
             }
 
             $items = $data['items'] ?? [$data];
-            $firstItem = $items[0];
-            $quantity = (int) $firstItem['quantity'];
-            $product = isset($firstItem['product_id'])
-                ? Product::query()->with(['menuCategory', 'menuSubcategory'])->whereKey($firstItem['product_id'])->first()
-                : null;
-
             $session = TableSession::query()
                 ->where('restaurant_table_id', $lockedTable->id)
                 ->where('status', 'open')
@@ -44,10 +38,16 @@ class TableOrderService
                     throw ValidationException::withMessages(['table' => 'La mesa no está disponible.']);
                 }
 
+                if (! isset($data['customer_count'])) {
+                    throw ValidationException::withMessages([
+                        'customer_count' => 'Indica la cantidad de comensales para abrir la mesa.',
+                    ]);
+                }
+
                 $session = TableSession::create([
                     'restaurant_table_id' => $lockedTable->id,
                     'waiter_id' => $waiter->id,
-                    'customer_count' => $this->customerCountForFirstOrder($firstItem, $product, $quantity),
+                    'customer_count' => (int) $data['customer_count'],
                     'status' => 'open',
                     'opened_at' => now(),
                 ]);
@@ -61,17 +61,48 @@ class TableOrderService
                 ]);
                 $lockedTable->update(['status' => 'occupied']);
             } else {
-                $bill = Bill::query()->where('table_session_id', $session->id)->where('status', 'open')->lockForUpdate()->firstOrFail();
+                if ($lockedTable->status !== 'occupied') {
+                    throw ValidationException::withMessages(['table' => 'La mesa ya no tiene una atención activa.']);
+                }
+
+                $bill = Bill::query()
+                    ->where('table_session_id', $session->id)
+                    ->where('table_id', $lockedTable->id)
+                    ->where('status', 'open')
+                    ->lockForUpdate()
+                    ->firstOrFail();
             }
 
-            $order = null;
+            $requestToken = $data['request_token'] ?? null;
+            if ($requestToken) {
+                $existingOrder = Order::query()
+                    ->where('request_token', $requestToken)
+                    ->first();
+
+                if ($existingOrder) {
+                    if ($existingOrder->bill_id !== $bill->id) {
+                        throw ValidationException::withMessages([
+                            'request_token' => 'El identificador de la comanda no coincide con la cuenta activa.',
+                        ]);
+                    }
+
+                    return $existingOrder;
+                }
+            }
+
+            $order = Order::create([
+                'bill_id' => $bill->id,
+                'user_id' => $waiter->id,
+                'request_token' => $requestToken,
+                'status' => 'enviado_cocina',
+            ]);
+
             foreach ($items as $itemData) {
                 $quantity = (int) $itemData['quantity'];
                 $product = isset($itemData['product_id']) ? Product::query()->with('menuCategory')->whereKey($itemData['product_id'])->first() : null;
-                $order = Order::create(['bill_id' => $bill->id, 'user_id' => $waiter->id, 'status' => 'enviado_cocina']);
                 $stock = $this->stockService->reserveStockForOrderItem($itemData, $quantity);
                 $requiresKitchen = ($itemData['menu_modality_id'] ?? false) || $product?->menuCategory?->name === 'Comidas';
-                $item = $order->items()->create(['product_id' => $itemData['product_id'] ?? null, 'menu_modality_id' => $itemData['menu_modality_id'] ?? null, 'quantity' => $quantity, 'notes' => $itemData['notes'] ?? null, 'unit_price' => $stock['unit_price'], 'subtotal' => $stock['subtotal'], 'kitchen_status' => $requiresKitchen ? 'pendiente' : 'entregado']);
+                $item = $order->items()->create(['product_id' => $itemData['product_id'] ?? null, 'menu_modality_id' => $itemData['menu_modality_id'] ?? null, 'daily_menu_product_id' => $stock['daily_menu_product_id'], 'quantity' => $quantity, 'notes' => $itemData['notes'] ?? null, 'unit_price' => $stock['unit_price'], 'subtotal' => $stock['subtotal'], 'kitchen_status' => $requiresKitchen ? 'pendiente' : 'entregado']);
                 foreach ($stock['component_ids'] as $dailyMenuProductId) {
                     OrderItemMenuProduct::create(['order_item_id' => $item->id, 'daily_menu_product_id' => $dailyMenuProductId, 'quantity' => $quantity]);
                 }
@@ -79,19 +110,5 @@ class TableOrderService
 
             return $order;
         }, attempts: 3);
-    }
-
-    /** @param array<string, mixed> $data */
-    private function customerCountForFirstOrder(array $data, ?Product $product, int $quantity): int
-    {
-        if (($data['menu_modality_id'] ?? null) !== null) {
-            return $quantity;
-        }
-
-        if ($product?->menuSubcategory?->name === 'Platos Especiales') {
-            return $quantity;
-        }
-
-        return max(1, (int) ($data['customer_count'] ?? 1));
     }
 }

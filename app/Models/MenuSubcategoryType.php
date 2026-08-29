@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'menu_subcategory_id',
+    'code',
     'name',
     'display_order',
     'active',

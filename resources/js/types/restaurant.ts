@@ -234,4 +234,11 @@ export interface MenuModality {
     price: number;
     display_order: number;
     active: boolean;
+    items?: MenuModalityItem[];
+}
+
+export interface MenuModalityItem {
+    daily_menu_product_id: number;
+    item_type: 'segundo' | 'entrada' | 'postre';
+    quantity: number;
 }

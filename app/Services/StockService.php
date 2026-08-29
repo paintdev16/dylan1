@@ -61,6 +61,12 @@ class StockService
             );
         }
 
+        if (blank($description)) {
+            throw new InvalidArgumentException(
+                'Debe indicar el motivo del ajuste de stock.'
+            );
+        }
+
         return $this->recordMovement(
             $product,
             'ajuste',
@@ -116,6 +122,7 @@ class StockService
                 'quantity' => $type === 'ajuste'
                     ? abs($quantityAfter - $quantityBefore)
                     : $quantity,
+                'quantity_change' => $quantityAfter - $quantityBefore,
                 'previous_quantity' => $quantityBefore,
                 'new_quantity' => $quantityAfter,
                 'description' => $description,

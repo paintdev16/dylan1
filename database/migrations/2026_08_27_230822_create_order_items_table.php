@@ -26,6 +26,11 @@ return new class extends Migration
                 ->constrained('menu_modalities')
                 ->restrictOnDelete();
 
+            $table->foreignId('daily_menu_product_id')
+                ->nullable()
+                ->constrained('daily_menu_products')
+                ->restrictOnDelete();
+
             $table->unsignedInteger('quantity');
 
             $table->text('notes')->nullable();

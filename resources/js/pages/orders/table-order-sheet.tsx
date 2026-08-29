@@ -60,6 +60,7 @@ type OrderDraft = {
     notes: string;
     label: string;
     price: number;
+    counts_as_customer: boolean;
 };
 
 const KIND_CONFIG: Record<Kind, { label: string; icon: typeof Sandwich }> = {
@@ -170,6 +171,8 @@ export function TableOrderSheet({
     const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>([]);
     const [quantity, setQuantity] = useState(1);
     const [notes, setNotes] = useState('');
+    const [customerCount, setCustomerCount] = useState(1);
+    const [requestToken, setRequestToken] = useState(() => crypto.randomUUID());
 
     if (!table) return null;
 
@@ -183,12 +186,24 @@ export function TableOrderSheet({
     const isAvailable = table.status === 'available';
     const canOpenTable = isAvailable && !hasConfirmedFirstOrder;
 
-    const byType = (type: string) =>
-        dailyMenuProducts.filter(
+    const byType = (type: string) => {
+        const modalityType = {
+            Segundos: 'segundo',
+            Entradas: 'entrada',
+            Postres: 'postre',
+        }[type];
+
+        return dailyMenuProducts.filter(
             (item) =>
                 item.product?.menu_subcategory_type?.name === type &&
-                item.quantity_available > 0,
+                item.quantity_available > 0 &&
+                (selectedModality?.items ?? []).some(
+                    (modalityItem) =>
+                        modalityItem.daily_menu_product_id === item.id &&
+                        modalityItem.item_type === modalityType,
+                ),
         );
+    };
 
     const productOptions: ComboboxOption[] =
         kind === 'food'
@@ -233,32 +248,57 @@ export function TableOrderSheet({
         reset();
         setHasConfirmedFirstOrder(false);
         setOrderDrafts([]);
+        setCustomerCount(1);
+        setRequestToken(crypto.randomUUID());
     };
 
     const isDraftIncomplete =
         !selection || requiredTypes.some((type) => !components[type]);
 
+    const updateCustomerCount = (drafts: OrderDraft[]) => {
+        setCustomerCount(
+            Math.max(
+                1,
+                drafts
+                    .filter((draft) => draft.counts_as_customer)
+                    .reduce((total, draft) => total + draft.quantity, 0),
+            ),
+        );
+    };
+
     const addDraft = () => {
         if (isDraftIncomplete || !selectedOption) return;
 
-        setOrderDrafts((current) => [
-            ...current,
-            {
-                ...(kind === 'modality'
-                    ? { menu_modality_id: selection }
-                    : { product_id: selection }),
-                components: Object.values(components).filter(Boolean),
-                quantity,
-                notes,
-                label: selectedOption.label.split(' · ')[0],
-                price: selectedOption.price,
-            },
-        ]);
+        setOrderDrafts((current) => {
+            const drafts = [
+                ...current,
+                {
+                    ...(kind === 'modality'
+                        ? { menu_modality_id: selection }
+                        : { product_id: selection }),
+                    components: Object.values(components).filter(Boolean),
+                    quantity,
+                    notes,
+                    label: selectedOption.label.split(' · ')[0],
+                    price: selectedOption.price,
+                    counts_as_customer: kind !== 'beverage',
+                },
+            ];
+
+            updateCustomerCount(drafts);
+
+            return drafts;
+        });
         reset();
     };
 
     const removeDraft = (index: number) =>
-        setOrderDrafts((current) => current.filter((_, i) => i !== index));
+        setOrderDrafts((current) => {
+            const drafts = current.filter((_, i) => i !== index);
+            updateCustomerCount(drafts);
+
+            return drafts;
+        });
 
     const orderTotal = orderDrafts.reduce(
         (sum, draft) => sum + draft.price * draft.quantity,
@@ -319,8 +359,15 @@ export function TableOrderSheet({
                         }}
                         className="space-y-5"
                     >
-                        {({ errors, processing }) => (
+                        {({ errors, processing, clearErrors }) => (
                             <>
+                                {canOpenTable && (
+                                    <input
+                                        type="hidden"
+                                        name="customer_count"
+                                        value={customerCount}
+                                    />
+                                )}
                                 <div>
                                     <p className="mb-2 text-sm font-medium">
                                         ¿Qué vas a agregar?
@@ -349,6 +396,7 @@ export function TableOrderSheet({
                                                         setKind(value);
                                                         setSelection('');
                                                         setComponents({});
+                                                        clearErrors();
                                                     }}
                                                 >
                                                     <Icon className="h-4 w-4" />
@@ -368,6 +416,7 @@ export function TableOrderSheet({
                                         onValueChange={(value) => {
                                             setSelection(value ?? '');
                                             setComponents({});
+                                            clearErrors();
                                         }}
                                         options={activeOptions}
                                         placeholder="Selecciona una opción"
@@ -379,12 +428,13 @@ export function TableOrderSheet({
                                         <Label>{type}</Label>
                                         <OrderCombobox
                                             value={components[type] ?? ''}
-                                            onValueChange={(value) =>
+                                            onValueChange={(value) => {
+                                                clearErrors();
                                                 setComponents((current) => ({
                                                     ...current,
                                                     [type]: value ?? '',
-                                                }))
-                                            }
+                                                }));
+                                            }}
                                             options={byType(type).map(
                                                 (item) => ({
                                                     value: String(item.id),
@@ -555,6 +605,11 @@ export function TableOrderSheet({
                                         ))}
                                     </div>
                                 ))}
+                                <input
+                                    type="hidden"
+                                    name="request_token"
+                                    value={requestToken}
+                                />
                                 <input
                                     type="hidden"
                                     name="product_id"

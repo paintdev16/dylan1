@@ -68,6 +68,7 @@ class OrderController extends Controller
 
         $menuModalities = $todayDailyMenu
             ? $todayDailyMenu->menuModalities()
+                ->with('items')
                 ->where('active', true)
                 ->orderBy('display_order')
                 ->get()
@@ -136,6 +137,7 @@ class OrderController extends Controller
                 $orderItem = $order->items()->create([
                     'product_id' => $productId,
                     'menu_modality_id' => $menuModalityId,
+                    'daily_menu_product_id' => $stockResult['daily_menu_product_id'],
                     'quantity' => $quantity,
                     'notes' => $validated['notes'] ?? null,
                     'unit_price' => $stockResult['unit_price'],

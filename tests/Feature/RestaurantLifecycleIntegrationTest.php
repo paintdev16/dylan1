@@ -7,6 +7,7 @@ use App\Models\DailyMenu;
 use App\Models\DailyMenuProduct;
 use App\Models\MenuCategory;
 use App\Models\MenuModality;
+use App\Models\MenuModalityItem;
 use App\Models\MenuSubcategory;
 use App\Models\MenuSubcategoryType;
 use App\Models\Order;
@@ -24,9 +25,9 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
     $categoryBeverage = MenuCategory::firstOrCreate(['name' => 'Bebidas'], ['display_order' => 2, 'active' => true]);
 
     $subEco = MenuSubcategory::firstOrCreate(['name' => 'Menú Económico', 'menu_category_id' => $categoryFood->id], ['display_order' => 1, 'active' => true]);
-    $typeSegundo = MenuSubcategoryType::firstOrCreate(['name' => 'Segundos', 'menu_subcategory_id' => $subEco->id], ['display_order' => 1, 'active' => true]);
-    $typeEntrada = MenuSubcategoryType::firstOrCreate(['name' => 'Entradas', 'menu_subcategory_id' => $subEco->id], ['display_order' => 2, 'active' => true]);
-    $typePostre = MenuSubcategoryType::firstOrCreate(['name' => 'Postres', 'menu_subcategory_id' => $subEco->id], ['display_order' => 3, 'active' => true]);
+    $typeSegundo = MenuSubcategoryType::firstOrCreate(['name' => 'Segundos', 'menu_subcategory_id' => $subEco->id], ['code' => 'segundo', 'display_order' => 1, 'active' => true]);
+    $typeEntrada = MenuSubcategoryType::firstOrCreate(['name' => 'Entradas', 'menu_subcategory_id' => $subEco->id], ['code' => 'entrada', 'display_order' => 2, 'active' => true]);
+    $typePostre = MenuSubcategoryType::firstOrCreate(['name' => 'Postres', 'menu_subcategory_id' => $subEco->id], ['code' => 'postre', 'display_order' => 3, 'active' => true]);
 
     $pSeco = Product::create([
         'menu_category_id' => $categoryFood->id,
@@ -112,6 +113,9 @@ test('full end-to-end restaurant lifecycle: menu setup -> table opening -> progr
         'display_order' => 1,
         'active' => true,
     ]);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpSegundo->id, 'item_type' => 'segundo']);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpEntrada->id, 'item_type' => 'entrada']);
+    MenuModalityItem::create(['menu_modality_id' => $modalityCompleto->id, 'daily_menu_product_id' => $dmpPostre->id, 'item_type' => 'postre']);
 
     // 2. Personal: Mozo, Cocinero, Cajero
     $mozo = User::factory()->create(['name' => 'Mozo Roberto']);

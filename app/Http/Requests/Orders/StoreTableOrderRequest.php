@@ -4,6 +4,7 @@ namespace App\Http\Requests\Orders;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreTableOrderRequest extends FormRequest
 {
@@ -24,9 +25,10 @@ class StoreTableOrderRequest extends FormRequest
     {
         return [
             'customer_count' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'request_token' => ['nullable', 'uuid'],
             'items' => ['nullable', 'array', 'min:1'],
-            'items.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
-            'items.*.menu_modality_id' => ['nullable', 'integer', 'exists:menu_modalities,id'],
+            'items.*.product_id' => ['nullable', 'integer', 'exists:products,id', 'required_without:items.*.menu_modality_id'],
+            'items.*.menu_modality_id' => ['nullable', 'integer', 'exists:menu_modalities,id', 'required_without:items.*.product_id'],
             'items.*.components' => ['nullable', 'array'],
             'items.*.components.*' => ['integer', 'exists:daily_menu_products,id'],
             'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
@@ -38,5 +40,23 @@ class StoreTableOrderRequest extends FormRequest
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
+    }
+
+    /** @return array<int, \Closure(Validator): void> */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $items = $this->input('items', []);
+
+            foreach ($items as $index => $item) {
+                if (! empty($item['product_id']) && ! empty($item['menu_modality_id'])) {
+                    $validator->errors()->add("items.{$index}", 'Cada ítem debe ser un producto o una modalidad, no ambos.');
+                }
+            }
+
+            if (empty($items) && $this->filled('product_id') && $this->filled('menu_modality_id')) {
+                $validator->errors()->add('product_id', 'Debe seleccionar un producto o una modalidad, no ambos.');
+            }
+        }];
     }
 }

@@ -19,14 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User $user
  * @property-read Collection<int, OrderItem> $items
  */
-#[Fillable(['bill_id', 'user_id', 'status'])]
+#[Fillable(['bill_id', 'user_id', 'request_token', 'status'])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */
     use HasFactory;
 
     protected $attributes = [
-        'status' => 'pendiente',
+        'status' => 'enviado_cocina',
     ];
 
     /** @return BelongsTo<Bill, $this> */
