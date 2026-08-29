@@ -21,6 +21,7 @@ class ProductStockMovementsSeeder extends Seeder
                 ],
                 [
                     'quantity' => $stock->quantity,
+                    'quantity_change' => $stock->quantity,
                     'previous_quantity' => 0,
                     'new_quantity' => $stock->quantity,
                     'description' => 'Carga de inventario inicial del restaurante.',

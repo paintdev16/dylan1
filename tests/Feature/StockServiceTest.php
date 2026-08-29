@@ -2,7 +2,9 @@
 
 use App\Models\MenuCategory;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Services\StockService;
+use Database\Seeders\ProductStockMovementsSeeder;
 use InvalidArgumentException;
 
 function createStockProduct(): Product
@@ -22,6 +24,24 @@ function createStockProduct(): Product
         'status' => 'active',
     ]);
 }
+
+test('initial stock movement seeder records the signed quantity change', function () {
+    $product = createStockProduct();
+
+    $product->productStock()->create(['quantity' => 30]);
+
+    $this->seed(ProductStockMovementsSeeder::class);
+
+    $movement = StockMovement::query()
+        ->whereBelongsTo($product)
+        ->where('type', 'stock_in')
+        ->firstOrFail();
+
+    expect($movement->quantity)->toBe(30)
+        ->and($movement->quantity_change)->toBe(30)
+        ->and($movement->previous_quantity)->toBe(0)
+        ->and($movement->new_quantity)->toBe(30);
+});
 
 test('adds stock and records the resulting movement', function () {
     $product = createStockProduct();
