@@ -33,11 +33,11 @@ class StoreTableOrderRequest extends FormRequest
             'items.*.components.*' => ['integer', 'exists:daily_menu_products,id'],
             'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
             'items.*.notes' => ['nullable', 'string', 'max:1000'],
-            'product_id' => ['nullable', 'integer', 'exists:products,id', 'required_without:menu_modality_id'],
-            'menu_modality_id' => ['nullable', 'integer', 'exists:menu_modalities,id', 'required_without:product_id'],
+            'product_id' => ['nullable', 'integer', 'exists:products,id', 'required_without_all:menu_modality_id,items'],
+            'menu_modality_id' => ['nullable', 'integer', 'exists:menu_modalities,id', 'required_without_all:product_id,items'],
             'components' => ['nullable', 'array'],
             'components.*' => ['integer', 'exists:daily_menu_products,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required_without:items', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -52,6 +52,10 @@ class StoreTableOrderRequest extends FormRequest
                 if (! empty($item['product_id']) && ! empty($item['menu_modality_id'])) {
                     $validator->errors()->add("items.{$index}", 'Cada ítem debe ser un producto o una modalidad, no ambos.');
                 }
+            }
+
+            if ($items !== [] && ($this->filled('product_id') || $this->filled('menu_modality_id'))) {
+                $validator->errors()->add('items', 'Envía items o un único producto/modalidad en la raíz, no ambos formatos.');
             }
 
             if (empty($items) && $this->filled('product_id') && $this->filled('menu_modality_id')) {
