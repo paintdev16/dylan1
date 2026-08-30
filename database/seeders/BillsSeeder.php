@@ -15,35 +15,6 @@ class BillsSeeder extends Seeder
     public function run(): void
     {
         $waiter = User::query()->firstOrFail();
-        $occupiedTable = RestaurantTable::query()->where('number', 2)->firstOrFail();
-        $paymentTable = RestaurantTable::query()->where('number', 7)->firstOrFail();
-
-        Bill::updateOrCreate(
-            [
-                'table_id' => $occupiedTable->id,
-                'status' => 'open',
-            ],
-            [
-                'opening_waiter_id' => $waiter->id,
-                'order_type' => 'dine_in',
-                'opened_at' => now()->subMinutes(45),
-                'closed_at' => null,
-            ]
-        );
-
-        Bill::updateOrCreate(
-            [
-                'table_id' => $paymentTable->id,
-                'status' => 'open',
-            ],
-            [
-                'opening_waiter_id' => $waiter->id,
-                'order_type' => 'dine_in',
-                'opened_at' => now()->subMinutes(20),
-                'closed_at' => null,
-            ]
-        );
-
         Bill::updateOrCreate(
             [
                 'table_id' => null,
@@ -52,8 +23,8 @@ class BillsSeeder extends Seeder
             ],
             [
                 'opening_waiter_id' => $waiter->id,
-                'opened_at' => now()->subHours(2),
-                'closed_at' => now()->subHour(),
+                'opened_at' => now()->subMinutes(20),
+                'closed_at' => null,
             ]
         );
     }
