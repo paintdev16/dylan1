@@ -28,12 +28,20 @@ import { review as reviewCancellation } from '@/routes/cancellation-requests';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerHeader,
+    DrawerTitle,
+} from '@/components/ui/drawer';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -94,6 +102,8 @@ export default function CashRegisterIndex({
     pastSessions,
     cancellationRequests,
 }: Props) {
+    const isMobile = useIsMobile();
+
     usePoll(5000, {
         only: [
             'activeSession',
@@ -582,19 +592,21 @@ export default function CashRegisterIndex({
                 )}
             </div>
 
-            {/* Modal de Cobro */}
+            {/* Drawer de Cobro */}
             {selectedBill && (
-                <Dialog
+                <Drawer
                     open={paymentModalOpen}
                     onOpenChange={setPaymentModalOpen}
+                    showSwipeHandle={isMobile}
+                    swipeDirection={isMobile ? 'down' : 'right'}
                 >
-                    <DialogContent className="max-w-lg p-6">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-lg">
+                    <DrawerContent className="overflow-y-auto">
+                        <DrawerHeader className="border-b px-4 py-4 sm:px-6">
+                            <DrawerTitle className="flex items-center gap-2 text-lg">
                                 <DollarSign className="size-5 text-emerald-600" />
                                 Cobrar Cuenta #{selectedBill.id}
-                            </DialogTitle>
-                            <DialogDescription>
+                            </DrawerTitle>
+                            <DrawerDescription>
                                 {selectedBill.order_type === 'dine_in'
                                     ? `Mesa #${selectedBill.restaurant_table?.number ?? 'Sin mesa'}`
                                     : 'Pedido Para Llevar'}
@@ -602,12 +614,12 @@ export default function CashRegisterIndex({
                                 <strong className="font-bold text-emerald-600">
                                     {formatCurrency(selectedBill.balance)}
                                 </strong>
-                            </DialogDescription>
-                        </DialogHeader>
+                            </DrawerDescription>
+                        </DrawerHeader>
 
                         <Form
                             {...payBill.form(selectedBill)}
-                            className="space-y-4 pt-2"
+                            className="space-y-4 p-4 sm:p-6"
                             onSuccess={() => setPaymentModalOpen(false)}
                         >
                             {({ errors, processing }) => (
@@ -1008,8 +1020,8 @@ export default function CashRegisterIndex({
                                 </>
                             )}
                         </Form>
-                    </DialogContent>
-                </Dialog>
+                    </DrawerContent>
+                </Drawer>
             )}
 
             <Dialog

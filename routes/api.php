@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->name('api.auth.')->group(function () {
@@ -17,6 +18,10 @@ Route::prefix('auth')->name('api.auth.')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('profile', [ProfileController::class, 'show'])->name('api.profile.show');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('api.profile.update');
+    Route::delete('profile', [ProfileController::class, 'destroy'])->name('api.profile.destroy');
+
     Route::get('dashboard', DashboardController::class)->name('api.dashboard');
 
     Route::middleware('role:super-admin|admin|mozo')->group(function () {
