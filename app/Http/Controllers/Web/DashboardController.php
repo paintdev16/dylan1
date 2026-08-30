@@ -18,21 +18,66 @@ class DashboardController extends Controller
         $today = now('America/Lima')->toDateString();
 
         $todayPayments = Payment::whereDate('created_at', $today)->get();
-        $todaySales = (float) $todayPayments->sum('amount');
-        $todaySalesCash = (float) $todayPayments->where('payment_method', 'cash')->sum('amount');
-        $todaySalesCard = (float) $todayPayments->where('payment_method', 'card')->sum('amount');
-        $todaySalesDigital = (float) $todayPayments->whereIn('payment_method', ['yape', 'plin'])->sum('amount');
 
-        $occupiedTables = RestaurantTable::where('status', 'occupied')->count();
-        $totalTables = RestaurantTable::count();
+        $todaySales = (float) $todayPayments->sum('amount');
+
+        $todaySalesCash = (float) $todayPayments
+            ->where('payment_method', 'cash')
+            ->sum('amount');
+
+        $todaySalesCard = (float) $todayPayments
+            ->where('payment_method', 'card')
+            ->sum('amount');
+
+        $todaySalesDigital = (float) $todayPayments
+            ->whereIn('payment_method', ['yape', 'plin'])
+            ->sum('amount');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tables
+        |--------------------------------------------------------------------------
+        |
+        | Las mesas fuera de servicio no participan en las métricas.
+        |
+        */
+
+        $availableTablesQuery = RestaurantTable::query()
+            ->where('status', '!=', 'out_of_service');
+
+        $occupiedTables = (clone $availableTablesQuery)
+            ->where('status', 'occupied')
+            ->count();
+
+        $totalTables = (clone $availableTablesQuery)->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Kitchen
+        |--------------------------------------------------------------------------
+        */
 
         $pendingKitchenItems = OrderItem::where('is_cancelled', false)
             ->whereIn('kitchen_status', ['pending', 'in_preparation'])
             ->count();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Bills
+        |--------------------------------------------------------------------------
+        */
+
         $openBills = Bill::where('status', 'open')->get();
+
         $pendingBillsCount = $openBills->count();
+
         $pendingBillsBalance = (float) $openBills->sum('balance');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Recent orders
+        |--------------------------------------------------------------------------
+        */
 
         $recentOrders = Order::query()
             ->with([
@@ -51,12 +96,16 @@ class DashboardController extends Controller
                 'today_sales_cash' => $todaySalesCash,
                 'today_sales_card' => $todaySalesCard,
                 'today_sales_digital' => $todaySalesDigital,
+
                 'occupied_tables' => $occupiedTables,
                 'total_tables' => $totalTables,
+
                 'pending_kitchen_items' => $pendingKitchenItems,
+
                 'pending_bills_count' => $pendingBillsCount,
                 'pending_bills_balance' => $pendingBillsBalance,
             ],
+
             'recentOrders' => $recentOrders,
         ]);
     }

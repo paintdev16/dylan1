@@ -9,201 +9,479 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ======================================================
+   LIGHT THEME
+====================================================== */
+
 :root {
-    --background: hsl(220 20% 99%);
-    --foreground: hsl(222 28% 10%);
+    /* ==================================================
+       BASE
+    ================================================== */
 
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(222 28% 10%);
+    --background: #edf3fa;
+    --foreground: #172033;
 
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(222 28% 10%);
+    --card: #ffffff;
+    --card-foreground: #172033;
 
-    --primary: hsl(239 84% 67%);
-    --primary-foreground: hsl(0 0% 100%);
-    --primary-foreground-soft: hsl(239 56% 32%);
+    --popover: #ffffff;
+    --popover-foreground: #172033;
 
-    --secondary: hsl(215 24% 94%);
-    --secondary-foreground: hsl(220 24% 22%);
-    --secondary-foreground-soft: hsl(220 12% 42%);
+    --surface: #ffffff;
+    --surface-foreground: #172033;
 
-    --muted: hsl(220 20% 96%);
-    --muted-foreground: hsl(220 10% 46%);
+    --surface-secondary: #f5f8fc;
 
-    --accent: hsl(220 22% 96%);
-    --accent-foreground: hsl(220 26% 18%);
-    --accent-foreground-soft: hsl(220 15% 40%);
+    --input: #f3f7fb;
 
-    --success: hsl(151 63% 36%);
-    --success-foreground: hsl(0 0% 100%);
-    --success-foreground-soft: hsl(151 70% 24%);
+    /* ==================================================
+       TEXT
+    ================================================== */
 
-    --warning: hsl(38 92% 52%);
-    --warning-foreground: hsl(28 20% 8%);
-    --warning-foreground-soft: hsl(38 82% 28%);
+    --text: #172033;
+    --text-secondary: #526176;
+    --text-muted: #748399;
 
-    --info: hsl(201 94% 48%);
-    --info-foreground: hsl(0 0% 100%);
-    --info-foreground-soft: hsl(201 82% 30%);
+    /* ==================================================
+       PRIMARY
+    ================================================== */
 
-    --destructive: hsl(350 84% 60%);
-    --destructive-foreground: hsl(0 0% 100%);
-    --destructive-foreground-soft: hsl(350 66% 34%);
+    --primary: #3d7fe8;
+    --primary-foreground: #ffffff;
+    --primary-foreground-soft: #244f96;
+    --primary-soft: #e3eeff;
 
-    --surface: hsl(220 18% 98%);
-    --surface-foreground: hsl(222 28% 10%);
+    /* ==================================================
+       SECONDARY
+    ================================================== */
 
-    --border: hsl(220 15% 90%);
-    --input: hsl(220 15% 90%);
-    --ring: hsl(239 84% 67%);
-    --focus: hsl(239 84% 67%);
+    --secondary: #f5f8fc;
+    --secondary-foreground: #526176;
+    --secondary-foreground-soft: #748399;
 
-    --radius: 0.75rem;
+    /* ==================================================
+       MUTED
+    ================================================== */
 
-    --chart-1: hsl(239 84% 67%);
-    --chart-2: hsl(151 63% 36%);
-    --chart-3: hsl(201 94% 48%);
-    --chart-4: hsl(38 92% 52%);
-    --chart-5: hsl(350 84% 60%);
+    --muted: #f3f7fb;
+    --muted-foreground: #748399;
 
-    --sidebar: hsl(240 20% 97%);
-    --sidebar-foreground: hsl(222 28% 14%);
+    /* ==================================================
+       ACCENT
+    ================================================== */
 
-    --sidebar-primary: hsl(239 84% 67%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --accent: #f5f8fc;
+    --accent-foreground: #172033;
+    --accent-foreground-soft: #526176;
 
-    --sidebar-accent: hsl(240 15% 92%);
-    --sidebar-accent-foreground: hsl(222 28% 14%);
+    /* ==================================================
+       SUCCESS
+    ================================================== */
 
-    --sidebar-active: hsl(239 84% 67% / 0.1);
-    --sidebar-active-foreground: hsl(239 56% 40%);
+    --success: #278875;
+    --success-foreground: #ffffff;
+    --success-foreground-soft: #1d685a;
+    --success-soft: #ddf3ec;
 
-    --sidebar-border: hsl(230 14% 90%);
-    --sidebar-ring: hsl(239 84% 67%);
+    /* ==================================================
+       WARNING / PENDING
+    ================================================== */
 
-    --overlay: hsl(222 28% 10%);
+    --warning: #c97835;
+    --warning-foreground: #ffffff;
+    --warning-foreground-soft: #8b4f23;
+    --warning-soft: #fbebdd;
 
-    --selection: hsl(239 84% 95%);
-    --selection-foreground: hsl(239 84% 40%);
+    /* ==================================================
+       KITCHEN
+    ================================================== */
 
-    --card-success: hsl(151 70% 45% / 0.08);
-    --card-success-border: hsl(151 60% 45% / 0.22);
+    --kitchen: #7159d9;
+    --kitchen-foreground: #ffffff;
+    --kitchen-foreground-soft: #503da5;
+    --kitchen-soft: #e9e5ff;
 
-    --card-info: hsl(201 95% 50% / 0.08);
-    --card-info-border: hsl(201 85% 50% / 0.22);
+    /* ==================================================
+       INFO
+    ================================================== */
 
-    --card-warning: hsl(38 95% 52% / 0.1);
-    --card-warning-border: hsl(38 90% 52% / 0.24);
+    --info: #3d7fe8;
+    --info-foreground: #ffffff;
+    --info-foreground-soft: #244f96;
+    --info-soft: #e3eeff;
 
-    --card-destructive: hsl(350 84% 60% / 0.08);
-    --card-destructive-border: hsl(350 84% 60% / 0.22);
+    /* ==================================================
+       DESTRUCTIVE
+    ================================================== */
 
-    --card-primary: hsl(239 84% 67% / 0.08);
-    --card-primary-border: hsl(239 84% 67% / 0.22);
+    --destructive: #c94c60;
+    --destructive-foreground: #ffffff;
+    --destructive-foreground-soft: #913547;
+    --destructive-soft: #fde8ec;
+    --destructive-border: #f2c5cd;
+
+    /* ==================================================
+       STRUCTURE
+    ================================================== */
+
+    --border: #d8e2ee;
+
+    --ring: #3d7fe8;
+    --focus: #3d7fe8;
+
+    /* ==================================================
+       ICONS / PLACEHOLDER
+    ================================================== */
+
+    --icon: #61738c;
+    --placeholder: #8492a6;
+
+    /* ==================================================
+       COUNTERS
+    ================================================== */
+
+    --count-background: #e5ecf5;
+    --count-foreground: #607189;
+
+    /* ==================================================
+       DECORATIVE
+    ================================================== */
+
+    --glow-one: #cfe0ff;
+    --glow-two: #ddd7ff;
+
+    --accent-peach: #f7e5e1;
+    --accent-lavender: #eae6ff;
+    --accent-sand: #f5ebd6;
+
+    /* ==================================================
+       NAVIGATION
+    ================================================== */
+
+    --nav-active: #172033;
+    --nav-indicator: #e1e9f3;
+
+    /* ==================================================
+       INTERACTION
+    ================================================== */
+
+    --overlay: rgb(15 23 42 / 42%);
+
+    --disabled: #94a1b3;
+    --disabled-background: #e5ebf2;
+
+    /* ==================================================
+       SELECTION
+    ================================================== */
+
+    --selection: #e3eeff;
+    --selection-foreground: #244f96;
+
+    /* ==================================================
+       STATUS CARDS
+    ================================================== */
+
+    --card-success: #ddf3ec;
+    --card-success-border: #b8dfd3;
+
+    --card-warning: #fbebdd;
+    --card-warning-border: #edceb2;
+
+    --card-kitchen: #e9e5ff;
+    --card-kitchen-border: #cec5fa;
+
+    --card-info: #e3eeff;
+    --card-info-border: #bed4f7;
+
+    --card-destructive: #fde8ec;
+    --card-destructive-border: #f2c5cd;
+
+    --card-primary: #e3eeff;
+    --card-primary-border: #bed4f7;
+
+    /* ==================================================
+       SIDEBAR
+    ================================================== */
+
+    --sidebar: #ffffff;
+    --sidebar-foreground: #172033;
+
+    --sidebar-primary: #3d7fe8;
+    --sidebar-primary-foreground: #ffffff;
+
+    --sidebar-accent: #f5f8fc;
+    --sidebar-accent-foreground: #172033;
+
+    --sidebar-active: #e3eeff;
+    --sidebar-active-foreground: #244f96;
+
+    --sidebar-border: #d8e2ee;
+    --sidebar-ring: #3d7fe8;
+
+    /* ==================================================
+       CHARTS
+    ================================================== */
+
+    --chart-1: #3d7fe8;
+    --chart-2: #278875;
+    --chart-3: #7159d9;
+    --chart-4: #c97835;
+    --chart-5: #c94c60;
+
+    /* ==================================================
+       SHADOW
+    ================================================== */
+
+    --shadow: #526c8f;
+
+    /* ==================================================
+       RADIUS
+    ================================================== */
+
+    --radius: 1rem;
 }
+
+/* ======================================================
+   DARK THEME
+====================================================== */
 
 .dark {
-    --background: hsl(224 24% 8%);
-    --foreground: hsl(210 20% 98%);
+    /* ==================================================
+       BASE
+    ================================================== */
 
-    --card: hsl(223 22% 11%);
-    --card-foreground: hsl(210 20% 98%);
+    --background: #0b1220;
+    --foreground: #f4f7fb;
 
-    --popover: hsl(223 22% 11%);
-    --popover-foreground: hsl(210 20% 98%);
+    --card: #131e2e;
+    --card-foreground: #f4f7fb;
 
-    --primary: hsl(239 84% 72%);
-    --primary-foreground: hsl(0 0% 100%);
-    --primary-foreground-soft: hsl(239 88% 88%);
+    --popover: #131e2e;
+    --popover-foreground: #f4f7fb;
 
-    --secondary: hsl(220 15% 17%);
-    --secondary-foreground: hsl(210 20% 98%);
-    --secondary-foreground-soft: hsl(220 12% 74%);
+    --surface: #131e2e;
+    --surface-foreground: #f4f7fb;
 
-    --muted: hsl(220 15% 15%);
-    --muted-foreground: hsl(220 10% 65%);
+    --surface-secondary: #1a2739;
 
-    --accent: hsl(220 15% 17%);
-    --accent-foreground: hsl(210 20% 98%);
-    --accent-foreground-soft: hsl(220 12% 80%);
+    --input: #172436;
 
-    --success: hsl(151 58% 44%);
-    --success-foreground: hsl(0 0% 100%);
-    --success-foreground-soft: hsl(151 58% 86%);
+    /* ==================================================
+       TEXT
+    ================================================== */
 
-    --warning: hsl(40 96% 60%);
-    --warning-foreground: hsl(28 20% 8%);
-    --warning-foreground-soft: hsl(40 86% 84%);
+    --text: #f4f7fb;
+    --text-secondary: #b5c1d1;
+    --text-muted: #8494aa;
 
-    --info: hsl(201 94% 60%);
-    --info-foreground: hsl(0 0% 100%);
-    --info-foreground-soft: hsl(201 88% 86%);
+    /* ==================================================
+       PRIMARY
+    ================================================== */
 
-    --destructive: hsl(350 84% 67%);
-    --destructive-foreground: hsl(0 0% 100%);
-    --destructive-foreground-soft: hsl(350 82% 87%);
+    --primary: #72a7f7;
+    --primary-foreground: #0b1220;
+    --primary-foreground-soft: #c9ddff;
+    --primary-soft: #1c365d;
 
-    --surface: hsl(223 20% 13%);
-    --surface-foreground: hsl(210 20% 98%);
+    /* ==================================================
+       SECONDARY
+    ================================================== */
 
-    --border: hsl(220 14% 18%);
-    --input: hsl(220 14% 18%);
-    --ring: hsl(239 84% 72%);
-    --focus: hsl(239 84% 72%);
+    --secondary: #1a2739;
+    --secondary-foreground: #f4f7fb;
+    --secondary-foreground-soft: #b5c1d1;
 
-    --chart-1: hsl(239 84% 72%);
-    --chart-2: hsl(151 58% 44%);
-    --chart-3: hsl(201 94% 60%);
-    --chart-4: hsl(40 96% 60%);
-    --chart-5: hsl(350 88% 67%);
+    /* ==================================================
+       MUTED
+    ================================================== */
 
-    --sidebar: hsl(223 22% 11%);
-    --sidebar-foreground: hsl(210 20% 98%);
+    --muted: #172436;
+    --muted-foreground: #8494aa;
 
-    --sidebar-primary: hsl(239 84% 72%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
+    /* ==================================================
+       ACCENT
+    ================================================== */
 
-    --sidebar-accent: hsl(220 15% 17%);
-    --sidebar-accent-foreground: hsl(210 20% 98%);
+    --accent: #1a2739;
+    --accent-foreground: #f4f7fb;
+    --accent-foreground-soft: #b5c1d1;
 
-    --sidebar-active: hsl(239 84% 72% / 0.15);
-    --sidebar-active-foreground: hsl(239 84% 84%);
+    /* ==================================================
+       SUCCESS
+    ================================================== */
 
-    --sidebar-border: hsl(220 14% 18%);
-    --sidebar-ring: hsl(239 84% 72%);
+    --success: #65c7ae;
+    --success-foreground: #0b1220;
+    --success-foreground-soft: #b7eadc;
+    --success-soft: #173b35;
 
-    --overlay: hsl(0 0% 0%);
+    /* ==================================================
+       WARNING / PENDING
+    ================================================== */
 
-    --selection: hsl(239 28% 20%);
-    --selection-foreground: hsl(240 14% 89%);
+    --warning: #e3a16b;
+    --warning-foreground: #0b1220;
+    --warning-foreground-soft: #f4ceb0;
+    --warning-soft: #3a2c23;
 
-    --card-success: hsl(151 58% 44% / 0.12);
-    --card-success-border: hsl(151 58% 44% / 0.28);
+    /* ==================================================
+       KITCHEN
+    ================================================== */
 
-    --card-info: hsl(201 94% 60% / 0.12);
-    --card-info-border: hsl(201 94% 60% / 0.28);
+    --kitchen: #ab9bff;
+    --kitchen-foreground: #0b1220;
+    --kitchen-foreground-soft: #d6cfff;
+    --kitchen-soft: #302b59;
 
-    --card-warning: hsl(40 96% 60% / 0.14);
-    --card-warning-border: hsl(40 96% 60% / 0.3);
+    /* ==================================================
+       INFO
+    ================================================== */
 
-    --card-destructive: hsl(350 84% 67% / 0.12);
-    --card-destructive-border: hsl(350 84% 67% / 0.28);
+    --info: #72a7f7;
+    --info-foreground: #0b1220;
+    --info-foreground-soft: #c9ddff;
+    --info-soft: #1c365d;
 
-    --card-primary: hsl(239 84% 72% / 0.12);
-    --card-primary-border: hsl(239 84% 72% / 0.28);
+    /* ==================================================
+       DESTRUCTIVE
+    ================================================== */
+
+    --destructive: #ee7b8c;
+    --destructive-foreground: #0b1220;
+    --destructive-foreground-soft: #ffc4cd;
+    --destructive-soft: #3b252c;
+    --destructive-border: #67404a;
+
+    /* ==================================================
+       STRUCTURE
+    ================================================== */
+
+    --border: #293a50;
+
+    --ring: #72a7f7;
+    --focus: #72a7f7;
+
+    /* ==================================================
+       ICONS / PLACEHOLDER
+    ================================================== */
+
+    --icon: #a7b6ca;
+    --placeholder: #75869d;
+
+    /* ==================================================
+       COUNTERS
+    ================================================== */
+
+    --count-background: #213047;
+    --count-foreground: #aab8cb;
+
+    /* ==================================================
+       DECORATIVE
+    ================================================== */
+
+    --glow-one: #183663;
+    --glow-two: #312a62;
+
+    --accent-peach: #392830;
+    --accent-lavender: #302b57;
+    --accent-sand: #383225;
+
+    /* ==================================================
+       NAVIGATION
+    ================================================== */
+
+    --nav-active: #f4f7fb;
+    --nav-indicator: #263448;
+
+    /* ==================================================
+       INTERACTION
+    ================================================== */
+
+    --overlay: rgb(0 0 0 / 58%);
+
+    --disabled: #637187;
+    --disabled-background: #202c3d;
+
+    /* ==================================================
+       SELECTION
+    ================================================== */
+
+    --selection: #1c365d;
+    --selection-foreground: #c9ddff;
+
+    /* ==================================================
+       STATUS CARDS
+    ================================================== */
+
+    --card-success: #173b35;
+    --card-success-border: #28594e;
+
+    --card-warning: #3a2c23;
+    --card-warning-border: #654631;
+
+    --card-kitchen: #302b59;
+    --card-kitchen-border: #534b8d;
+
+    --card-info: #1c365d;
+    --card-info-border: #31558b;
+
+    --card-destructive: #3b252c;
+    --card-destructive-border: #67404a;
+
+    --card-primary: #1c365d;
+    --card-primary-border: #31558b;
+
+    /* ==================================================
+       SIDEBAR
+    ================================================== */
+
+    --sidebar: #131e2e;
+    --sidebar-foreground: #f4f7fb;
+
+    --sidebar-primary: #72a7f7;
+    --sidebar-primary-foreground: #0b1220;
+
+    --sidebar-accent: #1a2739;
+    --sidebar-accent-foreground: #f4f7fb;
+
+    --sidebar-active: #1c365d;
+    --sidebar-active-foreground: #c9ddff;
+
+    --sidebar-border: #293a50;
+    --sidebar-ring: #72a7f7;
+
+    /* ==================================================
+       CHARTS
+    ================================================== */
+
+    --chart-1: #72a7f7;
+    --chart-2: #65c7ae;
+    --chart-3: #ab9bff;
+    --chart-4: #e3a16b;
+    --chart-5: #ee7b8c;
+
+    /* ==================================================
+       SHADOW
+    ================================================== */
+
+    --shadow: #000000;
 }
+
+/* ======================================================
+   BASE
+====================================================== */
 
 @layer base {
     * {
         @apply border-border outline-ring/50;
     }
 
-    body {
-        @apply bg-background text-foreground;
-    }
-
     html {
         @apply font-sans;
+    }
+
+    body {
+        @apply bg-background text-foreground;
     }
 
     ::selection {
@@ -218,74 +496,197 @@
     }
 }
 
+/* ======================================================
+   TAILWIND THEME
+====================================================== */
+
 @theme inline {
+    /* Fonts */
+
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-active-foreground: var(--sidebar-active-foreground);
-    --color-sidebar-active: var(--sidebar-active);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
+
+    /* Base */
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-surface: var(--surface);
+    --color-surface-foreground: var(--surface-foreground);
+    --color-surface-secondary: var(--surface-secondary);
+
+    /* Text */
+
+    --color-text: var(--text);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+
+    /* Primary */
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary-foreground-soft: var(--primary-foreground-soft);
+    --color-primary-soft: var(--primary-soft);
+
+    /* Secondary */
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary-foreground-soft: var(--secondary-foreground-soft);
+
+    /* Muted */
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    /* Accent */
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent-foreground-soft: var(--accent-foreground-soft);
+
+    /* Success */
+
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-foreground-soft: var(--success-foreground-soft);
+    --color-success-soft: var(--success-soft);
+
+    /* Warning */
+
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning-foreground-soft: var(--warning-foreground-soft);
+    --color-warning-soft: var(--warning-soft);
+
+    /* Kitchen */
+
+    --color-kitchen: var(--kitchen);
+    --color-kitchen-foreground: var(--kitchen-foreground);
+    --color-kitchen-foreground-soft: var(--kitchen-foreground-soft);
+    --color-kitchen-soft: var(--kitchen-soft);
+
+    /* Info */
+
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-foreground-soft: var(--info-foreground-soft);
+    --color-info-soft: var(--info-soft);
+
+    /* Destructive */
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-foreground-soft: var(--destructive-foreground-soft);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-destructive-border: var(--destructive-border);
+
+    /* Structure */
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+
     --color-ring: var(--ring);
     --color-focus: var(--focus);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive-foreground-soft: var(--destructive-foreground-soft);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground-soft: var(--accent-foreground-soft);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-warning-foreground-soft: var(--warning-foreground-soft);
-    --color-warning: var(--warning);
-    --color-info-foreground-soft: var(--info-foreground-soft);
-    --color-info: var(--info);
-    --color-success-foreground-soft: var(--success-foreground-soft);
-    --color-success-foreground: var(--success-foreground);
-    --color-success: var(--success);
-    --color-secondary-foreground-soft: var(--secondary-foreground-soft);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground-soft: var(--primary-foreground-soft);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-surface-foreground: var(--surface-foreground);
-    --color-surface: var(--surface);
+
+    /* Icons */
+
+    --color-icon: var(--icon);
+    --color-placeholder: var(--placeholder);
+
+    /* Counters */
+
+    --color-count-background: var(--count-background);
+    --color-count-foreground: var(--count-foreground);
+
+    /* Decorative */
+
+    --color-glow-one: var(--glow-one);
+    --color-glow-two: var(--glow-two);
+
+    --color-accent-peach: var(--accent-peach);
+    --color-accent-lavender: var(--accent-lavender);
+    --color-accent-sand: var(--accent-sand);
+
+    /* Navigation */
+
+    --color-nav-active: var(--nav-active);
+    --color-nav-indicator: var(--nav-indicator);
+
+    /* Interaction */
+
     --color-overlay: var(--overlay);
-    --color-selection-foreground: var(--selection-foreground);
+
+    --color-disabled: var(--disabled);
+    --color-disabled-background: var(--disabled-background);
+
+    /* Selection */
+
     --color-selection: var(--selection);
-    --color-card-primary-border: var(--card-primary-border);
-    --color-card-primary: var(--card-primary);
-    --color-card-destructive-border: var(--card-destructive-border);
-    --color-card-destructive: var(--card-destructive);
-    --color-card-warning-border: var(--card-warning-border);
-    --color-card-warning: var(--card-warning);
-    --color-card-info-border: var(--card-info-border);
-    --color-card-info: var(--card-info);
-    --color-card-success-border: var(--card-success-border);
+    --color-selection-foreground: var(--selection-foreground);
+
+    /* Status cards */
+
     --color-card-success: var(--card-success);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --color-card-success-border: var(--card-success-border);
+
+    --color-card-warning: var(--card-warning);
+    --color-card-warning-border: var(--card-warning-border);
+
+    --color-card-kitchen: var(--card-kitchen);
+    --color-card-kitchen-border: var(--card-kitchen-border);
+
+    --color-card-info: var(--card-info);
+    --color-card-info-border: var(--card-info-border);
+
+    --color-card-destructive: var(--card-destructive);
+    --color-card-destructive-border: var(--card-destructive-border);
+
+    --color-card-primary: var(--card-primary);
+    --color-card-primary-border: var(--card-primary-border);
+
+    /* Sidebar */
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+    --color-sidebar-active: var(--sidebar-active);
+    --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Charts */
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    /* Shadow */
+
+    --color-shadow: var(--shadow);
+
+    /* Radius */
+
+    --radius-sm: 0.75rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 1.75rem;
+    --radius-3xl: 2rem;
+    --radius-4xl: 2.5rem;
 }
