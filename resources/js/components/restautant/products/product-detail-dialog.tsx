@@ -85,7 +85,7 @@ export function ProductDetailDialog({
 
                     <DetailItem label="Precio">
                         <span className="flex items-center gap-1 font-medium">
-                            <BadgeDollarSign className="size-4 text-emerald-600" />
+                            <BadgeDollarSign className="size-4 text-success" />
                             S/ {Number(product.price).toFixed(2)}
                         </span>
                     </DetailItem>
@@ -104,7 +104,7 @@ export function ProductDetailDialog({
                         <span
                             className={
                                 isActive
-                                    ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                                    ? 'font-medium text-success'
                                     : 'font-medium text-muted-foreground'
                             }
                         >

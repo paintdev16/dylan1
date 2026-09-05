@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Users\IndexUserRequest;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
 use App\Http\Resources\UserResource;
@@ -14,9 +15,19 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(IndexUserRequest $request): Response
     {
+        $filters = $request->validated();
         $users = User::with('roles')
+            ->where('is_root', false)
+            ->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', User::PROTECTED_ROLES))
+            ->when($filters['search'] ?? null, function ($query, string $search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['role'] ?? null, fn ($query, string $role) => $query->whereHas('roles', fn ($query) => $query->where('name', $role)))
             ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
@@ -28,7 +39,19 @@ class UserController extends Controller
                 'last_page' => $users->lastPage(),
                 'total' => $users->total(),
             ],
-            'roles' => Role::orderBy('name')->pluck('name'),
+            'roles' => Role::query()
+                ->whereNotIn('name', User::PROTECTED_ROLES)
+                ->with('permissions:id,name')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Role $role) => [
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->pluck('name')->values()->all(),
+                ]),
+            'filters' => [
+                'search' => $filters['search'] ?? '',
+                'role' => $filters['role'] ?? '',
+            ],
         ]);
     }
 
@@ -75,6 +98,8 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
+        abort_if($user->isProtectedAccount(), 403);
+
         if ($request->user()->id === $user->id) {
             return back()->withErrors(['general' => __('You cannot delete your own account.')]);
         }

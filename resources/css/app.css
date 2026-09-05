@@ -18,148 +18,162 @@
        BASE
     ================================================== */
 
-    --background: #edf3fa;
-    --foreground: #172033;
+    --background: #f7f7f5;
+    --foreground: #18181b;
 
     --card: #ffffff;
-    --card-foreground: #172033;
+    --card-foreground: #18181b;
 
     --popover: #ffffff;
-    --popover-foreground: #172033;
+    --popover-foreground: #18181b;
 
     --surface: #ffffff;
-    --surface-foreground: #172033;
+    --surface-foreground: #18181b;
 
-    --surface-secondary: #f5f8fc;
+    --surface-secondary: #f3f1f7;
 
-    --input: #f3f7fb;
+    --input: #f5f3f8;
 
     /* ==================================================
        TEXT
     ================================================== */
 
-    --text: #172033;
-    --text-secondary: #526176;
-    --text-muted: #748399;
+    --text: #18181b;
+    --text-secondary: #52525b;
+    --text-muted: #71717a;
 
     /* ==================================================
        PRIMARY
     ================================================== */
 
-    --primary: #3d7fe8;
+    --primary: #7462cf;
     --primary-foreground: #ffffff;
-    --primary-foreground-soft: #244f96;
-    --primary-soft: #e3eeff;
+    --primary-foreground-soft: #5542ad;
+    --primary-soft: #eeeafe;
 
     /* ==================================================
        SECONDARY
     ================================================== */
 
-    --secondary: #f5f8fc;
-    --secondary-foreground: #526176;
-    --secondary-foreground-soft: #748399;
+    --secondary: #f3f1f7;
+    --secondary-foreground: #52525b;
+    --secondary-foreground-soft: #71717a;
 
     /* ==================================================
        MUTED
     ================================================== */
 
-    --muted: #f3f7fb;
-    --muted-foreground: #748399;
+    --muted: #f1eff4;
+    --muted-foreground: #71717a;
 
     /* ==================================================
        ACCENT
     ================================================== */
 
-    --accent: #f5f8fc;
-    --accent-foreground: #172033;
-    --accent-foreground-soft: #526176;
+    --accent: #f0edf8;
+    --accent-foreground: #18181b;
+    --accent-foreground-soft: #52525b;
 
     /* ==================================================
        SUCCESS
     ================================================== */
 
-    --success: #278875;
+    --success: #3f8f67;
     --success-foreground: #ffffff;
-    --success-foreground-soft: #1d685a;
-    --success-soft: #ddf3ec;
+    --success-foreground-soft: #286a49;
+    --success-soft: #e5f3ea;
 
     /* ==================================================
        WARNING / PENDING
     ================================================== */
 
-    --warning: #c97835;
+    --warning: #c8793f;
     --warning-foreground: #ffffff;
-    --warning-foreground-soft: #8b4f23;
-    --warning-soft: #fbebdd;
+    --warning-foreground-soft: #8f4f24;
+    --warning-soft: #f9eadc;
 
     /* ==================================================
        KITCHEN
     ================================================== */
 
-    --kitchen: #7159d9;
+    --kitchen: #8a6fc9;
     --kitchen-foreground: #ffffff;
-    --kitchen-foreground-soft: #503da5;
-    --kitchen-soft: #e9e5ff;
+    --kitchen-foreground-soft: #634aa2;
+    --kitchen-soft: #eee8fa;
 
     /* ==================================================
        INFO
     ================================================== */
 
-    --info: #3d7fe8;
+    --info: #5a82bd;
     --info-foreground: #ffffff;
-    --info-foreground-soft: #244f96;
-    --info-soft: #e3eeff;
+    --info-foreground-soft: #3c6198;
+    --info-soft: #e7eff9;
 
     /* ==================================================
        DESTRUCTIVE
     ================================================== */
 
-    --destructive: #c94c60;
+    --destructive: #c45870;
     --destructive-foreground: #ffffff;
-    --destructive-foreground-soft: #913547;
-    --destructive-soft: #fde8ec;
-    --destructive-border: #f2c5cd;
+    --destructive-foreground-soft: #92384d;
+    --destructive-soft: #f9e7eb;
+    --destructive-border: #ebc3cc;
 
     /* ==================================================
        STRUCTURE
     ================================================== */
 
-    --border: #d8e2ee;
+    --border: #ded9e5;
 
-    --ring: #3d7fe8;
-    --focus: #3d7fe8;
+    --ring: #7462cf;
+    --focus: #7462cf;
 
     /* ==================================================
        ICONS / PLACEHOLDER
     ================================================== */
 
-    --icon: #61738c;
-    --placeholder: #8492a6;
+    --icon: #6b6575;
+    --placeholder: #8b8494;
+    --qr-background: #ffffff;
 
     /* ==================================================
        COUNTERS
     ================================================== */
 
-    --count-background: #e5ecf5;
-    --count-foreground: #607189;
+    --count-background: #ebe7f0;
+    --count-foreground: #686171;
 
     /* ==================================================
        DECORATIVE
     ================================================== */
 
-    --glow-one: #cfe0ff;
-    --glow-two: #ddd7ff;
+    --glow-one: #dfd8fb;
+    --glow-two: #f2d9e6;
 
-    --accent-peach: #f7e5e1;
-    --accent-lavender: #eae6ff;
-    --accent-sand: #f5ebd6;
+    --accent-peach: #f6e3da;
+    --accent-lavender: #ebe5fb;
+    --accent-sand: #f5ecd8;
+
+    --sales: #7462cf;
+    --sales-soft: #eeeafe;
+    --occupancy: #347f86;
+    --occupancy-soft: #e3f1f1;
+    --cash: #3f8f67;
+    --cash-soft: #e5f3ea;
+    --card-payment: #5a82bd;
+    --card-payment-soft: #e7eff9;
+    --digital-payment: #b38a32;
+    --digital-payment-soft: #f7efd8;
+    --pending: #c8793f;
+    --pending-soft: #f9eadc;
 
     /* ==================================================
        NAVIGATION
     ================================================== */
 
-    --nav-active: #172033;
-    --nav-indicator: #e1e9f3;
+    --nav-active: #5542ad;
+    --nav-indicator: #e9e4f1;
 
     /* ==================================================
        INTERACTION
@@ -167,72 +181,72 @@
 
     --overlay: rgb(15 23 42 / 42%);
 
-    --disabled: #94a1b3;
-    --disabled-background: #e5ebf2;
+    --disabled: #9993a1;
+    --disabled-background: #e9e6ec;
 
     /* ==================================================
        SELECTION
     ================================================== */
 
-    --selection: #e3eeff;
-    --selection-foreground: #244f96;
+    --selection: #eeeafe;
+    --selection-foreground: #5542ad;
 
     /* ==================================================
        STATUS CARDS
     ================================================== */
 
-    --card-success: #ddf3ec;
-    --card-success-border: #b8dfd3;
+    --card-success: #e5f3ea;
+    --card-success-border: #bddfc9;
 
-    --card-warning: #fbebdd;
-    --card-warning-border: #edceb2;
+    --card-warning: #f9eadc;
+    --card-warning-border: #e8c8aa;
 
-    --card-kitchen: #e9e5ff;
-    --card-kitchen-border: #cec5fa;
+    --card-kitchen: #eee8fa;
+    --card-kitchen-border: #d5c8ef;
 
-    --card-info: #e3eeff;
-    --card-info-border: #bed4f7;
+    --card-info: #e7eff9;
+    --card-info-border: #c4d5eb;
 
-    --card-destructive: #fde8ec;
-    --card-destructive-border: #f2c5cd;
+    --card-destructive: #f9e7eb;
+    --card-destructive-border: #ebc3cc;
 
-    --card-primary: #e3eeff;
-    --card-primary-border: #bed4f7;
+    --card-primary: #eeeafe;
+    --card-primary-border: #d2c8f4;
 
     /* ==================================================
        SIDEBAR
     ================================================== */
 
-    --sidebar: #ffffff;
-    --sidebar-foreground: #172033;
+    --sidebar: #f8f5ff;
+    --sidebar-foreground: #18181b;
 
-    --sidebar-primary: #3d7fe8;
+    --sidebar-primary: #7462cf;
     --sidebar-primary-foreground: #ffffff;
 
-    --sidebar-accent: #f5f8fc;
-    --sidebar-accent-foreground: #172033;
+    --sidebar-accent: #ebe5fa;
+    --sidebar-accent-foreground: #18181b;
 
-    --sidebar-active: #e3eeff;
-    --sidebar-active-foreground: #244f96;
+    --sidebar-active: #ded5fa;
+    --sidebar-active-foreground: #5542ad;
 
-    --sidebar-border: #d8e2ee;
-    --sidebar-ring: #3d7fe8;
+    --sidebar-border: #d5cbea;
+    --sidebar-ring: #7462cf;
 
     /* ==================================================
        CHARTS
     ================================================== */
 
-    --chart-1: #3d7fe8;
-    --chart-2: #278875;
-    --chart-3: #7159d9;
-    --chart-4: #c97835;
-    --chart-5: #c94c60;
+    --chart-1: #7462cf;
+    --chart-2: #3f8f67;
+    --chart-3: #5a82bd;
+    --chart-4: #c8793f;
+    --chart-5: #c45870;
 
     /* ==================================================
        SHADOW
     ================================================== */
 
-    --shadow: #526c8f;
+    --shadow: #5f536f;
 
     /* ==================================================
        RADIUS
@@ -250,148 +264,162 @@
        BASE
     ================================================== */
 
-    --background: #0b1220;
-    --foreground: #f4f7fb;
+    --background: #151319;
+    --foreground: #f8f6fa;
 
-    --card: #131e2e;
-    --card-foreground: #f4f7fb;
+    --card: #242129;
+    --card-foreground: #f8f6fa;
 
-    --popover: #131e2e;
-    --popover-foreground: #f4f7fb;
+    --popover: #242129;
+    --popover-foreground: #f8f6fa;
 
-    --surface: #131e2e;
-    --surface-foreground: #f4f7fb;
+    --surface: #242129;
+    --surface-foreground: #f8f6fa;
 
-    --surface-secondary: #1a2739;
+    --surface-secondary: #2b2831;
 
-    --input: #172436;
+    --input: #2c2932;
 
     /* ==================================================
        TEXT
     ================================================== */
 
-    --text: #f4f7fb;
-    --text-secondary: #b5c1d1;
-    --text-muted: #8494aa;
+    --text: #f8f6fa;
+    --text-secondary: #d3ccd8;
+    --text-muted: #aaa2b0;
 
     /* ==================================================
        PRIMARY
     ================================================== */
 
-    --primary: #72a7f7;
-    --primary-foreground: #0b1220;
-    --primary-foreground-soft: #c9ddff;
-    --primary-soft: #1c365d;
+    --primary: #baa8ff;
+    --primary-foreground: #1b1722;
+    --primary-foreground-soft: #ded6ff;
+    --primary-soft: #302b40;
 
     /* ==================================================
        SECONDARY
     ================================================== */
 
-    --secondary: #1a2739;
-    --secondary-foreground: #f4f7fb;
-    --secondary-foreground-soft: #b5c1d1;
+    --secondary: #2b2831;
+    --secondary-foreground: #f8f6fa;
+    --secondary-foreground-soft: #d3ccd8;
 
     /* ==================================================
        MUTED
     ================================================== */
 
-    --muted: #172436;
-    --muted-foreground: #8494aa;
+    --muted: #2a2730;
+    --muted-foreground: #b2aab7;
 
     /* ==================================================
        ACCENT
     ================================================== */
 
-    --accent: #1a2739;
-    --accent-foreground: #f4f7fb;
-    --accent-foreground-soft: #b5c1d1;
+    --accent: #302c37;
+    --accent-foreground: #f8f6fa;
+    --accent-foreground-soft: #d3ccd8;
 
     /* ==================================================
        SUCCESS
     ================================================== */
 
-    --success: #65c7ae;
-    --success-foreground: #0b1220;
-    --success-foreground-soft: #b7eadc;
-    --success-soft: #173b35;
+    --success: #82d1a2;
+    --success-foreground: #142019;
+    --success-foreground-soft: #c1ecd0;
+    --success-soft: #27362d;
 
     /* ==================================================
        WARNING / PENDING
     ================================================== */
 
-    --warning: #e3a16b;
-    --warning-foreground: #0b1220;
-    --warning-foreground-soft: #f4ceb0;
-    --warning-soft: #3a2c23;
+    --warning: #f0a06a;
+    --warning-foreground: #241910;
+    --warning-foreground-soft: #ffd0ae;
+    --warning-soft: #3b2a25;
 
     /* ==================================================
        KITCHEN
     ================================================== */
 
-    --kitchen: #ab9bff;
-    --kitchen-foreground: #0b1220;
-    --kitchen-foreground-soft: #d6cfff;
-    --kitchen-soft: #302b59;
+    --kitchen: #cbb8ff;
+    --kitchen-foreground: #201829;
+    --kitchen-foreground-soft: #e6ddff;
+    --kitchen-soft: #302c3d;
 
     /* ==================================================
        INFO
     ================================================== */
 
-    --info: #72a7f7;
-    --info-foreground: #0b1220;
-    --info-foreground-soft: #c9ddff;
-    --info-soft: #1c365d;
+    --info: #91bdf1;
+    --info-foreground: #142033;
+    --info-foreground-soft: #cfe4ff;
+    --info-soft: #293540;
 
     /* ==================================================
        DESTRUCTIVE
     ================================================== */
 
-    --destructive: #ee7b8c;
-    --destructive-foreground: #0b1220;
-    --destructive-foreground-soft: #ffc4cd;
-    --destructive-soft: #3b252c;
+    --destructive: #f29aae;
+    --destructive-foreground: #28151a;
+    --destructive-foreground-soft: #ffd0d9;
+    --destructive-soft: #3b2b31;
     --destructive-border: #67404a;
 
     /* ==================================================
        STRUCTURE
     ================================================== */
 
-    --border: #293a50;
+    --border: #3b3641;
 
-    --ring: #72a7f7;
-    --focus: #72a7f7;
+    --ring: #baa8ff;
+    --focus: #baa8ff;
 
     /* ==================================================
        ICONS / PLACEHOLDER
     ================================================== */
 
-    --icon: #a7b6ca;
-    --placeholder: #75869d;
+    --icon: #c6becb;
+    --placeholder: #9b93a0;
+    --qr-background: #ffffff;
 
     /* ==================================================
        COUNTERS
     ================================================== */
 
-    --count-background: #213047;
-    --count-foreground: #aab8cb;
+    --count-background: #332e3a;
+    --count-foreground: #cbc3cf;
 
     /* ==================================================
        DECORATIVE
     ================================================== */
 
-    --glow-one: #183663;
-    --glow-two: #312a62;
+    --glow-one: #44366b;
+    --glow-two: #5b3449;
 
-    --accent-peach: #392830;
-    --accent-lavender: #302b57;
-    --accent-sand: #383225;
+    --accent-peach: #4a302b;
+    --accent-lavender: #3d3358;
+    --accent-sand: #463c23;
+
+    --sales: #baa8ff;
+    --sales-soft: #302b40;
+    --occupancy: #82d0d2;
+    --occupancy-soft: #29383a;
+    --cash: #82d1a2;
+    --cash-soft: #27362d;
+    --card-payment: #91bdf1;
+    --card-payment-soft: #293540;
+    --digital-payment: #e5c66f;
+    --digital-payment-soft: #383326;
+    --pending: #f0a06a;
+    --pending-soft: #3b2a25;
 
     /* ==================================================
        NAVIGATION
     ================================================== */
 
-    --nav-active: #f4f7fb;
-    --nav-indicator: #263448;
+    --nav-active: #ded6ff;
+    --nav-indicator: #35303d;
 
     /* ==================================================
        INTERACTION
@@ -399,66 +427,66 @@
 
     --overlay: rgb(0 0 0 / 58%);
 
-    --disabled: #637187;
-    --disabled-background: #202c3d;
+    --disabled: #817987;
+    --disabled-background: #302c35;
 
     /* ==================================================
        SELECTION
     ================================================== */
 
-    --selection: #1c365d;
-    --selection-foreground: #c9ddff;
+    --selection: #382f59;
+    --selection-foreground: #ded6ff;
 
     /* ==================================================
        STATUS CARDS
     ================================================== */
 
-    --card-success: #173b35;
-    --card-success-border: #28594e;
+    --card-success: #27362d;
+    --card-success-border: #3d684b;
 
-    --card-warning: #3a2c23;
-    --card-warning-border: #654631;
+    --card-warning: #3b2a25;
+    --card-warning-border: #754833;
 
-    --card-kitchen: #302b59;
-    --card-kitchen-border: #534b8d;
+    --card-kitchen: #302c3d;
+    --card-kitchen-border: #5e507c;
 
-    --card-info: #1c365d;
-    --card-info-border: #31558b;
+    --card-info: #293540;
+    --card-info-border: #41658a;
 
-    --card-destructive: #3b252c;
+    --card-destructive: #3b2b31;
     --card-destructive-border: #67404a;
 
-    --card-primary: #1c365d;
-    --card-primary-border: #31558b;
+    --card-primary: #302b40;
+    --card-primary-border: #584b7e;
 
     /* ==================================================
        SIDEBAR
     ================================================== */
 
-    --sidebar: #131e2e;
-    --sidebar-foreground: #f4f7fb;
+    --sidebar: #1d1b22;
+    --sidebar-foreground: #f8f6fa;
 
-    --sidebar-primary: #72a7f7;
-    --sidebar-primary-foreground: #0b1220;
+    --sidebar-primary: #baa8ff;
+    --sidebar-primary-foreground: #1b1722;
 
-    --sidebar-accent: #1a2739;
-    --sidebar-accent-foreground: #f4f7fb;
+    --sidebar-accent: #2b2732;
+    --sidebar-accent-foreground: #f8f6fa;
 
-    --sidebar-active: #1c365d;
-    --sidebar-active-foreground: #c9ddff;
+    --sidebar-active: #3f3658;
+    --sidebar-active-foreground: #ded6ff;
 
-    --sidebar-border: #293a50;
-    --sidebar-ring: #72a7f7;
+    --sidebar-border: #3b3544;
+    --sidebar-ring: #baa8ff;
 
     /* ==================================================
        CHARTS
     ================================================== */
 
-    --chart-1: #72a7f7;
-    --chart-2: #65c7ae;
-    --chart-3: #ab9bff;
-    --chart-4: #e3a16b;
-    --chart-5: #ee7b8c;
+    --chart-1: #baa8ff;
+    --chart-2: #82d1a2;
+    --chart-3: #91bdf1;
+    --chart-4: #f0a06a;
+    --chart-5: #f29aae;
 
     /* ==================================================
        SHADOW
@@ -493,6 +521,19 @@
     textarea,
     select {
         font: inherit;
+    }
+}
+
+@layer components {
+    .chart-theme .recharts-cartesian-grid line[stroke='#ccc'],
+    .chart-theme .recharts-polar-grid [stroke='#ccc'],
+    .chart-theme .recharts-reference-line [stroke='#ccc'] {
+        stroke: color-mix(in srgb, var(--border) 50%, transparent);
+    }
+
+    .chart-theme .recharts-dot[stroke='#fff'],
+    .chart-theme .recharts-sector[stroke='#fff'] {
+        stroke: transparent;
     }
 }
 
@@ -599,6 +640,7 @@
 
     --color-icon: var(--icon);
     --color-placeholder: var(--placeholder);
+    --color-qr-background: var(--qr-background);
 
     /* Counters */
 
@@ -613,6 +655,21 @@
     --color-accent-peach: var(--accent-peach);
     --color-accent-lavender: var(--accent-lavender);
     --color-accent-sand: var(--accent-sand);
+
+    /* Business metrics */
+
+    --color-sales: var(--sales);
+    --color-sales-soft: var(--sales-soft);
+    --color-occupancy: var(--occupancy);
+    --color-occupancy-soft: var(--occupancy-soft);
+    --color-cash: var(--cash);
+    --color-cash-soft: var(--cash-soft);
+    --color-card-payment: var(--card-payment);
+    --color-card-payment-soft: var(--card-payment-soft);
+    --color-digital-payment: var(--digital-payment);
+    --color-digital-payment-soft: var(--digital-payment-soft);
+    --color-pending: var(--pending);
+    --color-pending-soft: var(--pending-soft);
 
     /* Navigation */
 

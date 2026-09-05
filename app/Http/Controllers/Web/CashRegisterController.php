@@ -8,13 +8,13 @@ use App\Models\CancellationRequest;
 use App\Models\CashRegisterMovement;
 use App\Models\CashRegisterSession;
 use App\Models\Payment;
+use App\Models\Receipt;
 use App\Models\RestaurantTable;
 use App\Models\TableSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Response;
 
 class CashRegisterController extends Controller
@@ -130,15 +130,12 @@ class CashRegisterController extends Controller
             'payment_method' => ['required_without:payments', 'nullable', 'in:cash,card,yape,plin'],
             'amount' => ['required_without:payments', 'nullable', 'numeric', 'min:0.01'],
             'received_amount' => ['nullable', 'numeric', 'min:0'],
-            'receipt_number' => ['nullable', 'string', 'max:50'],
-            'operation_code' => ['nullable', 'string', 'max:100'],
             'receipt_type' => ['nullable', 'in:ticket,receipt,invoice'],
-            'customer_name' => [Rule::requiredIf($request->receipt_type === 'invoice'), 'nullable', 'string', 'max:150'],
-            'customer_document' => [Rule::requiredIf($request->receipt_type === 'invoice'), 'nullable', 'string', 'max:20'],
+            'customer_name' => ['nullable', 'string', 'max:150'],
+            'customer_document' => ['nullable', 'string', 'max:20'],
             'payments' => ['nullable', 'array', 'min:2'],
             'payments.*.payment_method' => ['required_with:payments', 'distinct', 'in:cash,card,yape,plin'],
             'payments.*.amount' => ['required_with:payments', 'numeric', 'min:0.01'],
-            'payments.*.operation_code' => ['nullable', 'string', 'max:100'],
         ]);
 
         return DB::transaction(function () use ($bill, $validated, $request, $activeSession) {
@@ -153,7 +150,6 @@ class CashRegisterController extends Controller
             $paymentParts = $validated['payments'] ?? [[
                 'payment_method' => $validated['payment_method'],
                 'amount' => $validated['amount'],
-                'operation_code' => $validated['operation_code'] ?? null,
             ]];
             $paymentTotal = 0.0;
             foreach ($paymentParts as $paymentPart) {
@@ -178,18 +174,23 @@ class CashRegisterController extends Controller
                 }
             }
 
-            $receiptNum = ($validated['receipt_number'] ?? null) ?: sprintf(
+            $existingPaymentCount = $lockedBill->payments()->count();
+            $receiptNum = sprintf(
                 'B001-%06d-%02d',
                 $lockedBill->id,
-                $lockedBill->payments()->count() + 1
+                $existingPaymentCount + 1
             );
 
             $paymentGroupId = (string) Str::uuid();
+            $customerName = trim((string) ($validated['customer_name'] ?? '')) ?: 'Ninguno';
+            $customerDocument = trim((string) ($validated['customer_document'] ?? '')) ?: '00000000';
+            $createdPayments = [];
+
             foreach ($paymentParts as $index => $part) {
                 $receivedAmount = $part['payment_method'] === 'cash'
                     ? (float) ($validated['received_amount'] ?? $part['amount'])
                     : null;
-                Payment::create([
+                $createdPayments[] = Payment::create([
                     'cash_register_session_id' => $activeSession->id,
                     'payment_group_id' => $paymentGroupId,
                     'bill_id' => $lockedBill->id,
@@ -198,22 +199,30 @@ class CashRegisterController extends Controller
                     'amount' => $part['amount'],
                     'received_amount' => $receivedAmount,
                     'change_amount' => $receivedAmount === null ? 0 : max(0, $receivedAmount - (float) $part['amount']),
-                    'operation_code' => $part['operation_code'] ?? null,
+                    'operation_code' => sprintf(
+                        'OP-%s-B%06d-%02d',
+                        now('America/Lima')->format('Ymd'),
+                        $lockedBill->id,
+                        $existingPaymentCount + $index + 1,
+                    ),
                     'receipt_type' => $validated['receipt_type'] ?? 'ticket',
                     'receipt_number' => count($paymentParts) === 1 ? $receiptNum : $receiptNum.'-'.($index + 1),
-                    'customer_name' => $validated['customer_name'] ?? null,
-                    'customer_document' => $validated['customer_document'] ?? null,
+                    'customer_name' => $customerName,
+                    'customer_document' => $customerDocument,
                 ]);
             }
 
             // Comprobar si la cuenta quedó totalmente saldada
+            $generatedReceipt = null;
             if ($lockedBill->fresh()->balance <= 0.01) {
+                $saleSnapshot = $this->createSaleSnapshot($lockedBill);
+
                 // 1. Cerrar cuenta
                 $lockedBill->update([
                     'status' => 'closed',
                     'closed_at' => now(),
                     'closed_by' => $request->user()->id,
-                    'sale_snapshot' => $this->createSaleSnapshot($lockedBill),
+                    'sale_snapshot' => $saleSnapshot,
                 ]);
 
                 // 2. Cerrar sesión de mesa
@@ -235,6 +244,32 @@ class CashRegisterController extends Controller
                 $lockedBill->orders()
                     ->where('status', '!=', 'completed')
                     ->update(['status' => 'completed']);
+
+                $firstPayment = $createdPayments[0];
+                $paymentMethods = collect($createdPayments)
+                    ->pluck('payment_method')
+                    ->unique()
+                    ->implode(',');
+
+                $generatedReceipt = Receipt::firstOrCreate(
+                    ['bill_id' => $lockedBill->id],
+                    [
+                        'payment_id' => $firstPayment->id,
+                        'number' => $firstPayment->receipt_number,
+                        'receipt_type' => $firstPayment->receipt_type,
+                        'customer_name' => $customerName,
+                        'customer_document' => $customerDocument,
+                        'subtotal' => $lockedBill->total_amount,
+                        'tax' => 0,
+                        'total' => $lockedBill->total_amount,
+                        'currency' => 'PEN',
+                        'payment_method' => $paymentMethods,
+                        'operation_code' => $firstPayment->operation_code,
+                        'status' => 'issued',
+                        'sunat_status' => 'pending',
+                        'issued_at' => now(),
+                    ],
+                );
             }
 
             $change = null;
@@ -249,7 +284,12 @@ class CashRegisterController extends Controller
 
             return redirect()
                 ->route('cash-register.index')
-                ->with('success', $successMsg);
+                ->with('success', $successMsg)
+                ->with('ticket', $generatedReceipt ? [
+                    'number' => $generatedReceipt->number,
+                    'print_url' => route('receipts.print', $generatedReceipt),
+                    'download_url' => route('receipts.download', $generatedReceipt),
+                ] : null);
         });
     }
 

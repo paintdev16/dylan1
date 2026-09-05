@@ -12,13 +12,16 @@ class UserTableSeeder extends Seeder
      */
     public function run(): void
     {
-        $superAdmin = User::firstOrCreate(
+        $root = User::updateOrCreate(
             ['email' => 'paint@gmail.com'],
             [
                 'name' => 'Paint',
                 'password' => bcrypt('123456789'),
+                'email_verified_at' => now(),
+                'is_root' => true,
             ]
         );
-        $superAdmin->syncRoles(['super-admin']);
+
+        $root->syncRoles(['super-admin']);
     }
 }

@@ -26,7 +26,7 @@ export default function Welcome() {
             description:
                 'Apertura de mesas con número de comensales, asignación automática de mozo y apertura inmediata de cuenta en caja.',
             icon: Table2,
-            color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+            color: 'text-success bg-success-soft border-card-success-border',
             href: '/tables',
             badge: 'Salón',
         },
@@ -35,7 +35,7 @@ export default function Welcome() {
             description:
                 'Configuración por fecha (Perú) de modalidades: Menú completo, Solo segundo y Entrada + postre, con stock de porciones.',
             icon: UtensilsCrossed,
-            color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+            color: 'text-warning bg-warning-soft border-card-warning-border',
             href: '/daily-menu',
             badge: 'Cocina / Menú',
         },
@@ -44,7 +44,7 @@ export default function Welcome() {
             description:
                 'Toma de múltiples pedidos durante la misma atención sin duplicar cuentas, guardando componentes y notas exactas.',
             icon: Utensils,
-            color: 'text-orange-500 bg-orange-500/10 border-orange-500/20',
+            color: 'text-warning bg-warning-soft border-card-warning-border',
             href: '/orders',
             badge: 'Mozos',
         },
@@ -53,7 +53,7 @@ export default function Welcome() {
             description:
                 'Monitor de preparación FIFO para cocineros con filtrado inteligente: solo platos preparados, bebidas despachadas.',
             icon: ChefHat,
-            color: 'text-red-500 bg-red-500/10 border-red-500/20',
+            color: 'text-destructive bg-destructive-soft border-destructive-border',
             href: '/kitchen',
             badge: 'KDS Cocina',
         },
@@ -62,7 +62,7 @@ export default function Welcome() {
             description:
                 'Turnos con fondo inicial, cobros multi-método (Efectivo, Tarjeta, Yape, Plin), cálculo de vuelto y arqueo con cuadre.',
             icon: CircleDollarSign,
-            color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+            color: 'text-info bg-info-soft border-card-info-border',
             href: '/cash-register',
             badge: 'Caja',
         },
@@ -71,7 +71,7 @@ export default function Welcome() {
             description:
                 'Al cubrir el 100% de la cuenta, en una sola transacción se cierra la sesión, se completan comandas y se libera la mesa.',
             icon: CheckCircle2,
-            color: 'text-teal-500 bg-teal-500/10 border-teal-500/20',
+            color: 'text-success bg-success-soft border-card-success-border',
             href: '/bills',
             badge: 'Automatización',
         },
@@ -80,7 +80,7 @@ export default function Welcome() {
             description:
                 'Trazabilidad en tiempo real con stock_movements, control de stock de bebidas y cancelaciones justificadas con motivo.',
             icon: Package,
-            color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+            color: 'text-kitchen bg-kitchen-soft border-card-kitchen-border',
             href: '/product-stock',
             badge: 'Almacén',
         },
@@ -89,7 +89,7 @@ export default function Welcome() {
             description:
                 'Perfiles especializados para Administrador, Mozo, Cocina y Cajero con permisos a nivel de controlador e interfaz.',
             icon: ShieldCheck,
-            color: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+            color: 'text-kitchen bg-kitchen-soft border-card-kitchen-border',
             href: '/users',
             badge: 'Seguridad',
         },
@@ -191,7 +191,7 @@ export default function Welcome() {
 
                         <h1 className="mx-auto max-w-4xl text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
                             Control total para tu restaurante:
-                            <span className="mt-1 block bg-gradient-to-r from-primary via-amber-500 to-orange-500 bg-clip-text text-transparent">
+                            <span className="mt-1 block bg-linear-to-r from-primary via-warning to-destructive bg-clip-text text-transparent">
                                 Salón, Cocina KDS y Caja
                             </span>
                         </h1>
@@ -253,7 +253,7 @@ export default function Welcome() {
                                 </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                                <div className="text-2xl font-bold text-warning">
                                     FIFO
                                 </div>
                                 <div className="mt-0.5 text-xs text-muted-foreground">
@@ -261,7 +261,7 @@ export default function Welcome() {
                                 </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                <div className="text-2xl font-bold text-success">
                                     Atómico
                                 </div>
                                 <div className="mt-0.5 text-xs text-muted-foreground">
@@ -269,7 +269,7 @@ export default function Welcome() {
                                 </div>
                             </div>
                             <div className="rounded-xl border bg-card p-4 shadow-sm">
-                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                <div className="text-2xl font-bold text-info">
                                     Multi-Pago
                                 </div>
                                 <div className="mt-0.5 text-xs text-muted-foreground">

@@ -86,11 +86,11 @@ export default function Index({ products, categories }: Props) {
 
                 {/* Tabla */}
                 {products.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+                    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                                    <TableRow className="bg-primary-soft/60 hover:bg-primary-soft/60">
                                         <TableHead className="h-12 px-5 font-semibold">
                                             Producto
                                         </TableHead>
@@ -155,8 +155,8 @@ export default function Index({ products, categories }: Props) {
                                                                 className="size-12 shrink-0 rounded-lg border object-cover shadow-sm"
                                                             />
                                                         ) : (
-                                                            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg border bg-muted">
-                                                                <ImageOff className="size-5 text-muted-foreground" />
+                                                            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary-soft">
+                                                                <ImageOff className="size-5 text-primary" />
                                                             </div>
                                                         )}
 
@@ -197,7 +197,7 @@ export default function Index({ products, categories }: Props) {
                                                 {/* Precio */}
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
-                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
                                                             <BadgeDollarSign className="size-4" />
                                                         </div>
 
@@ -242,7 +242,7 @@ export default function Index({ products, categories }: Props) {
                                                         <span
                                                             className={
                                                                 isActive
-                                                                    ? 'text-sm font-medium text-emerald-600 dark:text-emerald-400'
+                                                                    ? 'text-sm font-medium text-success'
                                                                     : 'text-sm font-medium text-muted-foreground'
                                                             }
                                                         >
@@ -285,9 +285,9 @@ export default function Index({ products, categories }: Props) {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 text-center">
-                        <div className="mb-2 rounded-full bg-muted p-3">
-                            <BadgeDollarSign className="size-5 text-muted-foreground" />
+                    <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary-soft/40 text-center">
+                        <div className="mb-2 rounded-full bg-primary-soft p-3">
+                            <BadgeDollarSign className="size-5 text-primary" />
                         </div>
 
                         <p className="font-medium">

@@ -9,33 +9,33 @@ export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
         >
             <style>
                 {`
-                    .f-p1 { fill: light-dark(#8b3cf9, #a66bff); }
-                    .f-p2 { fill: light-dark(#7124e0, #9355ff); }
-                    .f-p3 { fill: light-dark(#5a0fea, #7d3dff); }
-                    .f-p4 { fill: light-dark(#4b0dbf, #6b2ee0); }
+                    .f-p1 { fill: var(--primary); }
+                    .f-p2 { fill: var(--primary-foreground-soft); }
+                    .f-p3 { fill: var(--sales); }
+                    .f-p4 { fill: var(--nav-active); }
 
-                    .f-c1 { fill: light-dark(#6fd0f5, #8fe0ff); }
-                    .f-c2 { fill: light-dark(#43b8e8, #5fcbf5); }
-                    .f-c3 { fill: light-dark(#29abe2, #4dbeee); }
-                    .f-c4 { fill: light-dark(#1e8fc7, #3aaede); }
+                    .f-c1 { fill: var(--occupancy); }
+                    .f-c2 { fill: var(--info); }
+                    .f-c3 { fill: var(--chart-3); }
+                    .f-c4 { fill: var(--info-foreground-soft); }
 
-                    .f-b1 { fill: light-dark(#4fb6ff, #6fc5ff); }
-                    .f-b2 { fill: light-dark(#1e9eff, #47b0ff); }
-                    .f-b3 { fill: light-dark(#0095ff, #33a9ff); }
-                    .f-b4 { fill: light-dark(#0070cc, #1e8fe0); }
+                    .f-b1 { fill: var(--card-payment); }
+                    .f-b2 { fill: var(--info); }
+                    .f-b3 { fill: var(--chart-3); }
+                    .f-b4 { fill: var(--info-foreground-soft); }
 
-                    .f-v1 { fill: light-dark(#8d82f5, #a79cff); }
-                    .f-v2 { fill: light-dark(#6e62ee, #8c81ff); }
-                    .f-v3 { fill: light-dark(#5b4fe9, #7a6eff); }
-                    .f-v4 { fill: light-dark(#4038b0, #5c52d6); }
+                    .f-v1 { fill: var(--kitchen); }
+                    .f-v2 { fill: var(--primary); }
+                    .f-v3 { fill: var(--sales); }
+                    .f-v4 { fill: var(--primary-foreground-soft); }
 
-                    .shadow {
-                        filter: drop-shadow(0 4px 6px light-dark(rgba(26, 10, 77, 0.25), rgba(0, 0, 0, 0.5)));
+                    .logo-shadow {
+                        filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--shadow) 35%, transparent));
                     }
                 `}
             </style>
 
-            <g className="shadow">
+            <g className="logo-shadow">
                 {/* purple flag: 4 facets fanned from center */}
                 <path className="f-p1" d="M24,125 L0,45 L48,45 Z" />
                 <path className="f-p2" d="M24,125 L48,45 L48,180 Z" />

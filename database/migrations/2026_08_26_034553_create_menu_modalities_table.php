@@ -18,6 +18,8 @@ return new class extends Migration
                 ->constrained('daily_menus')
                 ->cascadeOnDelete();
 
+            $table->string('code')->nullable();
+
             $table->string('name');
 
             $table->text('description')->nullable();
@@ -36,6 +38,7 @@ return new class extends Migration
                 'daily_menu_id',
                 'name',
             ]);
+            $table->unique(['daily_menu_id', 'code']);
         });
     }
 

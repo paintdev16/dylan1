@@ -166,13 +166,13 @@ export default function Index({
                 {!showHistory ? (
                     <>
                         {/* Estado del Menú Completo */}
-                        <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary-soft/50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-3">
                                 <div
                                     className={`flex size-10 items-center justify-center rounded-lg ${
                                         isDailyMenuActive
-                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                            ? 'bg-success-soft text-success'
+                                            : 'bg-warning-soft text-warning'
                                     }`}
                                 >
                                     <Sparkles className="size-5" />
@@ -186,8 +186,8 @@ export default function Index({
                                         <span
                                             className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                                 isDailyMenuActive
-                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                    ? 'bg-success-soft text-success'
+                                                    : 'bg-warning-soft text-warning'
                                             }`}
                                         >
                                             {isDailyMenuActive
@@ -220,7 +220,7 @@ export default function Index({
 
                         {/* Modalidades del Menú Económico */}
                         {menuModalities.length > 0 && (
-                            <div className="rounded-xl border bg-card p-4 shadow-sm">
+                            <div className="rounded-xl border border-info/20 bg-info-soft/45 p-4 shadow-sm">
                                 <h3 className="mb-3 text-base font-semibold">
                                     Modalidades del Menú Económico (Hoy)
                                 </h3>
@@ -311,7 +311,7 @@ export default function Index({
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                                        <span className="text-sm font-bold text-success">
                                                             S/{' '}
                                                             {Number(
                                                                 modality.price,
@@ -345,11 +345,11 @@ export default function Index({
 
                         {/* Tabla de Productos de Hoy */}
                         {dailyMenuProducts.length > 0 ? (
-                            <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+                            <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                                 <div className="overflow-x-auto">
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="bg-muted/40 hover:bg-muted/40">
+                                            <TableRow className="bg-primary-soft/60 hover:bg-primary-soft/60">
                                                 <TableHead className="h-12 px-5 font-semibold">
                                                     Producto
                                                 </TableHead>
@@ -460,7 +460,7 @@ export default function Index({
                                                         {/* Precio */}
                                                         <TableCell>
                                                             <div className="flex items-center gap-2">
-                                                                <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                                <div className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
                                                                     <BadgeDollarSign className="size-4" />
                                                                 </div>
 
@@ -523,7 +523,7 @@ export default function Index({
                                                                 <span
                                                                     className={
                                                                         isActive
-                                                                            ? 'text-sm font-medium text-emerald-600 dark:text-emerald-400'
+                                                                            ? 'text-sm font-medium text-success'
                                                                             : 'text-sm font-medium text-muted-foreground'
                                                                     }
                                                                 >
@@ -566,8 +566,8 @@ export default function Index({
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed bg-muted/10 text-center">
-                                <div className="mb-2 rounded-full bg-muted p-3">
+                            <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary-soft/40 text-center">
+                                <div className="mb-2 rounded-full bg-primary-soft p-3">
                                     <BadgeDollarSign className="size-5 text-muted-foreground" />
                                 </div>
 
@@ -591,10 +591,10 @@ export default function Index({
                             reportes. No pueden ser modificados.
                         </div>
 
-                        <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+                        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                                    <TableRow className="bg-primary-soft/60 hover:bg-primary-soft/60">
                                         <TableHead className="h-12 px-5 font-semibold">
                                             Fecha
                                         </TableHead>

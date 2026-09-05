@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('name')->unique();
+            $table->string('code')->nullable()->unique();
 
             $table->unsignedInteger('display_order')->default(0);
 

@@ -123,7 +123,7 @@ test('orders cannot be created on a closed bill', function () {
     $bill = Bill::create([
         'opening_waiter_id' => $waiter->id,
         'order_type' => 'takeout',
-        'status' => 'paid',
+        'status' => 'closed',
         'opened_at' => now(),
         'closed_at' => now(),
     ]);

@@ -46,6 +46,14 @@ return new class extends Migration
                 'delivered',
             ])->default('pending');
 
+            $table->boolean('is_cancelled')->default(false);
+            $table->string('cancellation_reason')->nullable();
+            $table->foreignId('cancelled_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+            $table->timestamp('cancelled_at')->nullable();
+
             $table->timestamps();
         });
 

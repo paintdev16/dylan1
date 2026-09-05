@@ -21,10 +21,19 @@ return new class extends Migration
             $table->foreignId('opening_waiter_id')
                 ->constrained('users')
                 ->restrictOnDelete();
+            $table->foreignId('table_session_id')
+                ->nullable()
+                ->constrained('table_sessions')
+                ->nullOnDelete();
             $table->enum('order_type', ['dine_in', 'takeout']);
             $table->enum('status', ['open', 'closed'])->default('open');
             $table->timestamp('opened_at')->useCurrent();
             $table->timestamp('closed_at')->nullable();
+            $table->json('sale_snapshot')->nullable();
+            $table->foreignId('closed_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
         });
 
         if (DB::getDriverName() === 'pgsql') {

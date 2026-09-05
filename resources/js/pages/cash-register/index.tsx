@@ -1,4 +1,4 @@
-import { Form, Head, usePoll } from '@inertiajs/react';
+import { Form, Head, usePage, usePoll } from '@inertiajs/react';
 import {
     AlertCircle,
     Banknote,
@@ -7,6 +7,7 @@ import {
     Clock,
     CreditCard,
     DollarSign,
+    Eye,
     Lock,
     QrCode,
     Receipt,
@@ -15,7 +16,7 @@ import {
     Utensils,
     Wallet,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { PageHeader } from '@/components/page-header';
 import {
@@ -56,6 +57,7 @@ import {
     Bill,
     CashRegisterSession,
     CashRegisterSummary,
+    OrderItem,
     PaymentMethod,
 } from '@/types/restaurant';
 
@@ -77,6 +79,16 @@ type Props = {
     }>;
 };
 
+type TicketFlash = {
+    number: string;
+    print_url: string;
+    download_url: string;
+};
+
+type FlashProps = {
+    ticket?: TicketFlash | null;
+};
+
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
     cash: 'Efectivo',
     card: 'Tarjeta POS',
@@ -95,6 +107,69 @@ function formatTime(dateString: string): string {
     }).format(new Date(dateString));
 }
 
+function consumptionItemName(item: OrderItem): string {
+    if (item.product) {
+        return `${item.product.name}${item.product.presentation ? ` ${item.product.presentation}` : ''}`;
+    }
+
+    return item.menu_modality?.name ?? 'Consumo';
+}
+
+function consumptionItemComponents(item: OrderItem): string[] {
+    return (item.daily_menu_products ?? [])
+        .map((dailyMenuProduct) => dailyMenuProduct.product?.name)
+        .filter((name): name is string => Boolean(name));
+}
+
+type GroupedConsumptionItem = {
+    key: string;
+    name: string;
+    components: string[];
+    notes: string | null;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+    isCancelled: boolean;
+};
+
+function groupedConsumptionItems(bill: Bill | null): GroupedConsumptionItem[] {
+    const groupedItems = new Map<string, GroupedConsumptionItem>();
+
+    for (const order of bill?.orders ?? []) {
+        for (const item of order.items ?? []) {
+            const components = consumptionItemComponents(item);
+            const name = consumptionItemName(item);
+            const key = [
+                item.product_id ?? `modality-${item.menu_modality_id}`,
+                components.join('|'),
+                item.notes ?? '',
+                Number(item.unit_price),
+                item.is_cancelled ? 'cancelled' : 'active',
+            ].join(':');
+            const current = groupedItems.get(key);
+
+            if (current) {
+                current.quantity += Number(item.quantity);
+                current.subtotal += Number(item.subtotal);
+                continue;
+            }
+
+            groupedItems.set(key, {
+                key,
+                name,
+                components,
+                notes: item.notes,
+                quantity: Number(item.quantity),
+                unitPrice: Number(item.unit_price),
+                subtotal: Number(item.subtotal),
+                isCancelled: Boolean(item.is_cancelled),
+            });
+        }
+    }
+
+    return [...groupedItems.values()];
+}
+
 export default function CashRegisterIndex({
     activeSession,
     summary,
@@ -103,6 +178,16 @@ export default function CashRegisterIndex({
     cancellationRequests,
 }: Props) {
     const isMobile = useIsMobile();
+    const { flash } = usePage<{ flash: FlashProps }>().props;
+    const [ticket, setTicket] = useState<TicketFlash | null>(null);
+    const [ticketPreviewOpen, setTicketPreviewOpen] = useState(false);
+
+    useEffect(() => {
+        if (flash.ticket?.print_url) {
+            setTicket(flash.ticket);
+            setTicketPreviewOpen(true);
+        }
+    }, [flash.ticket?.print_url]);
 
     usePoll(5000, {
         only: [
@@ -114,7 +199,7 @@ export default function CashRegisterIndex({
         ],
     });
     const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
-    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [detailBill, setDetailBill] = useState<Bill | null>(null);
     const [closeSessionModalOpen, setCloseSessionModalOpen] = useState(false);
     const [movementModalOpen, setMovementModalOpen] = useState(false);
 
@@ -122,7 +207,6 @@ export default function CashRegisterIndex({
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
     const [paymentAmount, setPaymentAmount] = useState<string>('');
     const [receivedAmount, setReceivedAmount] = useState<string>('');
-    const [receiptNumber, setReceiptNumber] = useState<string>('');
     const [splitPayment, setSplitPayment] = useState(false);
     const [firstPaymentAmount, setFirstPaymentAmount] = useState<string>('');
     const [secondPaymentMethod, setSecondPaymentMethod] =
@@ -142,14 +226,12 @@ export default function CashRegisterIndex({
         setPaymentAmount(bill.balance.toString());
         setReceivedAmount(bill.balance.toString());
         setPaymentMethod('cash');
-        setReceiptNumber('');
         setSplitPayment(false);
         setFirstPaymentAmount((bill.balance / 2).toFixed(2));
         setSecondPaymentMethod('yape');
         setReceiptType('ticket');
         setCustomerName('');
         setCustomerDocument('');
-        setPaymentModalOpen(true);
     };
 
     const calculatedChange = () => {
@@ -160,6 +242,7 @@ export default function CashRegisterIndex({
 
     const expectedCashInDrawer = summary?.expected_cash ?? 0;
     const closingDiff = (parseFloat(closingAmount) || 0) - expectedCashInDrawer;
+    const detailConsumptionItems = groupedConsumptionItems(detailBill);
 
     return (
         <>
@@ -174,8 +257,8 @@ export default function CashRegisterIndex({
 
                     {activeSession && (
                         <div className="flex items-center gap-3">
-                            <Badge className="gap-1.5 bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
+                            <Badge className="gap-1.5 bg-success-soft px-3 py-1 text-xs font-medium text-success">
+                                <span className="size-2 animate-pulse rounded-full bg-success" />
                                 Turno de Caja Abierto (
                                 {formatTime(activeSession.opened_at)})
                             </Badge>
@@ -207,10 +290,40 @@ export default function CashRegisterIndex({
                     )}
                 </div>
 
+                {ticket && (
+                    <div className="flex flex-col gap-3 rounded-2xl border border-success/30 bg-success-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="font-semibold text-success">
+                                Ticket generado correctamente
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                Comprobante {ticket.number}
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setTicketPreviewOpen(true)}
+                            >
+                                Imprimir ticket
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() =>
+                                    window.open(ticket.download_url, '_blank')
+                                }
+                            >
+                                Descargar PDF
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Si no hay sesión activa: Apertura de Caja */}
                 {!activeSession ? (
                     <div className="mx-auto my-8 max-w-lg space-y-6 rounded-2xl border bg-card p-8 text-center shadow-sm">
-                        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-soft text-primary">
                             <CircleDollarSign className="size-8" />
                         </div>
 
@@ -265,7 +378,7 @@ export default function CashRegisterIndex({
 
                                     <Button
                                         type="submit"
-                                        className="w-full bg-emerald-600 py-5 font-semibold text-white hover:bg-emerald-700"
+                                        className="w-full bg-success py-5 font-semibold text-success-foreground hover:bg-success"
                                         disabled={processing}
                                     >
                                         {processing
@@ -280,7 +393,7 @@ export default function CashRegisterIndex({
                     <>
                         {/* Resumen Financiero del Turno */}
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <div className="space-y-2 rounded-xl border bg-card p-4 shadow-sm">
+                            <div className="space-y-2 rounded-xl border border-primary/25 bg-primary-soft p-4 shadow-sm">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Fondo Inicial</span>
                                     <Wallet className="size-4 text-primary" />
@@ -292,12 +405,12 @@ export default function CashRegisterIndex({
                                 </p>
                             </div>
 
-                            <div className="space-y-2 rounded-xl border bg-card p-4 shadow-sm">
+                            <div className="space-y-2 rounded-xl border border-cash/25 bg-cash-soft p-4 shadow-sm">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Efectivo en Gaveta</span>
-                                    <Banknote className="size-4 text-emerald-600" />
+                                    <Banknote className="size-4 text-cash" />
                                 </div>
-                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                <p className="text-2xl font-bold text-cash">
                                     {formatCurrency(
                                         summary?.expected_cash ?? 0,
                                     )}
@@ -311,12 +424,12 @@ export default function CashRegisterIndex({
                                 </p>
                             </div>
 
-                            <div className="space-y-2 rounded-xl border bg-card p-4 shadow-sm">
+                            <div className="space-y-2 rounded-xl border border-card-payment/25 bg-card-payment-soft p-4 shadow-sm">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Tarjetas & Digital</span>
-                                    <CreditCard className="size-4 text-blue-600" />
+                                    <CreditCard className="size-4 text-card-payment" />
                                 </div>
-                                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                <p className="text-2xl font-bold text-card-payment">
                                     {formatCurrency(
                                         (summary?.card_total ?? 0) +
                                             (summary?.digital_total ?? 0),
@@ -332,12 +445,12 @@ export default function CashRegisterIndex({
                                 </p>
                             </div>
 
-                            <div className="space-y-2 rounded-xl border bg-card p-4 shadow-sm">
+                            <div className="space-y-2 rounded-xl border border-sales/25 bg-sales-soft p-4 shadow-sm">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Total Ventas Turno</span>
-                                    <TrendingUp className="size-4 text-purple-600" />
+                                    <TrendingUp className="size-4 text-sales" />
                                 </div>
-                                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                <p className="text-2xl font-bold text-sales">
                                     {formatCurrency(
                                         summary?.total_collected ?? 0,
                                     )}
@@ -455,7 +568,7 @@ export default function CashRegisterIndex({
                                                             ),
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="text-right font-bold text-emerald-600 dark:text-emerald-400">
+                                                    <TableCell className="text-right font-bold text-success">
                                                         {formatCurrency(
                                                             Number(
                                                                 bill.balance,
@@ -463,18 +576,34 @@ export default function CashRegisterIndex({
                                                         )}
                                                     </TableCell>
                                                     <TableCell className="text-center">
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 gap-1.5 bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
-                                                            onClick={() =>
-                                                                handleOpenPayment(
-                                                                    bill,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Banknote className="size-3.5" />
-                                                            Cobrar
-                                                        </Button>
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 gap-1.5 border-info/30 text-xs font-semibold text-info hover:bg-info-soft hover:text-info"
+                                                                onClick={() =>
+                                                                    setDetailBill(
+                                                                        bill,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Eye className="size-3.5" />
+                                                                Detalle
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                className="h-8 gap-1.5 bg-success text-xs font-semibold text-success-foreground hover:bg-success"
+                                                                onClick={() =>
+                                                                    handleOpenPayment(
+                                                                        bill,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Banknote className="size-3.5" />
+                                                                Cobrar
+                                                            </Button>
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             );
@@ -486,7 +615,7 @@ export default function CashRegisterIndex({
                                                     colSpan={8}
                                                     className="py-12 text-center text-muted-foreground"
                                                 >
-                                                    <CheckCircle2 className="mx-auto mb-2 size-8 text-emerald-500" />
+                                                    <CheckCircle2 className="mx-auto mb-2 size-8 text-success" />
                                                     <p className="text-sm font-medium">
                                                         No hay cuentas
                                                         pendientes por cobrar.
@@ -592,18 +721,204 @@ export default function CashRegisterIndex({
                 )}
             </div>
 
-            {/* Drawer de Cobro */}
-            {selectedBill && (
+            {/* Drawer de Detalle de Consumo */}
+            {detailBill && (
                 <Drawer
-                    open={paymentModalOpen}
-                    onOpenChange={setPaymentModalOpen}
+                    open={detailBill !== null}
+                    onOpenChange={(open) => {
+                        if (!open) setDetailBill(null);
+                    }}
                     showSwipeHandle={isMobile}
                     swipeDirection={isMobile ? 'down' : 'right'}
                 >
                     <DrawerContent className="overflow-y-auto">
                         <DrawerHeader className="border-b px-4 py-4 sm:px-6">
                             <DrawerTitle className="flex items-center gap-2 text-lg">
-                                <DollarSign className="size-5 text-emerald-600" />
+                                <ReceiptText className="size-5 text-info" />
+                                Detalle de Cuenta #{detailBill.id}
+                            </DrawerTitle>
+                            <DrawerDescription>
+                                {detailBill.order_type === 'dine_in'
+                                    ? `Mesa #${detailBill.restaurant_table?.number ?? 'Sin mesa'}`
+                                    : 'Pedido para llevar'}{' '}
+                                · Mozo:{' '}
+                                {detailBill.opening_waiter?.name ?? 'Sin mozo'}
+                            </DrawerDescription>
+                        </DrawerHeader>
+
+                        <div className="space-y-5 p-4 sm:p-6">
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="rounded-xl border border-sales/25 bg-sales-soft p-3">
+                                    <p className="text-xs text-muted-foreground">
+                                        Consumo
+                                    </p>
+                                    <p className="mt-1 font-bold text-sales">
+                                        {formatCurrency(
+                                            detailBill.total_amount,
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="rounded-xl border border-cash/25 bg-cash-soft p-3">
+                                    <p className="text-xs text-muted-foreground">
+                                        Pagado
+                                    </p>
+                                    <p className="mt-1 font-bold text-cash">
+                                        {formatCurrency(detailBill.paid_amount)}
+                                    </p>
+                                </div>
+                                <div className="rounded-xl border border-warning/25 bg-warning-soft p-3">
+                                    <p className="text-xs text-muted-foreground">
+                                        Pendiente
+                                    </p>
+                                    <p className="mt-1 font-bold text-warning">
+                                        {formatCurrency(detailBill.balance)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {detailConsumptionItems.length > 0 && (
+                                    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+                                        <div className="flex items-center justify-between border-b bg-primary-soft/50 px-4 py-3">
+                                            <div>
+                                                <p className="text-sm font-semibold">
+                                                    Consumo agrupado de la
+                                                    sesión
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Todas las comandas
+                                                    pertenecen a esta misma
+                                                    cuenta.
+                                                </p>
+                                            </div>
+                                            <Badge
+                                                variant="outline"
+                                                className="border-card-primary-border bg-card-primary text-primary"
+                                            >
+                                                {
+                                                    (detailBill.orders ?? [])
+                                                        .length
+                                                }{' '}
+                                                {(detailBill.orders ?? [])
+                                                    .length === 1
+                                                    ? 'comanda'
+                                                    : 'comandas'}
+                                            </Badge>
+                                        </div>
+
+                                        <div className="divide-y">
+                                            {detailConsumptionItems.map(
+                                                (item) => (
+                                                    <div
+                                                        key={item.key}
+                                                        className={`flex items-start justify-between gap-4 p-4 ${item.isCancelled ? 'bg-destructive-soft/50 opacity-70' : ''}`}
+                                                    >
+                                                        <div className="min-w-0">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <p className="font-medium">
+                                                                    {
+                                                                        item.quantity
+                                                                    }
+                                                                    ×{' '}
+                                                                    {item.name}
+                                                                </p>
+                                                                {item.isCancelled && (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="border-destructive-border bg-destructive-soft text-destructive"
+                                                                    >
+                                                                        Cancelado
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+
+                                                            {item.components
+                                                                .length > 0 && (
+                                                                <p className="mt-1 text-xs text-primary">
+                                                                    {item.components.join(
+                                                                        ' + ',
+                                                                    )}
+                                                                </p>
+                                                            )}
+
+                                                            {item.notes && (
+                                                                <p className="mt-1 text-xs text-warning italic">
+                                                                    “
+                                                                    {item.notes}
+                                                                    ”
+                                                                </p>
+                                                            )}
+
+                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                {formatCurrency(
+                                                                    item.unitPrice,
+                                                                )}{' '}
+                                                                c/u
+                                                            </p>
+                                                        </div>
+
+                                                        <p className="shrink-0 font-semibold">
+                                                            {formatCurrency(
+                                                                item.subtotal,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {detailConsumptionItems.length === 0 && (
+                                    <div className="rounded-xl border border-dashed border-info/25 bg-info-soft/40 p-8 text-center">
+                                        <Receipt className="mx-auto mb-2 size-8 text-info" />
+                                        <p className="text-sm font-medium">
+                                            Esta cuenta no tiene consumos.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-xl border border-sales/25 bg-sales-soft p-4">
+                                <span className="font-semibold">
+                                    Total consumido
+                                </span>
+                                <span className="text-xl font-bold text-sales">
+                                    {formatCurrency(detailBill.total_amount)}
+                                </span>
+                            </div>
+
+                            <Button
+                                type="button"
+                                className="w-full bg-success text-success-foreground hover:bg-success"
+                                onClick={() => {
+                                    const bill = detailBill;
+                                    setDetailBill(null);
+                                    handleOpenPayment(bill);
+                                }}
+                            >
+                                <Banknote className="size-4" />
+                                Cobrar esta cuenta
+                            </Button>
+                        </div>
+                    </DrawerContent>
+                </Drawer>
+            )}
+
+            {/* Drawer de Cobro */}
+            {selectedBill && (
+                <Drawer
+                    open={selectedBill !== null}
+                    onOpenChange={(open) => {
+                        if (!open) setSelectedBill(null);
+                    }}
+                    showSwipeHandle={isMobile}
+                    swipeDirection={isMobile ? 'down' : 'right'}
+                >
+                    <DrawerContent className="overflow-y-auto">
+                        <DrawerHeader className="border-b px-4 py-4 sm:px-6">
+                            <DrawerTitle className="flex items-center gap-2 text-lg">
+                                <DollarSign className="size-5 text-success" />
                                 Cobrar Cuenta #{selectedBill.id}
                             </DrawerTitle>
                             <DrawerDescription>
@@ -611,7 +926,7 @@ export default function CashRegisterIndex({
                                     ? `Mesa #${selectedBill.restaurant_table?.number ?? 'Sin mesa'}`
                                     : 'Pedido Para Llevar'}
                                 {' · Saldo a Liquidar: '}
-                                <strong className="font-bold text-emerald-600">
+                                <strong className="font-bold text-success">
                                     {formatCurrency(selectedBill.balance)}
                                 </strong>
                             </DrawerDescription>
@@ -620,7 +935,7 @@ export default function CashRegisterIndex({
                         <Form
                             {...payBill.form(selectedBill)}
                             className="space-y-4 p-4 sm:p-6"
-                            onSuccess={() => setPaymentModalOpen(false)}
+                            onSuccess={() => setSelectedBill(null)}
                         >
                             {({ errors, processing }) => (
                                 <>
@@ -873,7 +1188,7 @@ export default function CashRegisterIndex({
                                                             e.target.value,
                                                         )
                                                     }
-                                                    className="bg-emerald-50/20 text-base font-bold"
+                                                    className="bg-success-soft text-base font-bold"
                                                     autoFocus
                                                 />
                                                 {errors.received_amount && (
@@ -887,11 +1202,11 @@ export default function CashRegisterIndex({
 
                                     {/* Cálculo de Vuelto */}
                                     {paymentMethod === 'cash' && (
-                                        <div className="flex items-center justify-between rounded-lg border bg-emerald-50/30 p-3 dark:bg-emerald-950/20">
+                                        <div className="flex items-center justify-between rounded-lg border bg-success-soft p-3">
                                             <span className="text-xs font-medium text-muted-foreground">
                                                 Vuelto a entregar al cliente:
                                             </span>
-                                            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                            <span className="text-lg font-bold text-success">
                                                 {formatCurrency(
                                                     calculatedChange(),
                                                 )}
@@ -948,9 +1263,6 @@ export default function CashRegisterIndex({
                                                         event.target.value,
                                                     )
                                                 }
-                                                required={
-                                                    receiptType === 'invoice'
-                                                }
                                             />
                                         </div>
                                     </div>
@@ -971,26 +1283,6 @@ export default function CashRegisterIndex({
                                                     event.target.value,
                                                 )
                                             }
-                                            required={receiptType === 'invoice'}
-                                        />
-                                    </div>
-
-                                    {/* Nro de Comprobante opcional */}
-                                    <div className="space-y-1.5">
-                                        <Label
-                                            htmlFor="receipt_number"
-                                            className="text-xs"
-                                        >
-                                            N° Comprobante / Ticket (Opcional)
-                                        </Label>
-                                        <Input
-                                            id="receipt_number"
-                                            name="receipt_number"
-                                            placeholder={`B001-${String(selectedBill.id).padStart(6, '0')}`}
-                                            value={receiptNumber}
-                                            onChange={(e) =>
-                                                setReceiptNumber(e.target.value)
-                                            }
                                         />
                                     </div>
 
@@ -1000,14 +1292,14 @@ export default function CashRegisterIndex({
                                             type="button"
                                             variant="outline"
                                             onClick={() =>
-                                                setPaymentModalOpen(false)
+                                                setSelectedBill(null)
                                             }
                                         >
                                             Cancelar
                                         </Button>
                                         <Button
                                             type="submit"
-                                            className="bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+                                            className="bg-success font-semibold text-success-foreground hover:bg-success"
                                             disabled={
                                                 processing || !paymentAmount
                                             }
@@ -1211,10 +1503,10 @@ export default function CashRegisterIndex({
                                     <div
                                         className={`flex items-center justify-between rounded-lg border p-3 text-xs font-semibold ${
                                             Math.abs(closingDiff) < 0.01
-                                                ? 'border-emerald-300 bg-emerald-100/50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300'
+                                                ? 'border-card-success-border bg-success-soft text-success'
                                                 : closingDiff > 0
-                                                  ? 'border-blue-300 bg-blue-100/50 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300'
-                                                  : 'border-red-300 bg-red-100/50 text-red-800 dark:bg-red-950/30 dark:text-red-300'
+                                                  ? 'border-card-info-border bg-info-soft text-info'
+                                                  : 'border-destructive-border bg-destructive-soft text-destructive'
                                         }`}
                                     >
                                         <span>
@@ -1276,6 +1568,66 @@ export default function CashRegisterIndex({
                         </Form>
                     </DialogContent>
                 </Dialog>
+            )}
+
+            {ticket && (
+                <Drawer
+                    open={ticketPreviewOpen}
+                    disablePointerDismissal
+                    onOpenChange={(open) => {
+                        if (open) {
+                            setTicketPreviewOpen(true);
+                        }
+                    }}
+                    showSwipeHandle={isMobile}
+                    swipeDirection={isMobile ? 'down' : 'right'}
+                >
+                    <DrawerContent className="max-h-[95vh] overflow-y-auto">
+                        <DrawerHeader>
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <DrawerTitle>Ticket generado</DrawerTitle>
+                                    <DrawerDescription>
+                                        Comprobante {ticket.number}
+                                    </DrawerDescription>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => setTicketPreviewOpen(false)}
+                                >
+                                    Cerrar
+                                </Button>
+                            </div>
+                        </DrawerHeader>
+                        <div className="flex flex-1 justify-center overflow-auto bg-muted/40 p-4">
+                            <iframe
+                                title={`Vista previa del ticket ${ticket.number}`}
+                                src={`${ticket.print_url}?preview=1`}
+                                className="h-[520px] w-full max-w-sm rounded-lg border bg-white shadow-sm"
+                            />
+                        </div>
+                        <div className="grid gap-2 border-t p-4 sm:grid-cols-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    window.open(ticket.print_url, '_blank')
+                                }
+                            >
+                                Imprimir ticket
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() =>
+                                    window.open(ticket.download_url, '_blank')
+                                }
+                            >
+                                Descargar PDF
+                            </Button>
+                        </div>
+                    </DrawerContent>
+                </Drawer>
             )}
         </>
     );

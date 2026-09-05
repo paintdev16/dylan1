@@ -107,17 +107,17 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                 {/* Métricas Principales */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Ventas de Hoy */}
-                    <div className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+                    <div className="space-y-3 rounded-xl border border-sales/25 bg-sales-soft p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                 Ventas Cobradas Hoy
                             </span>
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-card/70 text-sales shadow-sm dark:bg-sales dark:text-primary-foreground">
                                 <TrendingUp className="size-4" />
                             </div>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-foreground">
+                            <p className="text-2xl font-bold text-sales">
                                 {formatCurrency(metrics.today_sales)}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
@@ -133,26 +133,26 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                     </div>
 
                     {/* Ocupación de Mesas */}
-                    <div className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+                    <div className="space-y-3 rounded-xl border border-occupancy/25 bg-occupancy-soft p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                 Ocupación de Salón
                             </span>
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-card/70 text-occupancy shadow-sm dark:bg-occupancy dark:text-background">
                                 <Table2 className="size-4" />
                             </div>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-foreground">
+                            <p className="text-2xl font-bold text-occupancy">
                                 {metrics.occupied_tables} /{' '}
                                 {metrics.total_tables}{' '}
                                 <span className="text-sm font-normal text-muted-foreground">
                                     mesas ({occupancyRate}%)
                                 </span>
                             </p>
-                            <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
+                            <div className="mt-2 h-1.5 w-full rounded-full bg-card/70">
                                 <div
-                                    className="h-1.5 rounded-full bg-primary transition-all"
+                                    className="h-1.5 rounded-full bg-occupancy transition-all"
                                     style={{ width: `${occupancyRate}%` }}
                                 />
                             </div>
@@ -160,17 +160,17 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                     </div>
 
                     {/* Cocina Pendiente */}
-                    <div className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+                    <div className="space-y-3 rounded-xl border border-warning/25 bg-warning-soft p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                 Cocina (KDS)
                             </span>
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-card/70 text-warning shadow-sm dark:bg-warning dark:text-warning-foreground">
                                 <ChefHat className="size-4" />
                             </div>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                            <p className="text-2xl font-bold text-warning">
                                 {metrics.pending_kitchen_items}{' '}
                                 <span className="text-sm font-normal text-muted-foreground">
                                     platos por preparar
@@ -179,7 +179,7 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                             <Button
                                 asChild
                                 variant="link"
-                                className="mt-1 h-auto p-0 text-xs text-amber-600 dark:text-amber-400"
+                                className="mt-1 h-auto p-0 text-xs text-warning"
                             >
                                 <Link
                                     href="/kitchen"
@@ -193,17 +193,17 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                     </div>
 
                     {/* Cuentas por Cobrar */}
-                    <div className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+                    <div className="space-y-3 rounded-xl border border-info/25 bg-info-soft p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                 Por Cobrar en Caja
                             </span>
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+                            <div className="flex size-8 items-center justify-center rounded-lg bg-card/70 text-info shadow-sm dark:bg-info dark:text-info-foreground">
                                 <ReceiptText className="size-4" />
                             </div>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            <p className="text-2xl font-bold text-info">
                                 {formatCurrency(metrics.pending_bills_balance)}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
@@ -250,7 +250,7 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                                 className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/40"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                                    <div className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
                                         <Table2 className="size-4" />
                                     </div>
                                     <div>
@@ -270,7 +270,7 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                                 className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/40"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                                    <div className="flex size-8 items-center justify-center rounded-lg bg-warning-soft text-warning">
                                         <Utensils className="size-4" />
                                     </div>
                                     <div>
@@ -290,7 +290,7 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                                 className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/40"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+                                    <div className="flex size-8 items-center justify-center rounded-lg bg-info-soft text-info">
                                         <CircleDollarSign className="size-4" />
                                     </div>
                                     <div>
@@ -370,11 +370,11 @@ export default function Dashboard({ metrics, recentOrders }: Props) {
                                             variant="outline"
                                             className={
                                                 order.status === 'completed'
-                                                    ? 'border-emerald-300 bg-emerald-100 text-xs text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                    ? 'border-card-success-border bg-success-soft text-xs text-success'
                                                     : order.status ===
                                                         'sent_to_kitchen'
-                                                      ? 'border-blue-300 bg-blue-100 text-xs text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
-                                                      : 'border-amber-300 bg-amber-100 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                                                      ? 'border-card-info-border bg-info-soft text-xs text-info'
+                                                      : 'border-card-warning-border bg-warning-soft text-xs text-warning'
                                             }
                                         >
                                             {order.status === 'sent_to_kitchen'

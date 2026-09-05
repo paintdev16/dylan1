@@ -36,7 +36,11 @@ class DashboardController extends Controller
                     'today_sales_digital' => (float) $todayPayments->whereIn('payment_method', ['yape', 'plin'])->sum('amount'),
                     'occupied_tables' => RestaurantTable::query()->where('status', 'occupied')->count(),
                     'total_tables' => RestaurantTable::query()->count(),
-                    'pending_kitchen_items' => OrderItem::query()->where('is_cancelled', false)->whereIn('kitchen_status', ['pending', 'in_preparation'])->count(),
+                    'pending_kitchen_items' => OrderItem::query()
+                        ->where('is_cancelled', false)
+                        ->whereIn('kitchen_status', ['pending', 'in_preparation'])
+                        ->whereHas('order.bill', fn ($query) => $query->where('status', 'open'))
+                        ->count(),
                     'pending_bills_count' => $openBills->count(),
                     'pending_bills_balance' => round((float) $openBills->sum('balance'), 2),
                 ],

@@ -31,14 +31,14 @@ export function TableCard({ table }: Props) {
 
     return (
         <Card
-            className={`overflow-hidden transition-shadow hover:shadow-md ${isOccupied ? 'border-amber-300 bg-amber-50/10 dark:border-amber-800/60' : ''}`}
+            className={`overflow-hidden border hover:shadow-md ${isOccupied ? 'border-card-warning-border bg-warning-soft' : isAvailable ? 'border-card-success-border bg-success-soft' : 'border-destructive/25 bg-destructive-soft'}`}
         >
             <CardHeader className="space-y-3 pb-3">
                 {/* Mesa Header */}
                 <div className="flex min-w-0 items-center justify-between gap-3">
                     <CardTitle className="flex min-w-0 items-center gap-2">
                         <Table2
-                            className={`size-5 shrink-0 ${isOccupied ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}
+                            className={`size-5 shrink-0 ${isOccupied ? 'text-warning' : isAvailable ? 'text-success' : 'text-destructive'}`}
                         />
                         <span className="truncate">Mesa {table.number}</span>
                     </CardTitle>
@@ -136,7 +136,7 @@ export function TableCard({ table }: Props) {
                             >
                                 <Link href={ordersIndex()}>
                                     <Utensils className="size-3.5" />
-                                    Gestionar Comandas / Pedidos
+                                    Gestionar Órdenes / Pedidos
                                 </Link>
                             </Button>
                         </div>

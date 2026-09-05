@@ -2,6 +2,14 @@ import { Form } from '@inertiajs/react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+} from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -75,10 +83,6 @@ export function DailyMenuProductForm({
     const selectedType = selectedSubcategory?.types?.find(
         (type) => type.id.toString() === typeId,
     );
-
-    const selectedProduct =
-        products.find((product) => product.id.toString() === productId) ??
-        dailyMenuProduct?.product;
 
     const requiresType = selectedSubcategory?.code === 'economic_menu';
 
@@ -293,37 +297,50 @@ export function DailyMenuProductForm({
                                     value={productId}
                                 />
 
-                                <Select
-                                    value={productId}
-                                    onValueChange={handleProductChange}
+                                <Combobox
+                                    items={filteredProducts}
+                                    value={
+                                        filteredProducts.find(
+                                            (product) =>
+                                                product.id.toString() ===
+                                                productId,
+                                        ) ?? null
+                                    }
+                                    onValueChange={(product) =>
+                                        handleProductChange(
+                                            (
+                                                product as Product | null
+                                            )?.id.toString() ?? null,
+                                        )
+                                    }
+                                    itemToStringLabel={(product) =>
+                                        product.name
+                                    }
+                                    itemToStringValue={(product) =>
+                                        product.id.toString()
+                                    }
                                 >
-                                    <SelectTrigger
+                                    <ComboboxInput
                                         id="product_id"
+                                        placeholder="Busca o selecciona un producto"
                                         className="w-full"
-                                    >
-                                        <SelectValue placeholder="Selecciona un producto">
-                                            {selectedProduct?.name ??
-                                                'Selecciona un producto'}
-                                        </SelectValue>
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {filteredProducts.length > 0 ? (
-                                            filteredProducts.map((product) => (
-                                                <SelectItem
+                                    />
+                                    <ComboboxContent>
+                                        <ComboboxEmpty>
+                                            No se encontraron productos.
+                                        </ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(product) => (
+                                                <ComboboxItem
                                                     key={product.id}
-                                                    value={product.id.toString()}
+                                                    value={product}
                                                 >
                                                     {product.name}
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className="px-3 py-2 text-sm text-muted-foreground">
-                                                No hay productos disponibles
-                                            </div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
 
                                 {errors.product_id && (
                                     <p className="text-sm text-destructive">

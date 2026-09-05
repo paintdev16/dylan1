@@ -5,6 +5,7 @@ use App\Models\CashRegisterSession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Receipt;
 use App\Models\RestaurantTable;
 use App\Models\TableSession;
 use App\Models\User;
@@ -148,6 +149,11 @@ test('paying 100% of the bill automatically closes bill, table session, complete
         ->and((float) $payment->amount)->toBe(45.00)
         ->and($payment->cash_register_session_id)->toBe($session->id);
 
+    expect(Receipt::query()->count())->toBe(1)
+        ->and(Receipt::firstOrFail()->number)->toBe($payment->receipt_number)
+        ->and(Receipt::firstOrFail()->customer_name)->toBe('Ninguno')
+        ->and(Receipt::firstOrFail()->customer_document)->toBe('00000000');
+
     // 2. Cuenta cerrada
     expect($bill->fresh()->status)->toBe('closed')
         ->and($bill->fresh()->closed_at)->not->toBeNull()
@@ -234,6 +240,10 @@ test('cashier can split a payment across distinct methods and preserves the sale
 
     expect(Payment::query()->count())->toBe(2)
         ->and(Payment::query()->distinct()->count('payment_group_id'))->toBe(1)
+        ->and(Payment::query()->orderBy('id')->pluck('operation_code')->all())->toBe([
+            sprintf('OP-%s-B%06d-01', now('America/Lima')->format('Ymd'), $bill->id),
+            sprintf('OP-%s-B%06d-02', now('America/Lima')->format('Ymd'), $bill->id),
+        ])
         ->and($bill->fresh()->status)->toBe('closed')
         ->and($bill->fresh()->sale_snapshot)->toBeArray()
         ->and($bill->fresh()->sale_snapshot[0]['items'][0]['subtotal'])->toBe('30.00');

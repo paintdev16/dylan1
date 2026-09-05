@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Banknote, ReceiptText } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 import { PageHeader } from '@/components/page-header';
 import { buttonVariants } from '@/components/ui/button';
@@ -35,10 +36,10 @@ export default function Index({ bills }: Props) {
                         <Banknote className="size-4" /> Ir a Caja
                     </Link>
                 </div>
-                <div className="overflow-hidden rounded-xl border bg-background">
+                <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
                     <Table>
                         <TableHeader>
-                            <TableRow>
+                            <TableRow className="bg-cash-soft/70 hover:bg-cash-soft/70">
                                 <TableHead>Cuenta</TableHead>
                                 <TableHead>Mesa</TableHead>
                                 <TableHead>Mozo</TableHead>
@@ -75,16 +76,25 @@ export default function Index({ bills }: Props) {
                                     <TableCell className="text-right">
                                         {money(bill.total_amount)}
                                     </TableCell>
-                                    <TableCell className="text-right text-emerald-600">
+                                    <TableCell className="text-right text-success">
                                         {money(bill.paid_amount)}
                                     </TableCell>
                                     <TableCell className="text-right font-semibold">
                                         {money(bill.balance)}
                                     </TableCell>
                                     <TableCell>
-                                        {bill.status === 'open'
-                                            ? 'Abierta'
-                                            : 'Cerrada'}
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                bill.status === 'open'
+                                                    ? 'border-card-warning-border bg-warning-soft text-warning'
+                                                    : 'border-card-success-border bg-success-soft text-success'
+                                            }
+                                        >
+                                            {bill.status === 'open'
+                                                ? 'Abierta'
+                                                : 'Cerrada'}
+                                        </Badge>
                                     </TableCell>
                                 </TableRow>
                             ))}

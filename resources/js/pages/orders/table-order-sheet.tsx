@@ -222,7 +222,7 @@ export function TableOrderSheet({
             : products.map((product) => ({
                   value: String(product.id),
                   price: Number(product.price),
-                  label: `${product.name} · ${money(product.price)} · ${product.product_stock?.quantity ?? 0} disp.`,
+                  label: `${product.name}${product.presentation ? ` ${product.presentation}` : ''} · ${money(product.price)} · ${product.product_stock?.quantity ?? 0} disp.`,
               }));
 
     const modalityOptions: ComboboxOption[] = modalities.map((modality) => ({

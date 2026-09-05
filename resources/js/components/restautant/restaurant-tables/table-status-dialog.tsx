@@ -40,7 +40,7 @@ export function TableStatusDialog({ table, status: newStatus }: Props) {
                         {isDisabling ? (
                             <AlertTriangle className="size-4 text-destructive" />
                         ) : (
-                            <CheckCircle className="size-4 text-emerald-600" />
+                            <CheckCircle className="size-4 text-success" />
                         )}
                     </Button>
                 }

@@ -18,7 +18,8 @@ class KitchenController extends Controller
                 'bill.restaurantTable',
                 'user',
                 'items' => function ($query) {
-                    $query->whereIn('kitchen_status', ['pending', 'in_preparation', 'ready'])
+                    $query->where('is_cancelled', false)
+                        ->whereIn('kitchen_status', ['pending', 'in_preparation', 'ready'])
                         ->with([
                             'product',
                             'menuModality',
@@ -27,7 +28,8 @@ class KitchenController extends Controller
                 },
             ])
             ->whereHas('items', function ($query) {
-                $query->whereIn('kitchen_status', ['pending', 'in_preparation']);
+                $query->where('is_cancelled', false)
+                    ->whereIn('kitchen_status', ['pending', 'in_preparation']);
             })
             ->whereHas('bill', fn ($query) => $query->where('status', 'open'))
             ->orderBy('created_at', 'asc')

@@ -11,11 +11,13 @@ type Props = {
 
 export function CategoryCard({ category }: Props) {
     return (
-        <Card className="overflow-hidden transition-shadow hover:shadow-md">
+        <Card className="overflow-hidden border border-card-primary-border bg-card-primary hover:border-primary/40 hover:shadow-md">
             <CardHeader className="space-y-3">
                 <div className="flex min-w-0 items-center justify-between gap-3">
                     <CardTitle className="flex min-w-0 items-center gap-2">
-                        <Tag className="size-5 shrink-0 text-muted-foreground" />
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-card/70 text-primary shadow-sm dark:bg-primary dark:text-primary-foreground">
+                            <Tag className="size-4" />
+                        </span>
 
                         <span className="truncate">{category.name}</span>
                     </CardTitle>
@@ -24,11 +26,11 @@ export function CategoryCard({ category }: Props) {
             </CardHeader>
 
             <CardContent>
-                <div className="flex items-center justify-between gap-4 border-t pt-4">
+                <div className="flex items-center justify-between gap-4 border-t border-card-primary-border pt-4">
                     {/* Orden de visualización */}
                     <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-                            <ListOrdered className="size-4 text-muted-foreground" />
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-card/70 text-info shadow-sm dark:bg-info dark:text-info-foreground">
+                            <ListOrdered className="size-4" />
                         </div>
 
                         <div className="min-w-0 space-y-0.5">

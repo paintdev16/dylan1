@@ -1,5 +1,14 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Pencil, Plus, Trash2, UsersIcon } from 'lucide-react';
+import {
+    KeyRound,
+    Pencil,
+    Plus,
+    Search,
+    ShieldCheck,
+    Trash2,
+    UsersIcon,
+    X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -26,7 +35,14 @@ import type { User } from '@/types';
 
 type Props = {
     users: User[];
-    roles: string[];
+    roles: Array<{
+        name: string;
+        permissions: string[];
+    }>;
+    filters: {
+        search: string;
+        role: string;
+    };
     pagination: {
         current_page: number;
         last_page: number;
@@ -41,11 +57,18 @@ type UserForm = {
     role: string;
 };
 
-export default function Index({ users: userList, roles, pagination }: Props) {
+export default function Index({
+    users: userList,
+    roles,
+    filters,
+    pagination,
+}: Props) {
     const getInitials = useInitials();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+    const [search, setSearch] = useState(filters.search);
+    const [roleFilter, setRoleFilter] = useState(filters.role);
 
     const {
         data,
@@ -114,6 +137,29 @@ export default function Index({ users: userList, roles, pagination }: Props) {
         });
     };
 
+    const applyFilters = () => {
+        router.get(
+            index.url(),
+            {
+                search: search || undefined,
+                role: roleFilter || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
+    };
+
+    const clearFilters = () => {
+        setSearch('');
+        setRoleFilter('');
+        router.get(index.url(), {}, { replace: true });
+    };
+
+    const selectedRole = roles.find((role) => role.name === data.role);
+
     return (
         <>
             <Head title="Usuarios" />
@@ -135,10 +181,60 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                     </Button>
                 </div>
 
+                <div className="grid gap-3 rounded-xl border border-primary/15 bg-card p-4 shadow-sm md:grid-cols-[minmax(0,1fr)_14rem_auto]">
+                    <div className="relative">
+                        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    applyFilters();
+                                }
+                            }}
+                            placeholder="Buscar por nombre o correo"
+                            className="pl-9"
+                        />
+                    </div>
+                    <Select
+                        value={roleFilter || 'all'}
+                        onValueChange={(value) =>
+                            setRoleFilter(value === 'all' ? '' : (value ?? ''))
+                        }
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Todos los roles" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los roles</SelectItem>
+                            {roles.map((role) => (
+                                <SelectItem key={role.name} value={role.name}>
+                                    {role.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                        <Button onClick={applyFilters} className="flex-1">
+                            Filtrar
+                        </Button>
+                        {(filters.search || filters.role) && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={clearFilters}
+                                aria-label="Limpiar filtros"
+                            >
+                                <X className="size-4" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
                 {userList.length === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-4 py-20">
-                        <div className="flex size-16 items-center justify-center rounded-2xl bg-secondary">
-                            <UsersIcon className="size-8 text-secondary-foreground-soft" />
+                        <div className="flex size-16 items-center justify-center rounded-2xl bg-primary-soft">
+                            <UsersIcon className="size-8 text-primary" />
                         </div>
                         <div className="text-center">
                             <p className="text-base font-medium text-foreground">
@@ -154,10 +250,10 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                         {userList.map((user) => (
                             <div
                                 key={user.id}
-                                className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-card p-4 transition-all hover:shadow-sm"
+                                className="group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-primary/15 bg-card p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sm font-semibold text-sidebar-accent-foreground">
+                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-sm font-semibold text-primary">
                                         {getInitials(user.name)}
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -208,6 +304,10 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                                             {role}
                                         </span>
                                     ))}
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/15 bg-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                                        <KeyRound className="size-3" />
+                                        {user.permissions?.length ?? 0} permisos
+                                    </span>
                                 </div>
                             </div>
                         ))}
@@ -223,7 +323,11 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                             onClick={() =>
                                 router.get(
                                     index.url(),
-                                    { page: pagination.current_page - 1 },
+                                    {
+                                        page: pagination.current_page - 1,
+                                        search: filters.search || undefined,
+                                        role: filters.role || undefined,
+                                    },
                                     {
                                         preserveState: true,
                                         preserveScroll: true,
@@ -246,7 +350,11 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                             onClick={() =>
                                 router.get(
                                     index.url(),
-                                    { page: pagination.current_page + 1 },
+                                    {
+                                        page: pagination.current_page + 1,
+                                        search: filters.search || undefined,
+                                        role: filters.role || undefined,
+                                    },
                                     {
                                         preserveState: true,
                                         preserveScroll: true,
@@ -338,14 +446,38 @@ export default function Index({ users: userList, roles, pagination }: Props) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roles.map((role) => (
-                                        <SelectItem key={role} value={role}>
-                                            {role}
+                                        <SelectItem
+                                            key={role.name}
+                                            value={role.name}
+                                        >
+                                            {role.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.role} />
                         </div>
+
+                        {selectedRole && (
+                            <div className="rounded-xl border border-primary/15 bg-primary-soft/50 p-3">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                                    <ShieldCheck className="size-4" />
+                                    Permisos incluidos
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {selectedRole.permissions.map(
+                                        (permission) => (
+                                            <span
+                                                key={permission}
+                                                className="rounded-md bg-card px-2 py-1 text-xs text-muted-foreground shadow-xs"
+                                            >
+                                                {permission}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button

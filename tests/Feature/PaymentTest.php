@@ -28,7 +28,10 @@ test('authenticated users can register a partial payment for a bill', function (
         ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'cash',
             'amount' => 40.00,
-            'receipt_number' => 'REC-001',
+            'receipt_number' => 'IGNORED-MANUAL-VALUE',
+            'receipt_type' => 'invoice',
+            'customer_name' => '',
+            'customer_document' => '',
         ])
         ->assertRedirect(route('cash-register.index'));
 
@@ -40,7 +43,14 @@ test('authenticated users can register a partial payment for a bill', function (
         ->cashier_id->toBe($user->id)
         ->payment_method->toBe('cash')
         ->amount->toBe('40.00')
-        ->receipt_number->toBe('REC-001');
+        ->customer_name->toBe('Ninguno')
+        ->customer_document->toBe('00000000')
+        ->receipt_number->toBe(sprintf('B001-%06d-01', $bill->id))
+        ->operation_code->toBe(sprintf(
+            'OP-%s-B%06d-01',
+            now('America/Lima')->format('Ymd'),
+            $bill->id,
+        ));
 
     $bill->refresh();
     expect($bill)
@@ -79,8 +89,6 @@ test('paying the full balance automatically closes the bill and frees the table'
         ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'yape',
             'amount' => 75.50,
-            'operation_code' => 'YAPE-9988',
-            'receipt_number' => 'YAPE-9988',
         ])
         ->assertRedirect(route('cash-register.index'));
 
@@ -91,6 +99,12 @@ test('paying the full balance automatically closes the bill and frees the table'
         ->balance->toBe(0.00);
 
     expect($table->refresh()->status)->toBe('available');
+
+    expect($bill->payments()->value('operation_code'))->toBe(sprintf(
+        'OP-%s-B%06d-01',
+        now('America/Lima')->format('Ymd'),
+        $bill->id,
+    ));
 });
 
 test('cannot pay an amount greater than the pending balance', function () {
@@ -116,7 +130,6 @@ test('cannot pay an amount greater than the pending balance', function () {
         ->post(route('cash-register.pay', $bill), [
             'payment_method' => 'card',
             'amount' => 50.00,
-            'operation_code' => 'POS-50',
         ])
         ->assertRedirect(route('bills.index'))
         ->assertSessionHasErrors('amount');

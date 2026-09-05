@@ -20,6 +20,11 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'root_user' => [
+        'email' => env('ROOT_USER_EMAIL', 'root@restaurant.local'),
+        'password' => env('ROOT_USER_PASSWORD', 'Root123456789!'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards

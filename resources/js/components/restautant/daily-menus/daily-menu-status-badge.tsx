@@ -8,15 +8,14 @@ type Props = {
 const statusConfig = {
     active: {
         label: 'Disponible',
-        className:
-            'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400',
-        dot: 'bg-emerald-500',
+        className: 'bg-success-soft text-success hover:bg-success-soft',
+        dot: 'bg-success-soft',
     },
     inactive: {
         label: 'No disponible',
         className:
-            'bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400',
-        dot: 'bg-red-500',
+            'bg-destructive-soft text-destructive hover:bg-destructive-soft',
+        dot: 'bg-destructive-soft',
     },
 };
 

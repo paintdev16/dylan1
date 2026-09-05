@@ -1,5 +1,6 @@
 import {
     AudioWaveform,
+    ClipboardList,
     ChevronsUpDown,
     CircleDollarSign,
     Command,
@@ -72,9 +73,9 @@ const mainNavItems: RestaurantNavItem[] = [
         roles: ['super-admin', 'admin'],
     },
     {
-        title: 'Comandas',
+        title: 'Órdenes',
         href: ordersIndex(),
-        icon: UtensilsCrossed,
+        icon: ClipboardList,
         roles: ['super-admin', 'admin', 'mozo'],
     },
     {
@@ -153,7 +154,7 @@ export function AppSidebar() {
     const operationalTitles = [
         'Dashboard',
         'Mesas',
-        'Comandas',
+        'Órdenes',
         'Cocina',
         'Caja',
     ];
@@ -165,8 +166,12 @@ export function AppSidebar() {
         visibleNavItems.filter((item) => titles.includes(item.title));
 
     return (
-        <Sidebar collapsible="icon" variant="floating">
-            <SidebarHeader>
+        <Sidebar
+            collapsible="icon"
+            variant="floating"
+            className="[&_[data-slot=sidebar-inner]]:shadow-lg [&_[data-slot=sidebar-inner]]:shadow-primary/10"
+        >
+            <SidebarHeader className="border-b border-sidebar-border/70 bg-linear-to-br from-sidebar-primary/12 to-transparent">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <DropdownMenu>
@@ -174,7 +179,7 @@ export function AppSidebar() {
                                 render={
                                     <SidebarMenuButton
                                         size="lg"
-                                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                                        className="hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                                     />
                                 }
                             >
@@ -190,7 +195,7 @@ export function AppSidebar() {
                                 <ChevronsUpDown className="ml-auto" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
-                                className="w-(--anchor-width) min-w-56 rounded-lg"
+                                className="w-(--anchor-width) min-w-56 rounded-lg border-sidebar-border bg-sidebar text-sidebar-foreground ring-sidebar-border"
                                 side={
                                     sidebar.state === 'collapsed' &&
                                     !sidebar.isMobile
@@ -201,7 +206,7 @@ export function AppSidebar() {
                                 sideOffset={4}
                             >
                                 <DropdownMenuGroup>
-                                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                                    <DropdownMenuLabel className="text-xs text-sidebar-foreground/70">
                                         Equipos
                                     </DropdownMenuLabel>
                                     {teams.map((team) => {
@@ -210,7 +215,7 @@ export function AppSidebar() {
                                         return (
                                             <DropdownMenuItem
                                                 key={team.name}
-                                                className={`gap-2 p-2 ${
+                                                className={`gap-2 p-2 focus:bg-sidebar-accent focus:text-sidebar-accent-foreground ${
                                                     team.name === 'Acme Inc'
                                                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                                                         : ''
@@ -228,7 +233,7 @@ export function AppSidebar() {
                                     })}
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="gap-2 p-2">
+                                <DropdownMenuItem className="gap-2 p-2 focus:bg-sidebar-accent focus:text-sidebar-accent-foreground">
                                     <div className="flex size-6 items-center justify-center rounded-md border border-sidebar-border bg-sidebar text-sidebar-foreground">
                                         <Plus className="size-4" />
                                     </div>
@@ -275,7 +280,7 @@ export function AppSidebar() {
                 />
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="border-t border-sidebar-border/70 bg-sidebar-accent/30">
                 <NavUser />
             </SidebarFooter>
             <SidebarRail />

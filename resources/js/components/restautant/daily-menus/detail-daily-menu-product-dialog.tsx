@@ -94,7 +94,7 @@ export function DetailDailyMenuProductsDialog({ dailyMenu, children }: Props) {
                                                     <p
                                                         className={
                                                             product.active
-                                                                ? 'text-xs font-medium text-emerald-600'
+                                                                ? 'text-xs font-medium text-success'
                                                                 : 'text-xs font-medium text-muted-foreground'
                                                         }
                                                     >
@@ -191,7 +191,7 @@ export function DetailDailyMenuProductsDialog({ dailyMenu, children }: Props) {
                                                     <p
                                                         className={
                                                             product.active
-                                                                ? 'mt-1 font-medium text-emerald-600'
+                                                                ? 'mt-1 font-medium text-success'
                                                                 : 'mt-1 font-medium text-muted-foreground'
                                                         }
                                                     >

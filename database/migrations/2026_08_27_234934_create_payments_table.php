@@ -19,6 +19,11 @@ return new class extends Migration
             $table->foreignId('cashier_id')
                 ->constrained('users')
                 ->restrictOnDelete();
+            $table->foreignId('cash_register_session_id')
+                ->nullable()
+                ->constrained('cash_register_sessions')
+                ->nullOnDelete();
+            $table->uuid('payment_group_id')->nullable();
 
             $table->enum('payment_method', [
                 'cash',
@@ -28,12 +33,20 @@ return new class extends Migration
             ]);
 
             $table->decimal('amount', 10, 2);
+            $table->decimal('received_amount', 10, 2)->nullable();
+            $table->decimal('change_amount', 10, 2)->default(0);
 
             $table->string('receipt_number')
                 ->nullable()
                 ->unique();
+            $table->string('operation_code')->nullable();
+            $table->string('receipt_type')->default('ticket');
+            $table->string('customer_name')->nullable();
+            $table->string('customer_document')->nullable();
 
             $table->timestamps();
+
+            $table->unique(['payment_group_id', 'payment_method']);
         });
 
         if (DB::getDriverName() === 'pgsql') {

@@ -49,20 +49,26 @@ function formatCurrency(amount: number): string {
     return `S/. ${amount.toFixed(2)}`;
 }
 
-function getOrderStatusBadge(status: string, items: OrderItem[]) {
+function resolveOrderStatus(status: string, items: OrderItem[]): string {
     if (
         items.length > 0 &&
         items.every((item) => item.kitchen_status === 'delivered')
     ) {
-        status = 'completed';
+        return 'completed';
     }
+
+    return status;
+}
+
+function getOrderStatusBadge(status: string, items: OrderItem[]) {
+    status = resolveOrderStatus(status, items);
 
     switch (status) {
         case 'pending':
             return (
                 <Badge
                     variant="outline"
-                    className="border-amber-300 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                    className="border-card-warning-border bg-warning-soft text-warning"
                 >
                     Pendiente
                 </Badge>
@@ -71,7 +77,7 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
             return (
                 <Badge
                     variant="outline"
-                    className="border-blue-300 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                    className="border-card-info-border bg-info-soft text-info"
                 >
                     En Cocina
                 </Badge>
@@ -80,7 +86,7 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
             return (
                 <Badge
                     variant="outline"
-                    className="border-emerald-300 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                    className="border-card-success-border bg-success-soft text-success"
                 >
                     Completado
                 </Badge>
@@ -90,33 +96,59 @@ function getOrderStatusBadge(status: string, items: OrderItem[]) {
     }
 }
 
+function getOrderCardClass(status: string, items: OrderItem[]): string {
+    switch (resolveOrderStatus(status, items)) {
+        case 'pending':
+            return 'border-l-warning';
+        case 'sent_to_kitchen':
+            return 'border-l-info';
+        case 'completed':
+            return 'border-l-success';
+        default:
+            return 'border-l-border';
+    }
+}
+
+function getOrderIconClass(status: string, items: OrderItem[]): string {
+    switch (resolveOrderStatus(status, items)) {
+        case 'pending':
+            return 'bg-warning-soft text-warning dark:bg-warning dark:text-warning-foreground';
+        case 'sent_to_kitchen':
+            return 'bg-info-soft text-info dark:bg-info dark:text-info-foreground';
+        case 'completed':
+            return 'bg-success-soft text-success dark:bg-success dark:text-success-foreground';
+        default:
+            return 'bg-primary-soft text-primary';
+    }
+}
+
 function getKitchenStatusLabel(status: string) {
     switch (status) {
         case 'pending':
             return {
                 text: 'En cola',
-                class: 'bg-amber-50 text-amber-700 border-amber-200',
+                class: 'bg-warning-soft text-warning border-card-warning-border',
                 next: 'in_preparation',
                 nextText: 'Preparar',
             };
         case 'in_preparation':
             return {
                 text: 'En preparación',
-                class: 'bg-blue-50 text-blue-700 border-blue-200',
+                class: 'bg-info-soft text-info border-card-info-border',
                 next: 'ready',
                 nextText: 'Listo',
             };
         case 'ready':
             return {
                 text: 'Listo para servir',
-                class: 'bg-purple-50 text-purple-700 border-purple-200',
+                class: 'bg-kitchen-soft text-kitchen border-card-kitchen-border',
                 next: 'delivered',
                 nextText: 'Entregar',
             };
         case 'delivered':
             return {
                 text: 'Entregado',
-                class: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                class: 'bg-success-soft text-success border-card-success-border',
                 next: null,
                 nextText: null,
             };
@@ -168,12 +200,12 @@ export default function Index({
 
     return (
         <>
-            <Head title="Comandas / Pedidos" />
+            <Head title="Órdenes / Pedidos" />
 
             <div className="space-y-6 p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <PageHeader
-                        title="Comandas / Pedidos"
+                        title="Órdenes / Pedidos"
                         description="Gestiona las comandas tomadas por mozos, sus platos y el flujo de preparación."
                     />
                 </div>
@@ -185,7 +217,7 @@ export default function Index({
                             type="button"
                             disabled={table.status === 'out_of_service'}
                             onClick={() => setSelectedTable(table)}
-                            className={`rounded-xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 ${table.status === 'occupied' ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20' : table.status === 'available' ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20' : 'bg-muted'}`}
+                            className={`rounded-xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 ${table.status === 'occupied' ? 'border-card-warning-border bg-warning-soft dark:border-warning/30' : table.status === 'available' ? 'border-card-success-border bg-success-soft dark:border-success/30' : 'bg-muted'}`}
                         >
                             <p className="text-lg font-bold">
                                 Mesa {table.number}
@@ -250,13 +282,15 @@ export default function Index({
                         return (
                             <div
                                 key={`bill-${order.bill_id}`}
-                                className="flex flex-col justify-between rounded-xl border bg-card shadow-sm transition-all hover:shadow-md"
+                                className={`flex flex-col justify-between rounded-xl border border-l-4 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${getOrderCardClass(order.status, items)}`}
                             >
                                 <div>
                                     {/* Header de Comanda */}
                                     <div className="flex items-center justify-between border-b p-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+                                            <div
+                                                className={`flex size-9 items-center justify-center rounded-lg text-sm font-bold shadow-sm ${getOrderIconClass(order.status, items)}`}
+                                            >
                                                 #{order.id}
                                             </div>
                                             <div>
@@ -316,7 +350,7 @@ export default function Index({
                                                     return (
                                                         <div
                                                             key={item.id}
-                                                            className="flex items-center justify-between rounded-lg border bg-muted/10 p-2.5 text-xs"
+                                                            className="flex items-center justify-between rounded-lg border bg-surface-secondary/35 p-2.5 text-xs transition-colors hover:bg-surface-secondary/55"
                                                         >
                                                             <div className="max-w-[60%] space-y-0.5">
                                                                 <p className="font-semibold text-foreground">
@@ -344,7 +378,7 @@ export default function Index({
                                                                         </p>
                                                                     )}
                                                                 {item.notes && (
-                                                                    <p className="text-[11px] text-amber-700 italic dark:text-amber-400">
+                                                                    <p className="text-[11px] text-warning italic">
                                                                         "
                                                                         {
                                                                             item.notes
@@ -387,7 +421,7 @@ export default function Index({
                                 </div>
 
                                 {/* Footer de Comanda */}
-                                <div className="space-y-3 border-t bg-muted/20 p-4">
+                                <div className="space-y-3 border-t bg-surface-secondary/30 p-4">
                                     <div className="flex items-center justify-between text-xs font-semibold">
                                         <span className="text-muted-foreground">
                                             Subtotal Comanda:
@@ -405,7 +439,7 @@ export default function Index({
                     })}
 
                     {filteredOrders.length === 0 && (
-                        <div className="col-span-full space-y-2 rounded-xl border bg-background py-12 text-center text-muted-foreground">
+                        <div className="col-span-full space-y-2 rounded-xl border border-primary/20 bg-primary-soft/35 py-12 text-center text-muted-foreground">
                             <AlertCircle className="mx-auto size-8 text-muted-foreground/60" />
                             <p className="text-sm font-medium">
                                 No hay comandas registradas en este estado.

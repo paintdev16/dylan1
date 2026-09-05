@@ -36,7 +36,9 @@ export function NavMain({
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>
+            <SidebarGroupLabel className="font-semibold tracking-wider text-sidebar-primary/80 uppercase">
+                {groupLabel}
+            </SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
@@ -45,6 +47,7 @@ export function NavMain({
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
                             onClick={() => setOpenMobile(false)}
+                            className="font-medium data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-md data-active:shadow-sidebar-primary/20 [&>svg]:text-sidebar-foreground/70 hover:[&>svg]:text-sidebar-primary data-active:[&>svg]:text-sidebar-primary-foreground"
                         >
                             {item.icon && <item.icon />}
                             <span>{item.title}</span>
@@ -73,6 +76,7 @@ function NavGroup({
     const [open, setOpen] = useState(
         items.some((item) => isCurrentUrl(item.href)),
     );
+    const isGroupActive = items.some((item) => isCurrentUrl(item.href));
     const collapsedDesktop = state === 'collapsed' && !isMobile;
 
     const groupItems = items.map((item) => (
@@ -80,6 +84,11 @@ function NavGroup({
             key={item.title}
             render={<Link href={toUrl(item.href)} prefetch />}
             onClick={() => setOpenMobile(false)}
+            className={`text-sidebar-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground [&>svg]:text-sidebar-foreground/70 ${
+                isCurrentUrl(item.href)
+                    ? 'bg-sidebar-primary font-semibold text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground focus:bg-sidebar-primary focus:text-sidebar-primary-foreground [&>svg]:text-sidebar-primary-foreground'
+                    : ''
+            }`}
         >
             {item.icon && <item.icon />}
             <span>{item.title}</span>
@@ -92,7 +101,11 @@ function NavGroup({
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         render={
-                            <SidebarMenuButton tooltip={{ children: title }}>
+                            <SidebarMenuButton
+                                tooltip={{ children: title }}
+                                isActive={isGroupActive}
+                                className="font-medium data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-md data-active:shadow-sidebar-primary/20 [&>svg]:text-sidebar-foreground/70 hover:[&>svg]:text-sidebar-primary data-active:[&>svg]:text-sidebar-primary-foreground"
+                            >
                                 <Icon />
                                 <span>{title}</span>
                             </SidebarMenuButton>
@@ -101,10 +114,12 @@ function NavGroup({
                     <DropdownMenuContent
                         side="right"
                         align="start"
-                        className="min-w-52"
+                        className="min-w-52 border-sidebar-border bg-sidebar text-sidebar-foreground ring-sidebar-border"
                     >
                         <DropdownMenuGroup>
-                            <DropdownMenuLabel>{title}</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-sidebar-foreground/70">
+                                {title}
+                            </DropdownMenuLabel>
                             {groupItems}
                         </DropdownMenuGroup>
                     </DropdownMenuContent>
@@ -122,8 +137,9 @@ function NavGroup({
                         onClick={() => setOpen((value) => !value)}
                     />
                 }
+                isActive={isGroupActive}
                 tooltip={{ children: title }}
-                className="font-semibold text-muted-foreground"
+                className="font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground [&>svg]:text-sidebar-foreground/70 hover:[&>svg]:text-sidebar-primary data-active:[&>svg]:text-sidebar-primary-foreground"
             >
                 <Icon />
                 <span>{title}</span>
@@ -132,7 +148,7 @@ function NavGroup({
                 />
             </SidebarMenuButton>
             {open && (
-                <SidebarMenu className="ml-3 border-l pl-2 group-data-[collapsible=icon]:hidden">
+                <SidebarMenu className="ml-3 border-sidebar-border pl-2 group-data-[collapsible=icon]:hidden">
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
@@ -142,6 +158,7 @@ function NavGroup({
                                 isActive={isCurrentUrl(item.href)}
                                 tooltip={{ children: item.title }}
                                 onClick={() => setOpenMobile(false)}
+                                className="font-medium data-active:bg-sidebar-primary data-active:font-semibold data-active:text-sidebar-primary-foreground data-active:shadow-sm [&>svg]:text-sidebar-foreground/70 data-active:[&>svg]:text-sidebar-primary-foreground"
                             >
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>

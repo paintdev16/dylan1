@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { index } from '@/routes/menu-categories';
 import { CategoryCard } from '@/components/restautant/menu-categories/category-card';
 import { CategoryDialog } from '@/components/restautant/menu-categories/category-dialog';
+import { Tags } from 'lucide-react';
 type Props = {
     menuCategories: MenuCategory[];
 };
@@ -27,6 +28,20 @@ export default function Index({ menuCategories }: Props) {
                     {menuCategories.map((category) => (
                         <CategoryCard key={category.id} category={category} />
                     ))}
+
+                    {menuCategories.length === 0 && (
+                        <div className="col-span-full flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-card-primary-border bg-card-primary text-center">
+                            <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-card/70 text-primary shadow-sm dark:bg-primary dark:text-primary-foreground">
+                                <Tags className="size-5" />
+                            </div>
+                            <p className="font-medium">
+                                No hay categorías registradas
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Crea una categoría para organizar el menú.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </>
