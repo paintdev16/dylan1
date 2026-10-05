@@ -488,7 +488,7 @@ export default function Profile({
                                             )}
                                         </Form>
                                     </div>
-                                <DrawerFooter className="grid grid-cols-2 gap-2 border-t p-4">
+                                    <DrawerFooter className="grid grid-cols-2 gap-2 border-t p-4">
                                         <Button
                                             type="submit"
                                             form="password-form"
